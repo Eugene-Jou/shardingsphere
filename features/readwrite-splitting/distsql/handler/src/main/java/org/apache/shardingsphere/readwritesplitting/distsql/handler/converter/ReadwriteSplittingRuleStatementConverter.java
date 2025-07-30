@@ -19,53 +19,56 @@ package org.apache.shardingsphere.readwritesplitting.distsql.handler.converter;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
-import org.apache.shardingsphere.readwritesplitting.config.ReadwriteSplittingRuleConfiguration;
-import org.apache.shardingsphere.readwritesplitting.config.rule.ReadwriteSplittingDataSourceGroupRuleConfiguration;
-import org.apache.shardingsphere.readwritesplitting.transaction.TransactionalReadQueryStrategy;
-import org.apache.shardingsphere.readwritesplitting.distsql.segment.ReadwriteSplittingRuleSegment;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
+import org.apache.shardingsphere.readwritesplitting.api.ReadwriteSplittingRuleConfiguration;
+import org.apache.shardingsphere.readwritesplitting.api.rule.ReadwriteSplittingDataSourceRuleConfiguration;
+import org.apache.shardingsphere.readwritesplitting.api.strategy.DynamicReadwriteSplittingStrategyConfiguration;
+import org.apache.shardingsphere.readwritesplitting.api.strategy.StaticReadwriteSplittingStrategyConfiguration;
+import org.apache.shardingsphere.readwritesplitting.distsql.parser.segment.ReadwriteSplittingRuleSegment;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 /**
- * Readwrite-splitting rule statement converter.
+ * Readwrite splitting rule statement converter.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ReadwriteSplittingRuleStatementConverter {
     
     /**
-     * Convert readwrite-splitting rule segments to readwrite-splitting rule configuration.
+     * Convert readwrite splitting rule segments to readwrite splitting rule configuration.
      *
-     * @param ruleSegments readwrite-splitting rule segments
-     * @return readwrite-splitting rule configuration
+     * @param ruleSegments readwrite splitting rule segments
+     * @return readwrite splitting rule configuration
      */
     public static ReadwriteSplittingRuleConfiguration convert(final Collection<ReadwriteSplittingRuleSegment> ruleSegments) {
-        Collection<ReadwriteSplittingDataSourceGroupRuleConfiguration> dataSourceGroups = new LinkedList<>();
-        Map<String, AlgorithmConfiguration> loadBalancers = new HashMap<>(ruleSegments.size(), 1F);
+        Collection<ReadwriteSplittingDataSourceRuleConfiguration> dataSources = new LinkedList<>();
+        Map<String, AlgorithmConfiguration> loadBalancers = new HashMap<>(ruleSegments.size(), 1);
         for (ReadwriteSplittingRuleSegment each : ruleSegments) {
             if (null == each.getLoadBalancer()) {
-                dataSourceGroups.add(createDataSourceGroupRuleConfiguration(each, null));
+                dataSources.add(createDataSourceRuleConfiguration(each, null, each.isAutoAware()));
             } else {
-                String loadBalancerName = getLoadBalancerName(each.getName(), each.getLoadBalancer().getName());
+                String loadBalancerName = getLoadBalancerName(each.getName(), each.getLoadBalancer());
                 loadBalancers.put(loadBalancerName, createLoadBalancer(each));
-                dataSourceGroups.add(createDataSourceGroupRuleConfiguration(each, loadBalancerName));
+                dataSources.add(createDataSourceRuleConfiguration(each, loadBalancerName, each.isAutoAware()));
             }
         }
-        return new ReadwriteSplittingRuleConfiguration(dataSourceGroups, loadBalancers);
+        return new ReadwriteSplittingRuleConfiguration(dataSources, loadBalancers);
     }
     
-    private static ReadwriteSplittingDataSourceGroupRuleConfiguration createDataSourceGroupRuleConfiguration(final ReadwriteSplittingRuleSegment segment, final String loadBalancerName) {
-        return null == segment.getTransactionalReadQueryStrategy()
-                ? new ReadwriteSplittingDataSourceGroupRuleConfiguration(segment.getName(), segment.getWriteDataSource(), new LinkedList<>(segment.getReadDataSources()), loadBalancerName)
-                : new ReadwriteSplittingDataSourceGroupRuleConfiguration(segment.getName(), segment.getWriteDataSource(), new LinkedList<>(segment.getReadDataSources()),
-                        TransactionalReadQueryStrategy.valueOf(segment.getTransactionalReadQueryStrategy().toUpperCase()), loadBalancerName);
+    private static ReadwriteSplittingDataSourceRuleConfiguration createDataSourceRuleConfiguration(final ReadwriteSplittingRuleSegment segment,
+                                                                                                   final String loadBalancerName, final boolean isAutoAware) {
+        return isAutoAware ? new ReadwriteSplittingDataSourceRuleConfiguration(segment.getName(), null,
+                new DynamicReadwriteSplittingStrategyConfiguration(segment.getAutoAwareResource()), loadBalancerName)
+                : new ReadwriteSplittingDataSourceRuleConfiguration(segment.getName(),
+                        new StaticReadwriteSplittingStrategyConfiguration(segment.getWriteDataSource(), new ArrayList<>(segment.getReadDataSources())), null, loadBalancerName);
     }
     
     private static AlgorithmConfiguration createLoadBalancer(final ReadwriteSplittingRuleSegment ruleSegment) {
-        return new AlgorithmConfiguration(ruleSegment.getLoadBalancer().getName(), ruleSegment.getLoadBalancer().getProps());
+        return new AlgorithmConfiguration(ruleSegment.getLoadBalancer(), ruleSegment.getProps());
     }
     
     private static String getLoadBalancerName(final String ruleName, final String type) {

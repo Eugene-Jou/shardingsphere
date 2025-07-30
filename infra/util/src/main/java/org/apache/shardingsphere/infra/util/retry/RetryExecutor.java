@@ -20,7 +20,9 @@ package org.apache.shardingsphere.infra.util.retry;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
-import java.util.function.Predicate;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Retry executor.
@@ -32,19 +34,38 @@ public final class RetryExecutor {
     
     private final long intervalMillis;
     
-    private long elapsedMillis;
+    private long expendMillis;
     
     /**
      * Execute and retry.
      *
-     * @param predicate predicate to be executed
+     * @param function function to be executed
      * @param arg argument
      * @param <T> argument type
-     * @return execute result success or not
+     * @return execute result
      */
-    public <T> boolean execute(final Predicate<T> predicate, final T arg) {
+    public <T> boolean execute(final Function<T, Boolean> function, final T arg) {
         do {
-            if (predicate.test(arg)) {
+            if (function.apply(arg)) {
+                return true;
+            }
+        } while (!isTimeout());
+        return false;
+    }
+    
+    /**
+     * Execute and retry.
+     *
+     * @param function function to be executed
+     * @param arg1 the first argument
+     * @param arg2 the second argument
+     * @param <T> the first argument type
+     * @param <U> the second argument type
+     * @return execute result
+     */
+    public <T, U> boolean execute(final BiFunction<T, U, Boolean> function, final T arg1, final U arg2) {
+        do {
+            if (function.apply(arg1, arg2)) {
                 return true;
             }
         } while (!isTimeout());
@@ -53,11 +74,11 @@ public final class RetryExecutor {
     
     @SneakyThrows(InterruptedException.class)
     private boolean isTimeout() {
-        Thread.sleep(intervalMillis);
-        if (timeoutMillis < 0L) {
+        TimeUnit.MILLISECONDS.sleep(intervalMillis);
+        if (-1L == timeoutMillis) {
             return false;
         }
-        elapsedMillis += intervalMillis;
-        return elapsedMillis > timeoutMillis;
+        expendMillis += intervalMillis;
+        return expendMillis > timeoutMillis;
     }
 }

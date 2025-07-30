@@ -20,8 +20,10 @@ package org.apache.shardingsphere.proxy.frontend.opengauss;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.shardingsphere.db.protocol.opengauss.codec.OpenGaussPacketCodecEngine;
-import org.apache.shardingsphere.infra.exception.dialect.exception.transaction.InTransactionException;
+import org.apache.shardingsphere.db.protocol.postgresql.constant.PostgreSQLServerInfo;
+import org.apache.shardingsphere.dialect.exception.transaction.InTransactionException;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
+import org.apache.shardingsphere.proxy.frontend.context.FrontendContext;
 import org.apache.shardingsphere.proxy.frontend.opengauss.authentication.OpenGaussAuthenticationEngine;
 import org.apache.shardingsphere.proxy.frontend.opengauss.command.OpenGaussCommandExecuteEngine;
 import org.apache.shardingsphere.proxy.frontend.postgresql.PostgreSQLFrontendEngine;
@@ -34,7 +36,7 @@ import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngi
 public final class OpenGaussFrontendEngine implements DatabaseProtocolFrontendEngine {
     
     @Getter(AccessLevel.NONE)
-    private final PostgreSQLFrontendEngine postgresqlFrontendEngine = new PostgreSQLFrontendEngine();
+    private final PostgreSQLFrontendEngine postgreSQLFrontendEngine = new PostgreSQLFrontendEngine();
     
     private final OpenGaussAuthenticationEngine authenticationEngine = new OpenGaussAuthenticationEngine();
     
@@ -43,20 +45,29 @@ public final class OpenGaussFrontendEngine implements DatabaseProtocolFrontendEn
     private final OpenGaussPacketCodecEngine codecEngine = new OpenGaussPacketCodecEngine();
     
     @Override
+    public FrontendContext getFrontendContext() {
+        return postgreSQLFrontendEngine.getFrontendContext();
+    }
+    
+    @Override
+    public void setDatabaseVersion(final String databaseName, final String databaseVersion) {
+        PostgreSQLServerInfo.setServerVersion(databaseVersion);
+    }
+    
+    @Override
     public void release(final ConnectionSession connectionSession) {
-        postgresqlFrontendEngine.release(connectionSession);
+        postgreSQLFrontendEngine.release(connectionSession);
     }
     
     @Override
     public void handleException(final ConnectionSession connectionSession, final Exception exception) {
-        if (connectionSession.getTransactionStatus().isInTransaction() && !connectionSession.getConnectionContext().getTransactionContext().isExceptionOccur()
-                && !(exception instanceof InTransactionException)) {
-            connectionSession.getConnectionContext().getTransactionContext().setExceptionOccur(true);
+        if (connectionSession.getTransactionStatus().isInTransaction() && !connectionSession.getTransactionStatus().isRollbackOnly() && !(exception instanceof InTransactionException)) {
+            connectionSession.getTransactionStatus().setRollbackOnly(true);
         }
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "openGauss";
     }
 }

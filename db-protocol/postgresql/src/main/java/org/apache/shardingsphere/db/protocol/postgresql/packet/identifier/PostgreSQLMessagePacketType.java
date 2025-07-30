@@ -94,10 +94,9 @@ public enum PostgreSQLMessagePacketType implements PostgreSQLIdentifierTag {
     
     /**
      * Value of integer.
-     *
+     * 
      * @param value integer value
      * @return command packet type enum
-     * @throws PostgreSQLProtocolException PostgreSQL protocol exception
      */
     public static PostgreSQLMessagePacketType valueOf(final int value) {
         for (PostgreSQLMessagePacketType each : values()) {

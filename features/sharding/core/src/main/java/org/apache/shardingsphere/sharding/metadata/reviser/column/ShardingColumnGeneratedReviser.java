@@ -19,8 +19,8 @@ package org.apache.shardingsphere.sharding.metadata.reviser.column;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.metadata.database.schema.reviser.column.ColumnGeneratedReviser;
-import org.apache.shardingsphere.infra.database.core.metadata.data.model.ColumnMetaData;
-import org.apache.shardingsphere.sharding.rule.ShardingTable;
+import org.apache.shardingsphere.infra.metadata.database.schema.loader.model.ColumnMetaData;
+import org.apache.shardingsphere.sharding.rule.TableRule;
 
 /**
  * Sharding column generated reviser.
@@ -28,10 +28,10 @@ import org.apache.shardingsphere.sharding.rule.ShardingTable;
 @RequiredArgsConstructor
 public final class ShardingColumnGeneratedReviser implements ColumnGeneratedReviser {
     
-    private final ShardingTable shardingTable;
+    private final TableRule tableRule;
     
     @Override
     public boolean revise(final ColumnMetaData originalMetaData) {
-        return originalMetaData.getName().equalsIgnoreCase(shardingTable.getGenerateKeyColumn().orElse(null));
+        return originalMetaData.getName().equalsIgnoreCase(tableRule.getGenerateKeyColumn().orElse(null));
     }
 }

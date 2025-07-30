@@ -39,7 +39,7 @@ public final class OpenGaussQueryHeaderBuilder implements QueryHeaderBuilder {
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "openGauss";
     }
 }

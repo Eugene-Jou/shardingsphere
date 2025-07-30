@@ -32,25 +32,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLDoubleBinaryProtocolValueTest {
+public final class PostgreSQLDoubleBinaryProtocolValueTest {
     
     @Mock
     private ByteBuf byteBuf;
     
     @Test
-    void assertGetColumnLength() {
-        assertThat(new PostgreSQLDoubleBinaryProtocolValue().getColumnLength(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), ""), is(8));
+    public void assertGetColumnLength() {
+        assertThat(new PostgreSQLDoubleBinaryProtocolValue().getColumnLength(""), is(8));
     }
     
     @Test
-    void assertRead() {
+    public void assertRead() {
         when(byteBuf.readDouble()).thenReturn(1D);
         assertThat(new PostgreSQLDoubleBinaryProtocolValue().read(new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8), 8), is(1D));
     }
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         new PostgreSQLDoubleBinaryProtocolValue().write(new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8), 1D);
-        verify(byteBuf).writeDouble(1.0D);
+        verify(byteBuf).writeDouble(1.0d);
     }
 }

@@ -24,20 +24,20 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class YamlModeConfigurationSwapperTest {
+public final class YamlModeConfigurationSwapperTest {
     
     private static final String TEST_TYPE = "TEST_TYPE";
     
     private final YamlModeConfigurationSwapper swapper = new YamlModeConfigurationSwapper();
     
     @Test
-    void assertSwapToYamlConfiguration() {
+    public void swapToYamlConfiguration() {
         YamlModeConfiguration actual = swapper.swapToYamlConfiguration(new ModeConfiguration("TEST_TYPE", null));
         assertThat(actual.getType(), is(TEST_TYPE));
     }
     
     @Test
-    void assertSwapToObject() {
+    public void swapToObject() {
         YamlModeConfiguration yamlConfig = new YamlModeConfiguration();
         yamlConfig.setType(TEST_TYPE);
         ModeConfiguration actual = swapper.swapToObject(yamlConfig);

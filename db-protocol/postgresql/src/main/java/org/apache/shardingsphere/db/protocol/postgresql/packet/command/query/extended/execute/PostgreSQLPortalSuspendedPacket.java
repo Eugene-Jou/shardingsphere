@@ -25,10 +25,10 @@ import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacket
 /**
  * Portal suspended packet for PostgreSQL.
  */
-public final class PostgreSQLPortalSuspendedPacket extends PostgreSQLIdentifierPacket {
+public final class PostgreSQLPortalSuspendedPacket implements PostgreSQLIdentifierPacket {
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
     }
     
     @Override

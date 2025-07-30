@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLTypeUnspecifiedSQLParameterTest {
+public final class PostgreSQLTypeUnspecifiedSQLParameterTest {
     
     @Test
-    void assertToString() {
+    public void assertToString() {
         assertThat(new PostgreSQLTypeUnspecifiedSQLParameter("2020-08-23 15:57:03+08").toString(), is("2020-08-23 15:57:03+08"));
     }
 }

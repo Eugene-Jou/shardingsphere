@@ -22,12 +22,12 @@ import org.apache.shardingsphere.db.protocol.postgresql.packet.PostgreSQLPacket;
 /**
  * Identifier packet for PostgreSQL.
  */
-public abstract class PostgreSQLIdentifierPacket extends PostgreSQLPacket {
+public interface PostgreSQLIdentifierPacket extends PostgreSQLPacket {
     
     /**
      * Get identifier.
      *
      * @return identifier
      */
-    public abstract PostgreSQLIdentifierTag getIdentifier();
+    PostgreSQLIdentifierTag getIdentifier();
 }

@@ -1,11 +1,11 @@
 +++
 title = "DROP ENCRYPT RULE"
-weight = 3
+weight = 4
 +++
 
 ## 说明
 
-`DROP ENCRYPT RULE` 语法用于删除加密规则。
+`DROP ENCRYPT RULE` 语法用于删除加密规则
 
 ### 语法
 
@@ -13,12 +13,12 @@ weight = 3
 {{% tab name="语法" %}}
 ```sql
 DropEncryptRule ::=
-  'DROP' 'ENCRYPT' 'RULE' ifExists? ruleName (',' ruleName)*
+  'DROP' 'ENCRYPT' 'RULE' ifExists? encryptRuleName (',' encryptRuleName)*
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+encryptRuleName ::=
   identifier
 ```
 {{% /tab %}}

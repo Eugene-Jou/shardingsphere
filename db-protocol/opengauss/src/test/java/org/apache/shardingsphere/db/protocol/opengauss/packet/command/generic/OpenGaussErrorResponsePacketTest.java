@@ -27,10 +27,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class OpenGaussErrorResponsePacketTest {
+public final class OpenGaussErrorResponsePacketTest {
     
     @Test
-    void assertWritePacketFromServerErrorMessage() {
+    public void assertWritePacketFromServerErrorMessage() {
         String encodedMessage = "SFATAL\0C3D000\0Mdatabase \"test\" does not exist\0c-1\0Ddetail\0Hhint\0P1\0p2\0qinternal query\0Wwhere\0Ffile\0L3\0Rroutine\0a0.0.0.0:1";
         OpenGaussErrorResponsePacket packet = new OpenGaussErrorResponsePacket(new ServerErrorMessage(encodedMessage));
         PostgreSQLPacketPayload payload = mock(PostgreSQLPacketPayload.class);
@@ -41,7 +41,7 @@ class OpenGaussErrorResponsePacketTest {
         verify(payload).writeStringNul("3D000");
         verify(payload).writeInt1(OpenGaussErrorResponsePacket.FIELD_TYPE_MESSAGE);
         verify(payload).writeStringNul("database \"test\" does not exist");
-        verify(payload).writeInt1(OpenGaussErrorResponsePacket.FIELD_TYPE_ERROR_CODE);
+        verify(payload).writeInt1(OpenGaussErrorResponsePacket.FIELD_TYPE_ERRORCODE);
         verify(payload).writeStringNul("-1");
         verify(payload).writeInt1(OpenGaussErrorResponsePacket.FIELD_TYPE_DETAIL);
         verify(payload).writeStringNul("detail");
@@ -66,7 +66,7 @@ class OpenGaussErrorResponsePacketTest {
     }
     
     @Test
-    void assertWritePacketFromSeverityAndMessage() {
+    public void assertWritePacketFromSeverityAndMessage() {
         OpenGaussErrorResponsePacket packet = new OpenGaussErrorResponsePacket("FATAL", "3D000", "database \"test\" does not exist");
         PostgreSQLPacketPayload payload = mock(PostgreSQLPacketPayload.class);
         packet.write(payload);
@@ -76,7 +76,7 @@ class OpenGaussErrorResponsePacketTest {
         verify(payload).writeStringNul("3D000");
         verify(payload).writeInt1(OpenGaussErrorResponsePacket.FIELD_TYPE_MESSAGE);
         verify(payload).writeStringNul("database \"test\" does not exist");
-        verify(payload).writeInt1(OpenGaussErrorResponsePacket.FIELD_TYPE_ERROR_CODE);
+        verify(payload).writeInt1(OpenGaussErrorResponsePacket.FIELD_TYPE_ERRORCODE);
         verify(payload).writeStringNul("0");
     }
 }

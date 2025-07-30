@@ -18,44 +18,43 @@
 package org.apache.shardingsphere.sharding.distsql.handler.query;
 
 import com.google.common.base.Strings;
-import lombok.Setter;
-import org.apache.shardingsphere.distsql.handler.aware.DistSQLExecutorRuleAware;
-import org.apache.shardingsphere.distsql.handler.engine.query.DistSQLQueryExecutor;
-import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
+import org.apache.shardingsphere.distsql.handler.query.RQLExecutor;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.merge.result.impl.local.LocalDataQueryResultRow;
-import org.apache.shardingsphere.mode.manager.ContextManager;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
+import org.apache.shardingsphere.infra.util.props.PropertiesConverter;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ShardingStrategyConfiguration;
-import org.apache.shardingsphere.sharding.distsql.statement.ShowUnusedShardingAlgorithmsStatement;
+import org.apache.shardingsphere.sharding.distsql.parser.statement.ShowUnusedShardingAlgorithmsStatement;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 
 /**
  * Show unused sharding algorithms executor.
  */
-@Setter
-public final class ShowUnusedShardingAlgorithmsExecutor implements DistSQLQueryExecutor<ShowUnusedShardingAlgorithmsStatement>, DistSQLExecutorRuleAware<ShardingRule> {
-    
-    private ShardingRule rule;
+public final class ShowUnusedShardingAlgorithmsExecutor implements RQLExecutor<ShowUnusedShardingAlgorithmsStatement> {
     
     @Override
-    public Collection<String> getColumnNames(final ShowUnusedShardingAlgorithmsStatement sqlStatement) {
-        return Arrays.asList("name", "type", "props");
-    }
-    
-    @Override
-    public Collection<LocalDataQueryResultRow> getRows(final ShowUnusedShardingAlgorithmsStatement sqlStatement, final ContextManager contextManager) {
-        ShardingRuleConfiguration shardingRuleConfig = rule.getConfiguration();
+    public Collection<LocalDataQueryResultRow> getRows(final ShardingSphereDatabase database, final ShowUnusedShardingAlgorithmsStatement sqlStatement) {
+        Optional<ShardingRule> rule = database.getRuleMetaData().findSingleRule(ShardingRule.class);
+        if (!rule.isPresent()) {
+            return Collections.emptyList();
+        }
+        ShardingRuleConfiguration shardingRuleConfig = (ShardingRuleConfiguration) rule.get().getConfiguration();
         Collection<LocalDataQueryResultRow> result = new LinkedList<>();
         Collection<String> inUsedAlgorithms = getUsedShardingAlgorithms(shardingRuleConfig);
         for (Entry<String, AlgorithmConfiguration> entry : shardingRuleConfig.getShardingAlgorithms().entrySet()) {
             if (!inUsedAlgorithms.contains(entry.getKey())) {
-                result.add(new LocalDataQueryResultRow(entry.getKey(), entry.getValue().getType(), entry.getValue().getProps()));
+                result.add(new LocalDataQueryResultRow(entry.getKey(), entry.getValue().getType(), buildProps(entry.getValue().getProps())));
             }
         }
         return result;
@@ -64,32 +63,36 @@ public final class ShowUnusedShardingAlgorithmsExecutor implements DistSQLQueryE
     private Collection<String> getUsedShardingAlgorithms(final ShardingRuleConfiguration shardingRuleConfig) {
         Collection<String> result = new LinkedHashSet<>();
         shardingRuleConfig.getTables().forEach(each -> {
-            if (null != each.getDatabaseShardingStrategy()) {
+            if (Objects.nonNull(each.getDatabaseShardingStrategy())) {
                 result.add(each.getDatabaseShardingStrategy().getShardingAlgorithmName());
             }
-            if (null != each.getTableShardingStrategy()) {
+            if (Objects.nonNull(each.getTableShardingStrategy())) {
                 result.add(each.getTableShardingStrategy().getShardingAlgorithmName());
             }
         });
-        shardingRuleConfig.getAutoTables().stream().filter(each -> null != each.getShardingStrategy()).forEach(each -> result.add(each.getShardingStrategy().getShardingAlgorithmName()));
+        shardingRuleConfig.getAutoTables().stream().filter(each -> Objects.nonNull(each.getShardingStrategy())).forEach(each -> result.add(each.getShardingStrategy().getShardingAlgorithmName()));
         ShardingStrategyConfiguration tableShardingStrategy = shardingRuleConfig.getDefaultTableShardingStrategy();
-        if (null != tableShardingStrategy && !Strings.isNullOrEmpty(tableShardingStrategy.getShardingAlgorithmName())) {
+        if (Objects.nonNull(tableShardingStrategy) && !Strings.isNullOrEmpty(tableShardingStrategy.getShardingAlgorithmName())) {
             result.add(tableShardingStrategy.getShardingAlgorithmName());
         }
         ShardingStrategyConfiguration databaseShardingStrategy = shardingRuleConfig.getDefaultDatabaseShardingStrategy();
-        if (null != databaseShardingStrategy && !Strings.isNullOrEmpty(databaseShardingStrategy.getShardingAlgorithmName())) {
+        if (Objects.nonNull(databaseShardingStrategy) && !Strings.isNullOrEmpty(databaseShardingStrategy.getShardingAlgorithmName())) {
             result.add(databaseShardingStrategy.getShardingAlgorithmName());
         }
         return result;
     }
     
     @Override
-    public Class<ShardingRule> getRuleClass() {
-        return ShardingRule.class;
+    public Collection<String> getColumnNames() {
+        return Arrays.asList("name", "type", "props");
+    }
+    
+    private Object buildProps(final Properties props) {
+        return Objects.nonNull(props) ? PropertiesConverter.convert(props) : "";
     }
     
     @Override
-    public Class<ShowUnusedShardingAlgorithmsStatement> getType() {
-        return ShowUnusedShardingAlgorithmsStatement.class;
+    public String getType() {
+        return ShowUnusedShardingAlgorithmsStatement.class.getName();
     }
 }

@@ -24,10 +24,10 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class SQLServerXADataSourceDefinitionTest {
+public final class SQLServerXADataSourceDefinitionTest {
     
     @Test
-    void assertGetXADriverClassName() {
+    public void assertGetXADriverClassName() {
         assertThat(new SQLServerXADataSourceDefinition().getXADriverClassNames(), is(Collections.singletonList("com.microsoft.sqlserver.jdbc.SQLServerXADataSource")));
     }
 }

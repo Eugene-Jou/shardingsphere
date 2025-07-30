@@ -24,10 +24,12 @@ import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
 
 /**
  * COM_QUERY response field count packet for MySQL.
+ * 
+ * @see <a href="https://dev.mysql.com/doc/internals/en/com-query-response.html">COM_QUERY field count</a>
  */
 @RequiredArgsConstructor
 @Getter
-public final class MySQLFieldCountPacket extends MySQLPacket {
+public final class MySQLFieldCountPacket implements MySQLPacket {
     
     private final int columnCount;
     
@@ -36,7 +38,7 @@ public final class MySQLFieldCountPacket extends MySQLPacket {
     }
     
     @Override
-    protected void write(final MySQLPacketPayload payload) {
+    public void write(final MySQLPacketPayload payload) {
         payload.writeIntLenenc(columnCount);
     }
 }

@@ -17,15 +17,12 @@
 
 package org.apache.shardingsphere.db.protocol.mysql.packet.generic;
 
+import org.apache.shardingsphere.dialect.mysql.vendor.MySQLVendorError;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.infra.exception.core.external.sql.sqlstate.XOpenSQLState;
-import org.apache.shardingsphere.infra.exception.mysql.vendor.MySQLVendorError;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.sql.SQLException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,29 +30,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLErrPacketTest {
+public final class MySQLErrPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
     
     @Test
-    void assertNewErrPacketWithSQLException() {
-        MySQLErrPacket actual = new MySQLErrPacket(new SQLException("No reason", "FOO_STATE", 1));
-        assertThat(actual.getErrorCode(), is(1));
-        assertThat(actual.getSqlState(), is("FOO_STATE"));
-        assertThat(actual.getErrorMessage(), is("No reason"));
+    public void assertNewErrPacketWithServerErrorCode() {
+        MySQLErrPacket actual = new MySQLErrPacket(MySQLVendorError.ER_ACCESS_DENIED_ERROR, "root", "localhost", "root");
+        assertThat(actual.getErrorCode(), is(MySQLVendorError.ER_ACCESS_DENIED_ERROR.getVendorCode()));
+        assertThat(actual.getSqlState(), is(MySQLVendorError.ER_ACCESS_DENIED_ERROR.getSqlState().getValue()));
+        assertThat(actual.getErrorMessage(), is(String.format(MySQLVendorError.ER_ACCESS_DENIED_ERROR.getReason(), "root", "localhost", "root")));
     }
     
     @Test
-    void assertNewErrPacketWithVendorError() {
-        MySQLErrPacket actual = new MySQLErrPacket(MySQLVendorError.ER_INTERNAL_ERROR, "No reason");
-        assertThat(actual.getErrorCode(), is(1815));
-        assertThat(actual.getSqlState(), is(XOpenSQLState.GENERAL_ERROR.getValue()));
-        assertThat(actual.getErrorMessage(), is("Internal error: No reason"));
-    }
-    
-    @Test
-    void assertNewErrPacketWithPayload() {
+    public void assertNewErrPacketWithPayload() {
         when(payload.readInt1()).thenReturn(MySQLErrPacket.HEADER);
         when(payload.readInt2()).thenReturn(MySQLVendorError.ER_ACCESS_DENIED_ERROR.getVendorCode());
         when(payload.readStringFix(1)).thenReturn("#");
@@ -68,9 +57,8 @@ class MySQLErrPacketTest {
     }
     
     @Test
-    void assertWrite() {
-        new MySQLErrPacket(new SQLException(MySQLVendorError.ER_NO_DB_ERROR.getReason(),
-                MySQLVendorError.ER_NO_DB_ERROR.getSqlState().getValue(), MySQLVendorError.ER_NO_DB_ERROR.getVendorCode())).write(payload);
+    public void assertWrite() {
+        new MySQLErrPacket(MySQLVendorError.ER_NO_DB_ERROR).write(payload);
         verify(payload).writeInt1(MySQLErrPacket.HEADER);
         verify(payload).writeInt2(1046);
         verify(payload).writeStringFix("#");

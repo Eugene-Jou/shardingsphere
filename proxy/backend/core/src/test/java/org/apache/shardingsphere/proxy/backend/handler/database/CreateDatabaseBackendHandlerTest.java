@@ -17,12 +17,13 @@
 
 package org.apache.shardingsphere.proxy.backend.handler.database;
 
-import org.apache.shardingsphere.infra.exception.dialect.exception.syntax.database.DatabaseCreateExistsException;
+import org.apache.shardingsphere.dialect.exception.syntax.database.DatabaseCreateExistsException;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.response.header.update.UpdateResponseHeader;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.database.CreateDatabaseStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.CreateDatabaseStatement;
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
 import org.apache.shardingsphere.test.mock.StaticMockSettings;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(AutoMockExtension.class)
 @StaticMockSettings(ProxyContext.class)
-class CreateDatabaseBackendHandlerTest {
+public final class CreateDatabaseBackendHandlerTest {
     
     @Mock
     private CreateDatabaseStatement statement;
@@ -50,12 +51,12 @@ class CreateDatabaseBackendHandlerTest {
     private CreateDatabaseBackendHandler handler;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         handler = new CreateDatabaseBackendHandler(statement);
     }
     
     @Test
-    void assertExecuteCreateNewDatabase() throws SQLException {
+    public void assertExecuteCreateNewDatabase() throws SQLException {
         when(statement.getDatabaseName()).thenReturn("bar_db");
         ContextManager contextManager = mockContextManager();
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
@@ -63,7 +64,7 @@ class CreateDatabaseBackendHandlerTest {
     }
     
     @Test
-    void assertExecuteCreateExistDatabase() {
+    public void assertExecuteCreateExistDatabase() {
         when(statement.getDatabaseName()).thenReturn("foo_db");
         ContextManager contextManager = mockContextManager();
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
@@ -72,7 +73,7 @@ class CreateDatabaseBackendHandlerTest {
     }
     
     @Test
-    void assertExecuteCreateExistDatabaseWithIfNotExists() throws SQLException {
+    public void assertExecuteCreateExistDatabaseWithIfNotExists() throws SQLException {
         when(statement.getDatabaseName()).thenReturn("foo_db");
         when(statement.isIfNotExists()).thenReturn(true);
         ContextManager contextManager = mockContextManager();
@@ -80,10 +81,10 @@ class CreateDatabaseBackendHandlerTest {
         assertThat(handler.execute(), instanceOf(UpdateResponseHeader.class));
     }
     
-    private ContextManager mockContextManager() {
+    private static ContextManager mockContextManager() {
         ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
         MetaDataContexts metaDataContexts = mock(MetaDataContexts.class, RETURNS_DEEP_STUBS);
-        when(metaDataContexts.getMetaData().getAllDatabases()).thenReturn(Collections.singleton(mock()));
+        when(metaDataContexts.getMetaData().getDatabases()).thenReturn(Collections.singletonMap("foo_db", mock(ShardingSphereDatabase.class)));
         when(result.getMetaDataContexts()).thenReturn(metaDataContexts);
         return result;
     }

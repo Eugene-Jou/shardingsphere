@@ -19,11 +19,8 @@ package org.apache.shardingsphere.mask.algorithm.replace;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import org.apache.shardingsphere.infra.algorithm.core.exception.AlgorithmInitializationException;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
 import org.apache.shardingsphere.mask.spi.MaskAlgorithm;
 
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -50,8 +47,6 @@ public final class GenericTableRandomReplaceAlgorithm implements MaskAlgorithm<O
     
     private static final String DEFAULT_SPECIAL_CODES = "~,!,@,#,$,%,^,&,*,:,<,>,|";
     
-    private final Random random = new SecureRandom();
-    
     private List<Character> uppercaseLetterCodes;
     
     private List<Character> lowercaseLetterCodes;
@@ -65,9 +60,7 @@ public final class GenericTableRandomReplaceAlgorithm implements MaskAlgorithm<O
         uppercaseLetterCodes = splitPropsToList(props.getProperty(UPPERCASE_LETTER_CODES, DEFAULT_UPPERCASE_LETTER_CODES));
         lowercaseLetterCodes = splitPropsToList(props.getProperty(LOWERCASE_LETTER_CODES, DEFAULT_LOWERCASE_LETTER_CODES));
         digitalCodes = splitPropsToList(props.getProperty(DIGITAL_CODES, DEFAULT_DIGITAL_CODES));
-        ShardingSpherePreconditions.checkNotEmpty(digitalCodes, () -> new AlgorithmInitializationException(this, "'%s' must be not empty", DIGITAL_CODES));
         specialCodes = splitPropsToList(props.getProperty(SPECIAL_CODES, DEFAULT_SPECIAL_CODES));
-        ShardingSpherePreconditions.checkNotEmpty(specialCodes, () -> new AlgorithmInitializationException(this, "'%s' must be not empty", SPECIAL_CODES));
     }
     
     private List<Character> splitPropsToList(final String props) {
@@ -80,14 +73,15 @@ public final class GenericTableRandomReplaceAlgorithm implements MaskAlgorithm<O
         if (Strings.isNullOrEmpty(result)) {
             return result;
         }
+        Random random = new Random();
         char[] chars = result.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
-            if (c >= 'A' && c <= 'Z') {
+            if ('A' <= c && c <= 'Z') {
                 chars[i] = uppercaseLetterCodes.get(random.nextInt(uppercaseLetterCodes.size()));
-            } else if (c >= 'a' && c <= 'z') {
+            } else if ('a' <= c && c <= 'z') {
                 chars[i] = lowercaseLetterCodes.get(random.nextInt(lowercaseLetterCodes.size()));
-            } else if (c >= '0' && c <= '9') {
+            } else if ('0' <= c && c <= '9') {
                 chars[i] = digitalCodes.get(random.nextInt(digitalCodes.size()));
             } else {
                 chars[i] = specialCodes.get(random.nextInt(specialCodes.size()));

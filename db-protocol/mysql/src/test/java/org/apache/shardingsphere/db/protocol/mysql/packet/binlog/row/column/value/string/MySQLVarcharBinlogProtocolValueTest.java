@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLVarcharBinlogProtocolValueTest {
+public final class MySQLVarcharBinlogProtocolValueTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -46,12 +46,12 @@ class MySQLVarcharBinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @BeforeEach
-    void setUp() {
-        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.VARCHAR);
+    public void setUp() {
+        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.MYSQL_TYPE_VARCHAR);
     }
     
     @Test
-    void assertReadVarcharValueWithMeta1() {
+    public void assertReadVarcharValueWithMeta1() {
         assertReadVarcharValueWithMeta("test_value".getBytes());
         assertReadVarcharValueWithMeta(new byte[]{-1, 0, 1});
     }
@@ -67,7 +67,7 @@ class MySQLVarcharBinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadVarcharValueWithMeta2() {
+    public void assertReadVarcharValueWithMeta2() {
         StringBuilder expectedStringBuilder = new StringBuilder("test string for length more than 256");
         for (int i = 0; i < 256; i++) {
             expectedStringBuilder.append(i);

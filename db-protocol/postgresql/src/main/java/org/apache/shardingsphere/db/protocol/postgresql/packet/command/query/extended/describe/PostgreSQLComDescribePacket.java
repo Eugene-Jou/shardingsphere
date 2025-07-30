@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.describe;
 
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.PostgreSQLCommandPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.PostgreSQLCommandPacketType;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.identifier.PostgreSQLIdentifierTag;
@@ -27,6 +28,7 @@ import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacket
  * Command describe packet for PostgreSQL.
  */
 @Getter
+@ToString
 public final class PostgreSQLComDescribePacket extends PostgreSQLCommandPacket {
     
     private final char type;
@@ -40,7 +42,7 @@ public final class PostgreSQLComDescribePacket extends PostgreSQLCommandPacket {
     }
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
     }
     
     @Override

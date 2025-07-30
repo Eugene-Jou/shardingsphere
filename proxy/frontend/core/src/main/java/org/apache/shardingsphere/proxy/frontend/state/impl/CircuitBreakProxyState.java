@@ -18,10 +18,13 @@
 package org.apache.shardingsphere.proxy.frontend.state.impl;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.shardingsphere.db.protocol.packet.DatabasePacket;
+import org.apache.shardingsphere.proxy.frontend.exception.CircuitBreakException;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.infra.exception.kernel.connection.CircuitBreakException;
 import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngine;
 import org.apache.shardingsphere.proxy.frontend.state.ProxyState;
+
+import java.util.Optional;
 
 /**
  * Circuit break proxy state.
@@ -31,6 +34,7 @@ public final class CircuitBreakProxyState implements ProxyState {
     @Override
     public void execute(final ChannelHandlerContext context, final Object message, final DatabaseProtocolFrontendEngine databaseProtocolFrontendEngine, final ConnectionSession connectionSession) {
         context.writeAndFlush(databaseProtocolFrontendEngine.getCommandExecuteEngine().getErrorPacket(new CircuitBreakException()));
-        databaseProtocolFrontendEngine.getCommandExecuteEngine().getOtherPacket(connectionSession).ifPresent(context::writeAndFlush);
+        Optional<DatabasePacket<?>> databasePacket = databaseProtocolFrontendEngine.getCommandExecuteEngine().getOtherPacket(connectionSession);
+        databasePacket.ifPresent(context::writeAndFlush);
     }
 }

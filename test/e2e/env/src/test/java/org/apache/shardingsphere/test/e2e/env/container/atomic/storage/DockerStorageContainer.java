@@ -18,55 +18,69 @@
 package org.apache.shardingsphere.test.e2e.env.container.atomic.storage;
 
 import com.google.common.base.Strings;
+import lombok.AccessLevel;
 import lombok.Getter;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.DockerITContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.constants.StorageContainerConstants;
-import org.apache.shardingsphere.test.e2e.env.container.atomic.util.StorageContainerUtils;
+import org.apache.shardingsphere.test.e2e.env.container.atomic.util.StorageContainerUtil;
 import org.apache.shardingsphere.test.e2e.env.container.wait.JdbcConnectionWaitStrategy;
 import org.apache.shardingsphere.test.e2e.env.runtime.DataSourceEnvironment;
+import org.apache.shardingsphere.test.e2e.env.runtime.scenario.database.DatabaseEnvironmentManager;
+import org.apache.shardingsphere.test.e2e.env.runtime.scenario.path.ScenarioDataPath;
+import org.apache.shardingsphere.test.e2e.env.runtime.scenario.path.ScenarioDataPath.Type;
 import org.testcontainers.containers.BindMode;
 
 import javax.sql.DataSource;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.sql.DriverManager;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Docker storage container.
  */
 @Getter
+@Slf4j
 public abstract class DockerStorageContainer extends DockerITContainer implements StorageContainer {
-    
-    private static final String READY_USER = "ready_user";
-    
-    private static final String READY_USER_PASSWORD = "Ready@123";
     
     private final DatabaseType databaseType;
     
-    private final Map<String, DataSource> actualDataSourceMap = new LinkedHashMap<>();
+    @Getter(AccessLevel.NONE)
+    private final String scenario;
     
-    private final Map<String, DataSource> expectedDataSourceMap = new LinkedHashMap<>();
+    private final Map<String, DataSource> actualDataSourceMap;
     
-    protected DockerStorageContainer(final DatabaseType databaseType, final String containerImage) {
+    private final Map<String, DataSource> expectedDataSourceMap;
+    
+    public DockerStorageContainer(final DatabaseType databaseType, final String containerImage, final String scenario) {
         super(databaseType.getType().toLowerCase(), containerImage);
         this.databaseType = databaseType;
+        this.scenario = scenario;
+        actualDataSourceMap = new LinkedHashMap<>();
+        expectedDataSourceMap = new LinkedHashMap<>();
     }
     
     @Override
     protected void configure() {
         withClasspathResourceMapping("/container/init-sql/" + databaseType.getType().toLowerCase() + "/00-init-authority.sql", "/docker-entrypoint-initdb.d/00-init-authority.sql", BindMode.READ_ONLY);
-        withClasspathResourceMapping("/container/init-sql/" + databaseType.getType().toLowerCase() + "/99-be-ready.sql", "/docker-entrypoint-initdb.d/99-be-ready.sql", BindMode.READ_ONLY);
+        if (Strings.isNullOrEmpty(scenario)) {
+            withClasspathResourceMapping("/env/" + databaseType.getType().toLowerCase() + "/01-initdb.sql", "/docker-entrypoint-initdb.d/01-initdb.sql", BindMode.READ_ONLY);
+        } else {
+            withClasspathResourceMapping(new ScenarioDataPath(scenario).getInitSQLResourcePath(Type.ACTUAL, databaseType) + "/01-actual-init.sql", "/docker-entrypoint-initdb.d/01-actual-init.sql",
+                    BindMode.READ_ONLY);
+            withClasspathResourceMapping(new ScenarioDataPath(scenario).getInitSQLResourcePath(Type.EXPECTED, databaseType) + "/01-expected-init.sql",
+                    "/docker-entrypoint-initdb.d/01-expected-init.sql", BindMode.READ_ONLY);
+        }
         withExposedPorts(getExposedPort());
         setWaitStrategy(new JdbcConnectionWaitStrategy(
                 () -> DriverManager.getConnection(getDefaultDatabaseName().isPresent()
                         ? DataSourceEnvironment.getURL(databaseType, "localhost", getFirstMappedPort(), getDefaultDatabaseName().get())
-                        : DataSourceEnvironment.getURL(databaseType, "localhost", getFirstMappedPort()), READY_USER, READY_USER_PASSWORD)));
+                        : DataSourceEnvironment.getURL(databaseType, "localhost", getFirstMappedPort()), getUsername(), getPassword())));
     }
     
     protected final void setCommands(final String command) {
@@ -85,14 +99,13 @@ public abstract class DockerStorageContainer extends DockerITContainer implement
     }
     
     @Override
+    @SneakyThrows({IOException.class, JAXBException.class})
     protected void postStart() {
-        actualDataSourceMap.putAll(createAccessDataSource(getDatabaseNames()));
-        expectedDataSourceMap.putAll(createAccessDataSource(getExpectedDatabaseNames()));
+        if (!Strings.isNullOrEmpty(scenario)) {
+            DatabaseEnvironmentManager.getDatabaseNames(scenario).forEach(each -> actualDataSourceMap.put(each, createAccessDataSource(each)));
+            DatabaseEnvironmentManager.getExpectedDatabaseNames(scenario).forEach(each -> expectedDataSourceMap.put(each, createAccessDataSource(each)));
+        }
     }
-    
-    protected abstract Collection<String> getDatabaseNames();
-    
-    protected abstract Collection<String> getExpectedDatabaseNames();
     
     /**
      * Create access data source.
@@ -101,17 +114,7 @@ public abstract class DockerStorageContainer extends DockerITContainer implement
      * @return access data source
      */
     public DataSource createAccessDataSource(final String dataSourceName) {
-        return StorageContainerUtils.generateDataSource(getJdbcUrl(dataSourceName), getUsername(), getPassword(), 20);
-    }
-    
-    /**
-     * Create access data source map.
-     *
-     * @param dataSourceNames data source name collection
-     * @return access data source map
-     */
-    public Map<String, DataSource> createAccessDataSource(final Collection<String> dataSourceNames) {
-        return dataSourceNames.stream().distinct().collect(Collectors.toMap(Function.identity(), this::createAccessDataSource));
+        return StorageContainerUtil.generateDataSource(getJdbcUrl(dataSourceName), getUsername(), getPassword(), 4);
     }
     
     /**
@@ -153,7 +156,7 @@ public abstract class DockerStorageContainer extends DockerITContainer implement
     
     /**
      * Get database container mapped port.
-     *
+     * 
      * @return mapped database container port
      */
     public abstract int getMappedPort();
@@ -161,16 +164,5 @@ public abstract class DockerStorageContainer extends DockerITContainer implement
     @Override
     public final String getAbbreviation() {
         return databaseType.getType().toLowerCase();
-    }
-    
-    @Override
-    public Map<String, String> getLinkReplacements() {
-        Map<String, String> replacements = new HashMap<>();
-        for (String each : getNetworkAliases()) {
-            for (Integer exposedPort : getExposedPorts()) {
-                replacements.put(each + ":" + exposedPort, getHost() + ":" + getMappedPort(exposedPort));
-            }
-        }
-        return replacements;
     }
 }

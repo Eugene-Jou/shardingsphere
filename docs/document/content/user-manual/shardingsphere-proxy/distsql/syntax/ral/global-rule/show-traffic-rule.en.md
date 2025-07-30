@@ -1,6 +1,6 @@
 +++
 title = "SHOW TRAFFIC RULE"
-weight = 6
+weight = 9
 +++
 
 ### Description
@@ -30,7 +30,7 @@ ruleName ::=
 
 ### Return Value Description
 
-| Column              | Description                  |
+| Colume              | Description                  |
 |---------------------|------------------------------|
 | name                | traffic rule name            |
 | labels              | compute node labels          |

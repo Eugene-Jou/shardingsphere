@@ -19,16 +19,14 @@ package org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.as
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.column.ColumnSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.BinaryOperationExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.CaseWhenExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.ExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.FunctionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.complex.CommonExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simple.LiteralExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simple.ParameterMarkerExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.subquery.SubqueryExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ExpressionProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.ColumnSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.ExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.FunctionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.complex.CommonExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.LiteralExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.ParameterMarkerExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.subquery.SubqueryExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ExpressionProjectionSegment;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.SQLCaseAssertContext;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.column.ColumnAssert;
 import org.apache.shardingsphere.test.it.sql.parser.internal.asserts.segment.expression.ExpressionAssert;
@@ -46,44 +44,23 @@ public final class AssignmentValueAssert {
      * @param assertContext assert context
      * @param actual actual expression segment
      * @param expected expected assignment value
-     * @throws UnsupportedOperationException unsupported assertion segment exception               
      */
     public static void assertIs(final SQLCaseAssertContext assertContext, final ExpressionSegment actual, final ExpectedAssignmentValue expected) {
         if (actual instanceof ParameterMarkerExpressionSegment) {
             ExpressionAssert.assertParameterMarkerExpression(assertContext, (ParameterMarkerExpressionSegment) actual, expected.getParameterMarkerExpression());
-            return;
-        }
-        if (actual instanceof LiteralExpressionSegment) {
+        } else if (actual instanceof LiteralExpressionSegment) {
             ExpressionAssert.assertLiteralExpression(assertContext, (LiteralExpressionSegment) actual, expected.getLiteralExpression());
             // FIXME should be CommonExpressionProjection, not ExpressionProjectionSegment
-            return;
-        }
-        if (actual instanceof ExpressionProjectionSegment) {
+        } else if (actual instanceof ExpressionProjectionSegment) {
             ExpressionAssert.assertCommonExpression(assertContext, (ExpressionProjectionSegment) actual, expected.getCommonExpression());
-            return;
-        }
-        if (actual instanceof ColumnSegment) {
+        } else if (actual instanceof ColumnSegment) {
             ColumnAssert.assertIs(assertContext, (ColumnSegment) actual, expected.getColumn());
-            return;
-        }
-        if (actual instanceof SubqueryExpressionSegment) {
+        } else if (actual instanceof SubqueryExpressionSegment) {
             ExpressionAssert.assertSubqueryExpression(assertContext, (SubqueryExpressionSegment) actual, expected.getSubquery());
-            return;
-        }
-        if (actual instanceof FunctionSegment) {
+        } else if (actual instanceof FunctionSegment) {
             ExpressionAssert.assertFunction(assertContext, (FunctionSegment) actual, expected.getFunction());
-            return;
-        }
-        if (actual instanceof CommonExpressionSegment) {
+        } else if (actual instanceof CommonExpressionSegment) {
             ExpressionAssert.assertCommonExpression(assertContext, (CommonExpressionSegment) actual, expected.getCommonExpression());
-            return;
-        }
-        if (actual instanceof CaseWhenExpression) {
-            ExpressionAssert.assertCaseWhenExpression(assertContext, (CaseWhenExpression) actual, expected.getCaseWhenExpression());
-            return;
-        }
-        if (actual instanceof BinaryOperationExpression) {
-            ExpressionAssert.assertBinaryOperationExpression(assertContext, (BinaryOperationExpression) actual, expected.getBinaryOperationExpression());
         }
     }
 }

@@ -17,15 +17,14 @@
 
 package org.apache.shardingsphere.infra.merge;
 
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
+import org.apache.shardingsphere.infra.context.ConnectionContext;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
 import org.apache.shardingsphere.infra.merge.fixture.rule.DecoratorRuleFixture;
 import org.apache.shardingsphere.infra.merge.fixture.rule.MergerRuleFixture;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
 import org.apache.shardingsphere.test.fixture.infra.rule.MockedRule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +46,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class MergeEngineTest {
+public final class MergeEngineTest {
     
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ShardingSphereDatabase database;
@@ -56,41 +55,35 @@ class MergeEngineTest {
     private QueryResult queryResult;
     
     @Test
-    void assertMergeWithIndependentRule() throws SQLException {
+    public void assertMergeWithIndependentRule() throws SQLException {
         when(database.getRuleMetaData().getRules()).thenReturn(Collections.singleton(new MockedRule()));
         when(queryResult.getValue(1, String.class)).thenReturn("test");
-        MergedResult actual =
-                new MergeEngine(mock(ShardingSphereMetaData.class), database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class)).merge(
-                        Collections.singletonList(queryResult),
-                        mock(SQLStatementContext.class));
+        MergedResult actual = new MergeEngine(database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class)).merge(Collections.singletonList(queryResult),
+                mock(SQLStatementContext.class));
         assertThat(actual.getValue(1, String.class), is("test"));
     }
     
     @Test
-    void assertMergeWithMergerRuleOnly() throws SQLException {
+    public void assertMergeWithMergerRuleOnly() throws SQLException {
         when(database.getRuleMetaData().getRules()).thenReturn(Collections.singleton(new MergerRuleFixture()));
-        MergedResult actual =
-                new MergeEngine(mock(ShardingSphereMetaData.class), database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class)).merge(
-                        Collections.singletonList(queryResult),
-                        mock(SQLStatementContext.class));
+        MergedResult actual = new MergeEngine(database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class)).merge(Collections.singletonList(queryResult),
+                mock(SQLStatementContext.class));
         assertThat(actual.getValue(1, String.class), is("merged_value"));
     }
     
     @Test
-    void assertMergeWithDecoratorRuleOnly() throws SQLException {
+    public void assertMergeWithDecoratorRuleOnly() throws SQLException {
         when(database.getRuleMetaData().getRules()).thenReturn(Collections.singleton(new DecoratorRuleFixture()));
-        MergedResult actual = new MergeEngine(mock(ShardingSphereMetaData.class), database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class))
-                .merge(Collections.singletonList(queryResult), mock(SQLStatementContext.class));
-        assertThat(actual.getValue(1, String.class), is("decorated_merged_value"));
+        MergedResult actual = new MergeEngine(database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class)).merge(Collections.singletonList(queryResult),
+                mock(SQLStatementContext.class));
+        assertThat(actual.getValue(1, String.class), is("decorated_value"));
     }
     
     @Test
-    void assertMergeWithMergerRuleAndDecoratorRuleTogether() throws SQLException {
+    public void assertMergeWithMergerRuleAndDecoratorRuleTogether() throws SQLException {
         when(database.getRuleMetaData().getRules()).thenReturn(Arrays.asList(new MergerRuleFixture(), new DecoratorRuleFixture()));
-        MergedResult actual =
-                new MergeEngine(mock(ShardingSphereMetaData.class), database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class)).merge(
-                        Collections.singletonList(queryResult),
-                        mock(SQLStatementContext.class));
+        MergedResult actual = new MergeEngine(database, new ConfigurationProperties(new Properties()), mock(ConnectionContext.class)).merge(Collections.singletonList(queryResult),
+                mock(SQLStatementContext.class));
         assertThat(actual.getValue(1, String.class), is("decorated_merged_value"));
     }
 }

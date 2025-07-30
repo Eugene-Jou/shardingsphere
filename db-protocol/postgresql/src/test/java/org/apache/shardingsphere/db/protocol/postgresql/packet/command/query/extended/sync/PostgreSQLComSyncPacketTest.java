@@ -29,13 +29,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLComSyncPacketTest {
+public final class PostgreSQLComSyncPacketTest {
     
     @Mock
     private PostgreSQLPacketPayload payload;
     
     @Test
-    void assertNewInstance() {
+    public void assertNewInstance() {
         PostgreSQLComSyncPacket actual = new PostgreSQLComSyncPacket(payload);
         actual.write(payload);
         verify(payload).readInt4();

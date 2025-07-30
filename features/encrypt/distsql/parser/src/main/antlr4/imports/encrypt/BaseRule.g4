@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 grammar BaseRule;
 
 import Symbol, Keyword, Literals;
@@ -28,20 +28,16 @@ algorithmDefinition
     ;
 
 algorithmTypeName
-    : STRING_ | buildInEncryptAlgorithmType
+    : buildinAlgorithmTypeName | STRING_
     ;
 
-buildInEncryptAlgorithmType
-    : standardEncryptAlgorithm
-    | assistedEncryptAlgorithm
-    ;
-
-standardEncryptAlgorithm
-    : AES
-    ;
-
-assistedEncryptAlgorithm
+buildinAlgorithmTypeName
     : MD5
+    | AES
+    | RC4
+    | SM3
+    | SM4
+    | CHAR_DIGEST_LIKE
     ;
 
 propertiesDefinition
@@ -56,22 +52,6 @@ property
     : key=STRING_ EQ_ value=literal
     ;
 
-databaseName
-    : IDENTIFIER_
-    ;
-
 tableName
     : IDENTIFIER_
-    ;
-
-columnName
-    : IDENTIFIER_
-    ;
-
-ifExists
-    : IF EXISTS
-    ;
-
-ifNotExists
-    : IF NOT EXISTS
     ;

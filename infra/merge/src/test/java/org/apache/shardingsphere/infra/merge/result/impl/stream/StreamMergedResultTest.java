@@ -22,7 +22,6 @@ import org.apache.shardingsphere.infra.merge.result.impl.stream.fixture.TestStre
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
-import java.io.Reader;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.Calendar;
@@ -34,17 +33,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class StreamMergedResultTest {
+public final class StreamMergedResultTest {
     
     private final TestStreamMergedResult streamMergedResult = new TestStreamMergedResult();
     
     @Test
-    void assertGetCurrentQueryResultIfNull() {
+    public void assertGetCurrentQueryResultIfNull() {
         assertThrows(SQLException.class, streamMergedResult::getCurrentQueryResult);
     }
     
     @Test
-    void assertGetValue() throws SQLException {
+    public void assertGetValue() throws SQLException {
         QueryResult queryResult = mock(QueryResult.class);
         when(queryResult.getValue(1, Object.class)).thenReturn("1");
         streamMergedResult.setCurrentQueryResult(queryResult);
@@ -52,7 +51,7 @@ class StreamMergedResultTest {
     }
     
     @Test
-    void assertGetCalendarValue() throws SQLException {
+    public void assertGetCalendarValue() throws SQLException {
         QueryResult queryResult = mock(QueryResult.class);
         Calendar calendar = Calendar.getInstance();
         when(queryResult.getCalendarValue(1, Date.class, calendar)).thenReturn(new Date(0L));
@@ -61,25 +60,16 @@ class StreamMergedResultTest {
     }
     
     @Test
-    void assertGetInputStream() throws SQLException {
+    public void assertGetInputStream() throws SQLException {
         QueryResult queryResult = mock(QueryResult.class);
-        InputStream inputStream = mock(InputStream.class);
-        when(queryResult.getInputStream(1, "Ascii")).thenReturn(inputStream);
+        InputStream value = mock(InputStream.class);
+        when(queryResult.getInputStream(1, "Ascii")).thenReturn(value);
         streamMergedResult.setCurrentQueryResult(queryResult);
-        assertThat(streamMergedResult.getInputStream(1, "Ascii"), is(inputStream));
+        assertThat(streamMergedResult.getInputStream(1, "Ascii"), is(value));
     }
     
     @Test
-    void assertGetCharacterStream() throws SQLException {
-        QueryResult queryResult = mock(QueryResult.class);
-        Reader reader = mock(Reader.class);
-        when(queryResult.getCharacterStream(1)).thenReturn(reader);
-        streamMergedResult.setCurrentQueryResult(queryResult);
-        assertThat(streamMergedResult.getCharacterStream(1), is(reader));
-    }
-    
-    @Test
-    void assertWasNull() {
+    public void assertWasNull() {
         QueryResult queryResult = mock(QueryResult.class);
         streamMergedResult.setCurrentQueryResult(queryResult);
         assertFalse(streamMergedResult.wasNull());

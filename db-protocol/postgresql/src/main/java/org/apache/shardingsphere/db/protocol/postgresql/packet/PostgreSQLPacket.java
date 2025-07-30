@@ -18,18 +18,10 @@
 package org.apache.shardingsphere.db.protocol.postgresql.packet;
 
 import org.apache.shardingsphere.db.protocol.packet.DatabasePacket;
-import org.apache.shardingsphere.db.protocol.payload.PacketPayload;
 import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacketPayload;
 
 /**
  * Database packet for PostgreSQL.
  */
-public abstract class PostgreSQLPacket implements DatabasePacket {
-    
-    @Override
-    public void write(final PacketPayload payload) {
-        write((PostgreSQLPacketPayload) payload);
-    }
-    
-    protected abstract void write(PostgreSQLPacketPayload payload);
+public interface PostgreSQLPacket extends DatabasePacket<PostgreSQLPacketPayload> {
 }

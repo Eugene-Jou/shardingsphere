@@ -1,19 +1,22 @@
 +++
 title = "IMPORT DATABASE CONFIGURATION"
-weight = 14
+weight = 10
 +++
 
 ### Description
 
-The `IMPORT DATABASE CONFIGURATION` syntax is used to import a database from the configuration in `YAML`.
+The `IMPORT DATABASE CONFIGURATION` syntax is used to import `YAML` configuration to specified database.
 
 ### Syntax
 
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-ImportDatabaseConfiguration ::=
-  'IMPORT' 'DATABASE' 'CONFIGURATION' 'FROM' 'FILE' filePath
+ExportDatabaseConfiguration ::=
+  'IMPORT' 'DATABASE' 'CONFIGURATION' 'FROM' 'FILE' filePath ('TO' databaseName)?
+
+databaseName ::=
+  identifier
 
 filePath ::=
   string
@@ -26,11 +29,19 @@ filePath ::=
 
 ### Supplement
 
-- When a database with the same name already exists in the metadata, it cannot be imported;
-- When `databaseName` in YAML is empty, it cannot be imported;
-- When `dataSources` in YAML is empty, only empty database will be imported.
+- When `databaseName` is not specified, the default is the currently used `DATABASE`. If `DATABASE` is not used, `No database selected` will be prompted.
+
+- The `IMPORT DATABASE CONFIGURATION` syntax only supports import operations on empty database.
 
 ### Example
+
+- Import the configuration in `YAML` into the specified database
+
+```sql
+IMPORT DATABASE CONFIGURATION FROM FILE "/xxx/config_sharding_db.yaml" TO sharding_db;
+```
+
+- Import the configuration in `YAML` into the current database
 
 ```sql
 IMPORT DATABASE CONFIGURATION FROM FILE "/xxx/config_sharding_db.yaml";
@@ -38,7 +49,7 @@ IMPORT DATABASE CONFIGURATION FROM FILE "/xxx/config_sharding_db.yaml";
 
 ### Reserved word
 
-`IMPORT`, `DATABASE`, `CONFIGURATION`, `FROM`, `FILE`
+`IMPORT`, `DATABASE`, `CONFIGURATION`, `FROM`, `FILE`, `TO`
 
 ### Related links
 

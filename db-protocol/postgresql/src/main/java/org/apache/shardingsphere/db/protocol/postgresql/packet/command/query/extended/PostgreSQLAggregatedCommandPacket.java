@@ -17,7 +17,9 @@
 
 package org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.PostgreSQLCommandPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.bind.PostgreSQLComBindPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.execute.PostgreSQLComExecutePacket;
@@ -26,46 +28,48 @@ import org.apache.shardingsphere.db.protocol.postgresql.packet.identifier.Postgr
 import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacketPayload;
 
 import java.util.List;
+import java.util.RandomAccess;
 
 @Getter
+@ToString
 public final class PostgreSQLAggregatedCommandPacket extends PostgreSQLCommandPacket {
     
     private final List<PostgreSQLCommandPacket> packets;
     
     private final boolean containsBatchedStatements;
     
-    private final int batchPacketBeginIndex;
+    private final int firstBindIndex;
     
-    private final int batchPacketEndIndex;
+    private final int lastExecuteIndex;
     
     public PostgreSQLAggregatedCommandPacket(final List<PostgreSQLCommandPacket> packets) {
         this.packets = packets;
-        String firstStatementId = null;
+        int parseTimes = 0;
+        int firstStatementBindTimes = 0;
+        int firstStatementExecuteTimes = 0;
+        String firstStatement = null;
         String firstPortal = null;
-        int parsePacketCount = 0;
-        int bindPacketCountForFirstStatement = 0;
-        int executePacketCountForFirstStatement = 0;
-        int batchPacketBeginIndex = -1;
-        int batchPacketEndIndex = -1;
         int index = 0;
+        int firstBindIndex = -1;
+        int lastExecuteIndex = -1;
         for (PostgreSQLCommandPacket each : packets) {
             if (each instanceof PostgreSQLComParsePacket) {
-                if (++parsePacketCount > 1) {
+                if (++parseTimes > 1) {
                     break;
                 }
-                if (null == firstStatementId) {
-                    firstStatementId = ((PostgreSQLComParsePacket) each).getStatementId();
-                } else if (!firstStatementId.equals(((PostgreSQLComParsePacket) each).getStatementId())) {
+                if (null == firstStatement) {
+                    firstStatement = ((PostgreSQLComParsePacket) each).getStatementId();
+                } else if (!firstStatement.equals(((PostgreSQLComParsePacket) each).getStatementId())) {
                     break;
                 }
             }
             if (each instanceof PostgreSQLComBindPacket) {
-                if (-1 == batchPacketBeginIndex) {
-                    batchPacketBeginIndex = index;
+                if (-1 == firstBindIndex) {
+                    firstBindIndex = index;
                 }
-                if (null == firstStatementId) {
-                    firstStatementId = ((PostgreSQLComBindPacket) each).getStatementId();
-                } else if (!firstStatementId.equals(((PostgreSQLComBindPacket) each).getStatementId())) {
+                if (null == firstStatement) {
+                    firstStatement = ((PostgreSQLComBindPacket) each).getStatementId();
+                } else if (!firstStatement.equals(((PostgreSQLComBindPacket) each).getStatementId())) {
                     break;
                 }
                 if (null == firstPortal) {
@@ -73,28 +77,34 @@ public final class PostgreSQLAggregatedCommandPacket extends PostgreSQLCommandPa
                 } else if (!firstPortal.equals(((PostgreSQLComBindPacket) each).getPortal())) {
                     break;
                 }
-                bindPacketCountForFirstStatement++;
+                firstStatementBindTimes++;
             }
             if (each instanceof PostgreSQLComExecutePacket) {
-                if (index > batchPacketEndIndex) {
-                    batchPacketEndIndex = index;
+                if (index > lastExecuteIndex) {
+                    lastExecuteIndex = index;
                 }
                 if (null == firstPortal) {
                     firstPortal = ((PostgreSQLComExecutePacket) each).getPortal();
                 } else if (!firstPortal.equals(((PostgreSQLComExecutePacket) each).getPortal())) {
                     break;
                 }
-                executePacketCountForFirstStatement++;
+                firstStatementExecuteTimes++;
             }
             index++;
         }
-        this.batchPacketBeginIndex = batchPacketBeginIndex;
-        this.batchPacketEndIndex = batchPacketEndIndex;
-        containsBatchedStatements = bindPacketCountForFirstStatement == executePacketCountForFirstStatement && bindPacketCountForFirstStatement >= 3;
+        this.firstBindIndex = firstBindIndex;
+        this.lastExecuteIndex = lastExecuteIndex;
+        if (this.containsBatchedStatements = firstStatementBindTimes == firstStatementExecuteTimes && firstStatementBindTimes >= 3) {
+            ensureRandomAccessible(packets);
+        }
+    }
+    
+    private void ensureRandomAccessible(final List<PostgreSQLCommandPacket> packets) {
+        Preconditions.checkArgument(packets instanceof RandomAccess, "Packets must be RandomAccess.");
     }
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
     }
     
     @Override

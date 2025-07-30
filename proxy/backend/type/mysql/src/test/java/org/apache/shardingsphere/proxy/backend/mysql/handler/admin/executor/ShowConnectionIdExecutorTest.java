@@ -19,27 +19,27 @@ package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResultMetaData;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ExpressionProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ProjectionsSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.AliasSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ExpressionProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionsSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.AliasSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.SelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ShowConnectionIdExecutorTest {
+public final class ShowConnectionIdExecutorTest {
     
     @Test
-    void assertExecute() throws SQLException {
+    public void assertExecute() throws SQLException {
         ShowConnectionIdExecutor executor = new ShowConnectionIdExecutor(mockSelectStatement());
         executor.execute(mockConnectionSession());
         QueryResultMetaData metaData = executor.getQueryResultMetaData();
@@ -47,12 +47,12 @@ class ShowConnectionIdExecutorTest {
         assertThat(metaData.getColumnName(1), is(ShowConnectionIdExecutor.FUNCTION_NAME));
         assertThat(metaData.getColumnLabel(1), is(ShowConnectionIdExecutor.FUNCTION_NAME));
         while (executor.getMergedResult().next()) {
-            assertThat(executor.getMergedResult().getValue(1, Object.class), is("109"));
+            assertThat(executor.getMergedResult().getValue(1, Object.class), is(109));
         }
     }
     
     @Test
-    void assertExecuteWithAlias() throws SQLException {
+    public void assertExecuteWithAlias() throws SQLException {
         ShowConnectionIdExecutor executor = new ShowConnectionIdExecutor(mockSelectStatementWithAlias());
         executor.execute(mockConnectionSession());
         QueryResultMetaData metaData = executor.getQueryResultMetaData();
@@ -60,7 +60,7 @@ class ShowConnectionIdExecutorTest {
         assertThat(metaData.getColumnName(1), is(ShowConnectionIdExecutor.FUNCTION_NAME));
         assertThat(metaData.getColumnLabel(1), is("test_alias"));
         while (executor.getMergedResult().next()) {
-            assertThat(executor.getMergedResult().getValue(1, Object.class), is("109"));
+            assertThat(executor.getMergedResult().getValue(1, Object.class), is(109));
         }
     }
     
@@ -71,7 +71,7 @@ class ShowConnectionIdExecutorTest {
     }
     
     private SelectStatement mockSelectStatement() {
-        List<ProjectionSegment> projections = new LinkedList<>();
+        Collection<ProjectionSegment> projections = new LinkedList<>();
         ProjectionsSegment segment = mock(ProjectionsSegment.class);
         when(segment.getProjections()).thenReturn(projections);
         SelectStatement result = mock(SelectStatement.class);
@@ -80,7 +80,7 @@ class ShowConnectionIdExecutorTest {
     }
     
     private SelectStatement mockSelectStatementWithAlias() {
-        List<ProjectionSegment> projections = new LinkedList<>();
+        Collection<ProjectionSegment> projections = new LinkedList<>();
         ExpressionProjectionSegment projectionSegment = new ExpressionProjectionSegment(0, 0, "connection_id()");
         projectionSegment.setAlias(new AliasSegment(0, 0, new IdentifierValue("test_alias")));
         projections.add(projectionSegment);

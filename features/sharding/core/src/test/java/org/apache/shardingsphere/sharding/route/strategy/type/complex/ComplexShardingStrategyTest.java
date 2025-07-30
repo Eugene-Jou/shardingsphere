@@ -36,12 +36,12 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class ComplexShardingStrategyTest {
+public final class ComplexShardingStrategyTest {
     
     private static final DataNodeInfo DATA_NODE_INFO = new DataNodeInfo("logicTable_", 1, '0');
     
     @Test
-    void assertDoSharding() {
+    public void assertDoSharding() {
         Collection<String> targets = new HashSet<>(Arrays.asList("1", "2", "3"));
         ComplexShardingStrategy complexShardingStrategy = new ComplexShardingStrategy("column1, column2", new CoreComplexKeysShardingAlgorithmFixture());
         List<ShardingConditionValue> shardingConditionValues =

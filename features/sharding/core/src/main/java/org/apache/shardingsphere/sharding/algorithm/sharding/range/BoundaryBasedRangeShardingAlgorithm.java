@@ -19,8 +19,8 @@ package org.apache.shardingsphere.sharding.algorithm.sharding.range;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Range;
-import org.apache.shardingsphere.infra.algorithm.core.exception.AlgorithmInitializationException;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
+import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
+import org.apache.shardingsphere.sharding.exception.algorithm.sharding.ShardingAlgorithmInitializationException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,11 +38,11 @@ public final class BoundaryBasedRangeShardingAlgorithm extends AbstractRangeShar
     
     @Override
     public Map<Integer, Range<Comparable<?>>> calculatePartitionRange(final Properties props) {
-        ShardingSpherePreconditions.checkContainsKey(props, SHARDING_RANGES_KEY, () -> new AlgorithmInitializationException(this, "Sharding ranges cannot be null."));
+        ShardingSpherePreconditions.checkState(props.containsKey(SHARDING_RANGES_KEY), () -> new ShardingAlgorithmInitializationException(getType(), "Sharding ranges cannot be null."));
         List<Long> partitionRanges = Splitter.on(",").trimResults().splitToList(props.getProperty(SHARDING_RANGES_KEY)).stream()
                 .map(this::parseLong).filter(Objects::nonNull).sorted().collect(Collectors.toList());
-        ShardingSpherePreconditions.checkNotEmpty(partitionRanges, () -> new AlgorithmInitializationException(this, "Sharding ranges can not be empty."));
-        Map<Integer, Range<Comparable<?>>> result = new HashMap<>(partitionRanges.size() + 1, 1F);
+        ShardingSpherePreconditions.checkState(!partitionRanges.isEmpty(), () -> new ShardingAlgorithmInitializationException(getType(), "Sharding ranges can not be empty."));
+        Map<Integer, Range<Comparable<?>>> result = new HashMap<>(partitionRanges.size() + 1, 1);
         for (int i = 0; i < partitionRanges.size(); i++) {
             Long rangeValue = partitionRanges.get(i);
             if (0 == i) {

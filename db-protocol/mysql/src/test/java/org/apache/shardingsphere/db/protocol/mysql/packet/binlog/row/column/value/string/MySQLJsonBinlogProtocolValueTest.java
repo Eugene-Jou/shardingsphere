@@ -22,7 +22,7 @@ import org.apache.shardingsphere.db.protocol.mysql.constant.MySQLBinaryColumnTyp
 import org.apache.shardingsphere.db.protocol.mysql.packet.binlog.row.column.MySQLBinlogColumnDef;
 import org.apache.shardingsphere.db.protocol.mysql.packet.binlog.row.column.value.string.MySQLJsonValueDecoder.JsonValueTypes;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.infra.exception.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.type.generic.UnsupportedSQLOperationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class MySQLJsonBinlogProtocolValueTest {
+public final class MySQLJsonBinlogProtocolValueTest {
     
     private static final String KEY = "key";
     
@@ -56,8 +56,8 @@ class MySQLJsonBinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @BeforeEach
-    void setUp() {
-        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.JSON);
+    public void setUp() {
+        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.MySQL_TYPE_JSON);
         when(payload.getByteBuf()).thenReturn(byteBuf);
         mockJsonValue();
     }
@@ -74,7 +74,7 @@ class MySQLJsonBinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadJsonValueWithMeta1() {
+    public void assertReadJsonValueWithMeta1() {
         columnDef.setColumnMeta(1);
         when(byteBuf.readUnsignedByte()).thenReturn((short) 1);
         when(byteBuf.readBytes(1)).thenReturn(jsonValueByteBuf);
@@ -82,7 +82,7 @@ class MySQLJsonBinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadJsonValueWithMeta2() {
+    public void assertReadJsonValueWithMeta2() {
         columnDef.setColumnMeta(2);
         when(byteBuf.readUnsignedShortLE()).thenReturn(2);
         when(byteBuf.readBytes(2)).thenReturn(jsonValueByteBuf);
@@ -90,7 +90,7 @@ class MySQLJsonBinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadJsonValueWithMeta3() {
+    public void assertReadJsonValueWithMeta3() {
         columnDef.setColumnMeta(3);
         when(byteBuf.readUnsignedMediumLE()).thenReturn(3);
         when(byteBuf.readBytes(3)).thenReturn(jsonValueByteBuf);
@@ -98,7 +98,7 @@ class MySQLJsonBinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadJsonValueWithMeta4() {
+    public void assertReadJsonValueWithMeta4() {
         columnDef.setColumnMeta(4);
         when(payload.readInt4()).thenReturn(4);
         when(byteBuf.readBytes(4)).thenReturn(jsonValueByteBuf);
@@ -106,7 +106,7 @@ class MySQLJsonBinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadJsonValueWithIllegalMeta() {
+    public void assertReadJsonValueWithIllegalMeta() {
         columnDef.setColumnMeta(5);
         assertThrows(UnsupportedSQLOperationException.class, () -> new MySQLJsonBinlogProtocolValue().read(columnDef, payload));
     }

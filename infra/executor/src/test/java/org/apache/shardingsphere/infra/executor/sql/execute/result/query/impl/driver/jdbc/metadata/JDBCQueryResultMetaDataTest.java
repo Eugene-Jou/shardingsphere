@@ -22,22 +22,20 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Types;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class JDBCQueryResultMetaDataTest {
+public final class JDBCQueryResultMetaDataTest {
     
     private JDBCQueryResultMetaData queryResultMetaData;
     
     @BeforeEach
-    void setUp() throws SQLException {
+    public void setUp() throws SQLException {
         queryResultMetaData = new JDBCQueryResultMetaData(mockResultSetMetaData());
     }
     
@@ -58,78 +56,57 @@ class JDBCQueryResultMetaDataTest {
     }
     
     @Test
-    void assertGetColumnCount() throws SQLException {
+    public void assertGetColumnCount() throws SQLException {
         assertThat(queryResultMetaData.getColumnCount(), is(1));
     }
     
     @Test
-    void assertGetColumnName() throws SQLException {
+    public void assertGetColumnName() throws SQLException {
         assertThat(queryResultMetaData.getColumnName(1), is("order_id"));
     }
     
     @Test
-    void assertGetColumnLabel() throws SQLException {
+    public void assertGetColumnLabel() throws SQLException {
         assertThat(queryResultMetaData.getColumnLabel(1), is("oid"));
     }
     
     @Test
-    void assertGetColumnTypeName() throws SQLException {
+    public void assertGetColumnTypeName() throws SQLException {
         assertThat(queryResultMetaData.getColumnTypeName(1), is("INT"));
     }
     
     @Test
-    void assertGetTableName() throws SQLException {
+    public void assertGetTableName() throws SQLException {
         assertThat(queryResultMetaData.getTableName(1), is("order"));
     }
     
     @Test
-    void assertGetTableNameWithException() throws SQLException {
-        ResultSetMetaData resultSetMetaData = mock(ResultSetMetaData.class);
-        when(resultSetMetaData.getTableName(1)).thenThrow(new SQLFeatureNotSupportedException());
-        assertThat(new JDBCQueryResultMetaData(resultSetMetaData).getTableName(1), is(""));
-    }
-    
-    @Test
-    void assertGetColumnType() throws SQLException {
+    public void assertGetColumnType() throws SQLException {
         assertThat(queryResultMetaData.getColumnType(1), is(Types.INTEGER));
     }
     
     @Test
-    void assertGetColumnLength() throws SQLException {
+    public void assertGetColumnLength() throws SQLException {
         assertThat(queryResultMetaData.getColumnLength(1), is(10));
     }
     
     @Test
-    void assertGetDecimals() throws SQLException {
+    public void assertGetDecimals() throws SQLException {
         assertThat(queryResultMetaData.getDecimals(1), is(0));
     }
     
     @Test
-    void assertIsSigned() throws SQLException {
+    public void assertIsSigned() throws SQLException {
         assertTrue(queryResultMetaData.isSigned(1));
     }
     
     @Test
-    void assertIsSignedWithException() throws SQLException {
-        ResultSetMetaData resultSetMetaData = mock(ResultSetMetaData.class);
-        when(resultSetMetaData.isSigned(1)).thenThrow(new SQLFeatureNotSupportedException());
-        assertFalse(new JDBCQueryResultMetaData(resultSetMetaData).isSigned(1));
-    }
-    
-    @Test
-    void assertIsNotNull() throws SQLException {
+    public void assertIsNotNull() throws SQLException {
         assertTrue(queryResultMetaData.isNotNull(1));
     }
     
     @Test
-    void assertIsNull() throws SQLException {
-        ResultSetMetaData resultSetMetaData = mock(ResultSetMetaData.class);
-        when(resultSetMetaData.isNullable(1)).thenReturn(ResultSetMetaData.columnNullableUnknown);
-        assertFalse(new JDBCQueryResultMetaData(resultSetMetaData).isNotNull(1));
-    }
-    
-    @Test
-    void assertIsAutoIncrement() throws SQLException {
+    public void assertIsAutoIncrement() throws SQLException {
         assertTrue(queryResultMetaData.isAutoIncrement(1));
     }
 }

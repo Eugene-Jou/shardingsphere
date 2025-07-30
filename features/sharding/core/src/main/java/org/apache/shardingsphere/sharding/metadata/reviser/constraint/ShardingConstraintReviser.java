@@ -18,12 +18,11 @@
 package org.apache.shardingsphere.sharding.metadata.reviser.constraint;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.metadata.data.model.ConstraintMetaData;
 import org.apache.shardingsphere.infra.datanode.DataNode;
 import org.apache.shardingsphere.infra.metadata.database.schema.reviser.constraint.ConstraintReviser;
-import org.apache.shardingsphere.infra.rule.attribute.datanode.DataNodeRuleAttribute;
+import org.apache.shardingsphere.infra.metadata.database.schema.loader.model.ConstraintMetaData;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
-import org.apache.shardingsphere.sharding.rule.ShardingTable;
+import org.apache.shardingsphere.sharding.rule.TableRule;
 
 import java.util.Optional;
 
@@ -33,16 +32,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public final class ShardingConstraintReviser implements ConstraintReviser<ShardingRule> {
     
-    private final ShardingTable shardingTable;
+    private final TableRule tableRule;
     
     @Override
     public Optional<ConstraintMetaData> revise(final String tableName, final ConstraintMetaData originalMetaData, final ShardingRule rule) {
-        for (DataNode each : shardingTable.getActualDataNodes()) {
+        for (DataNode each : tableRule.getActualDataNodes()) {
             String referencedTableName = originalMetaData.getReferencedTableName();
             Optional<String> logicIndexName = getLogicIndex(originalMetaData.getName(), each.getTableName());
             if (logicIndexName.isPresent()) {
-                return Optional.of(new ConstraintMetaData(
-                        logicIndexName.get(), rule.getAttributes().getAttribute(DataNodeRuleAttribute.class).findLogicTableByActualTable(referencedTableName).orElse(referencedTableName)));
+                return Optional.of(new ConstraintMetaData(logicIndexName.get(), rule.findLogicTableByActualTable(referencedTableName).orElse(referencedTableName)));
             }
         }
         return Optional.empty();

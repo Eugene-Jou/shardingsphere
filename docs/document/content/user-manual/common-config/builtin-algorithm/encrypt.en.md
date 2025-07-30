@@ -11,31 +11,75 @@ Encryption algorithms are by the encryption features of Apache ShardingSphere. A
 
 ### Standard Encrypt Algorithm
 
-#### AES Encrypt Algorithm
-
-Type: AES
-
-Attributes:
-
-| *Name*                | *DataType* | *Description*            |
-|-----------------------|------------|--------------------------|
-| aes-key-value         | String     | AES KEY                  |
-| digest-algorithm-name | String     | AES KEY DIGEST ALGORITHM |
-
-### Assisted Encrypt Algorithm
-
-#### MD5 Assisted Encrypt Algorithm
+#### MD5 Encrypt Algorithm
 
 Type: MD5
 
 Attributes:
 
 | *Name* | *DataType* | *Description*        |
-|--------|------------|----------------------|
+|--------| ---------- |----------------------|
 | salt   | String     | Salt value(optional) |
 
-## Operating Procedure
+#### AES Encrypt Algorithm
 
+Type: AES
+
+Attributes:
+
+| *Name*        | *DataType* | *Description* |
+| ------------- | ---------- | ------------- |
+| aes-key-value | String     | AES KEY       |
+
+#### RC4 Encrypt Algorithm
+
+Type: RC4
+
+Attributes:
+
+| *Name*        | *DataType* | *Description* |
+| ------------- | ---------- | ------------- |
+| rc4-key-value | String     | RC4 KEY       |
+
+#### SM3 Encrypt Algorithm
+
+Type: SM3
+
+Attributes:
+
+| *Name*        | *DataType* | *Description* |
+| ------------- | ---------- | ------------- |
+| sm3-salt      | String     | SM3 SALT (should be blank or 8 bytes long)      |
+
+#### SM4 Encrypt Algorithm
+
+Type: SM4
+
+Attributes:
+
+| *Name*        | *DataType* | *Description* |
+| ------------- | ---------- | ------------- |
+| sm4-key       | String     | SM4 KEY (should be 16 bytes) |
+| sm4-mode      | String     | SM4 MODE (should be CBC or ECB) |
+| sm4-iv        | String     | SM4 IV (should be specified on CBC, 16 bytes long)|
+| sm4-padding   | String     | SM4 PADDING (should be PKCS5Padding or PKCS7Padding, NoPadding excepted)|
+
+### Like Encrypt Algorithm
+
+#### CharDigestLike Encrypt Algorithm
+
+Type：CHAR_DIGEST_LIKE
+
+Attributes：
+
+| *Name* | *DataType* | *Description*                                   |
+| -------- | ------------ | ------------------------------------------------- |
+| delta    | int          | Character Unicode offset（decimal number）        |
+| mask     | int          | Character encryption mask（decimal number）       |
+| start    | int          | Ciphertext Unicode initial code（decimal number） |
+| dict     | String       | Common words                                      |
+
+## Operating Procedure
 1. Configure encryptors in an encryption rule.
 2. Use relevant algorithm types in encryptors.
 
@@ -47,22 +91,18 @@ rules:
     t_user:
       columns:
         username:
-          cipher:
-            name: username
-            encryptorName: name_encryptor
-          assistedQuery:
-            name: assisted_username
-            encryptorName: assisted_encryptor
+          plainColumn: username_plain
+          cipherColumn: username
+          encryptorName: name_encryptor
+          likeQueryColumn: name_like
+          likeQueryEncryptorName: like_encryptor
   encryptors:
+    like_encryptor:
+      type: CHAR_DIGEST_LIKE
     name_encryptor:
       type: AES
       props:
         aes-key-value: 123456abc
-        digest-algorithm-name: SHA-1
-    assisted_encryptor:
-      type: MD5
-      props:
-        salt: 123456
 ```
 
 ## Related References

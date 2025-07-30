@@ -17,29 +17,48 @@
 
 package org.apache.shardingsphere.authority.yaml.swapper;
 
-import org.apache.shardingsphere.authority.config.UserConfiguration;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.apache.shardingsphere.authority.yaml.config.YamlUserConfiguration;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
+import org.apache.shardingsphere.infra.metadata.user.ShardingSphereUser;
 import org.apache.shardingsphere.infra.util.yaml.swapper.YamlConfigurationSwapper;
+
+import java.util.Objects;
 
 /**
  * YAML user swapper.
  */
-public final class YamlUserSwapper implements YamlConfigurationSwapper<YamlUserConfiguration, UserConfiguration> {
+public final class YamlUserSwapper implements YamlConfigurationSwapper<YamlUserConfiguration, ShardingSphereUser> {
     
     @Override
-    public YamlUserConfiguration swapToYamlConfiguration(final UserConfiguration data) {
+    public YamlUserConfiguration swapToYamlConfiguration(final ShardingSphereUser data) {
+        if (Objects.isNull(data)) {
+            return null;
+        }
         YamlUserConfiguration result = new YamlUserConfiguration();
-        result.setUser(new Grantee(data.getUsername(), data.getHostname()).toString());
+        result.setUser(data.getGrantee().toString());
         result.setPassword(data.getPassword());
         result.setAuthenticationMethodName(data.getAuthenticationMethodName());
-        result.setAdmin(data.isAdmin());
         return result;
     }
     
     @Override
-    public UserConfiguration swapToObject(final YamlUserConfiguration yamlConfig) {
-        Grantee grantee = new Grantee(yamlConfig.getUser());
-        return new UserConfiguration(grantee.getUsername(), yamlConfig.getPassword(), grantee.getHostname(), yamlConfig.getAuthenticationMethodName(), yamlConfig.isAdmin());
+    public ShardingSphereUser swapToObject(final YamlUserConfiguration yamlConfig) {
+        if (Objects.isNull(yamlConfig)) {
+            return null;
+        }
+        Grantee grantee = convertYamlUserToGrantee(yamlConfig.getUser());
+        return new ShardingSphereUser(grantee.getUsername(), yamlConfig.getPassword(), grantee.getHostname(), yamlConfig.getAuthenticationMethodName());
+    }
+    
+    private Grantee convertYamlUserToGrantee(final String yamlUser) {
+        if (!yamlUser.contains("@")) {
+            return new Grantee(yamlUser, "");
+        }
+        String username = yamlUser.substring(0, yamlUser.indexOf("@"));
+        String hostname = yamlUser.substring(yamlUser.indexOf("@") + 1);
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(username), "user configuration `%s` is invalid, the legal format is `username@hostname`", yamlUser);
+        return new Grantee(username, hostname);
     }
 }

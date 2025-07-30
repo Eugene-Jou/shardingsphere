@@ -20,7 +20,7 @@ package org.apache.shardingsphere.infra.util.yaml.constructor;
 import org.apache.shardingsphere.infra.util.yaml.fixture.pojo.YamlConfigurationFixture;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.composer.ComposerException;
+import org.yaml.snakeyaml.constructor.ConstructorException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,11 +31,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class ShardingSphereYamlConstructorTest {
+public final class ShardingSphereYamlConstructorTest {
     
     @Test
-    void assertToObject() throws IOException {
-        try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("yaml/customized-obj.yaml")) {
+    public void assertToObject() throws IOException {
+        try (InputStream inputStream = ShardingSphereYamlConstructorTest.class.getClassLoader().getResourceAsStream("yaml/customized-obj.yaml")) {
             assertYamlObject(new Yaml(new ShardingSphereYamlConstructor(YamlConfigurationFixture.class)).loadAs(inputStream, YamlConfigurationFixture.class));
         }
     }
@@ -51,9 +51,9 @@ class ShardingSphereYamlConstructorTest {
     }
     
     @Test
-    void assertToObjectWithNotAcceptClass() throws IOException {
-        try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("yaml/accepted-class.yaml")) {
-            assertThrows(ComposerException.class, () -> new Yaml(new ShardingSphereYamlConstructor(Object.class)).loadAs(inputStream, Object.class));
+    public void assertToObjectWithNotAcceptClass() throws IOException {
+        try (InputStream inputStream = ShardingSphereYamlConstructorTest.class.getClassLoader().getResourceAsStream("yaml/accepted-class.yaml")) {
+            assertThrows(ConstructorException.class, () -> new Yaml(new ShardingSphereYamlConstructor(Object.class)).loadAs(inputStream, Object.class));
         }
     }
 }

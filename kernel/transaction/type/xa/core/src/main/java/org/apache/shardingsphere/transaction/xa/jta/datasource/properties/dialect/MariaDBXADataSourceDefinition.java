@@ -33,7 +33,7 @@ public final class MariaDBXADataSourceDefinition implements XADataSourceDefiniti
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "MariaDB";
     }
 }

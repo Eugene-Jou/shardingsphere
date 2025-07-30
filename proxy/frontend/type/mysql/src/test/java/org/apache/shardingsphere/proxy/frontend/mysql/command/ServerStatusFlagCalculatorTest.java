@@ -30,38 +30,32 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ServerStatusFlagCalculatorTest {
+public final class ServerStatusFlagCalculatorTest {
     
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ConnectionSession connectionSession;
     
     @Test
-    void assertAutoCommitNotInTransaction() {
+    public void assertAutoCommitNotInTransaction() {
         when(connectionSession.isAutoCommit()).thenReturn(true);
-        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession, true), is(MySQLStatusFlag.SERVER_STATUS_AUTOCOMMIT.getValue()));
+        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession), is(MySQLStatusFlag.SERVER_STATUS_AUTOCOMMIT.getValue()));
     }
     
     @Test
-    void assertAutoCommitInTransaction() {
+    public void assertAutoCommitInTransaction() {
         when(connectionSession.isAutoCommit()).thenReturn(true);
         when(connectionSession.getTransactionStatus().isInTransaction()).thenReturn(true);
-        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession, true), is(MySQLStatusFlag.SERVER_STATUS_IN_TRANS.getValue() | MySQLStatusFlag.SERVER_STATUS_AUTOCOMMIT.getValue()));
+        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession), is(MySQLStatusFlag.SERVER_STATUS_IN_TRANS.getValue() | MySQLStatusFlag.SERVER_STATUS_AUTOCOMMIT.getValue()));
     }
     
     @Test
-    void assertNotAutoCommitNotInTransaction() {
-        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession, true), is(0));
+    public void assertNotAutoCommitNotInTransaction() {
+        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession), is(0));
     }
     
     @Test
-    void assertNotAutoCommitInTransaction() {
+    public void assertNotAutoCommitInTransaction() {
         when(connectionSession.getTransactionStatus().isInTransaction()).thenReturn(true);
-        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession, true), is(MySQLStatusFlag.SERVER_STATUS_IN_TRANS.getValue()));
-    }
-    
-    @Test
-    void assertCalculateForWithMultiStatements() {
-        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession, false), is(MySQLStatusFlag.SERVER_MORE_RESULTS_EXISTS.getValue()));
-        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession, true), is(0));
+        assertThat(ServerStatusFlagCalculator.calculateFor(connectionSession), is(MySQLStatusFlag.SERVER_STATUS_IN_TRANS.getValue()));
     }
 }

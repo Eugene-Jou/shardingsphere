@@ -1,6 +1,6 @@
 +++
 title = "REGISTER STORAGE UNIT"
-weight = 1
+weight = 2
 +++
 
 ### Description
@@ -13,10 +13,7 @@ The `REGISTER STORAGE UNIT` syntax is used to register storage unit for the curr
 {{% tab name="Grammar" %}}
 ```sql
 RegisterStorageUnit ::=
-  'REGISTER' 'STORAGE' 'UNIT' ifNotExists? storageUnitsDefinition (',' checkPrivileges)?
-
-storageUnitsDefinition ::=
-  storageUnitDefinition (',' storageUnitDefinition)*
+  'REGISTER' 'STORAGE' 'UNIT' ifNotExists? storageUnitDefinition (',' storageUnitDefinition)*
 
 storageUnitDefinition ::=
   storageUnitName '(' ('HOST' '=' hostName ',' 'PORT' '=' port ',' 'DB' '=' dbName | 'URL' '=' url) ',' 'USER' '=' user (',' 'PASSWORD' '=' password)? (',' propertiesDefinition)?')'
@@ -53,12 +50,6 @@ key ::=
 
 value ::=
   literal
-
-checkPrivileges ::=
-  'CHECK_PRIVILEGES' '=' privilegeType (',' privilegeType)*
-
-privilegeType ::=
-  identifier
 ```
 {{% /tab %}}
 {{% tab name="Railroad diagram" %}}
@@ -68,33 +59,34 @@ privilegeType ::=
 
 ### Supplement
 
-- Before register storage units, please confirm that a database has been created in Proxy, and execute the `use` command to successfully select a database;
+- Before register storage units, please confirm that a database has been created in Proxy, and execute the `use` command to
+  successfully select a database;
 - Confirm that the registered storage unit can be connected normally, otherwise it will not be added successfully;
 - `storageUnitName` is case-sensitive;
 - `storageUnitName` needs to be unique within the current database;
 - `storageUnitName` name only allows letters, numbers and `_`, and must start with a letter;
-- `PROPERTIES` is optional, used to customize connection pool properties, `key` must be the same as the connection pool
-  property name;
-- `CHECK_PRIVILEGES` can be specified to check privileges of the storage unit user. The supported types of `privilegeType` are `SELECT`, `XA`, `PIPELINE`, and `NONE`. The default value is `SELECT`. When `NONE` is included in the type list, the privilege check is skipped.
+- `poolProperty` is used to customize connection pool parameters, `key` must be the same as the connection pool
+  parameter name;
+- `ifNotExists` clause is used for avoid `Duplicate storage unit` error.
 
 ### Example
 
-- Register storage unit using HOST & PORT method
+- Register storage unit using standard mode
 
 ```sql
 REGISTER STORAGE UNIT ds_0 (
     HOST="127.0.0.1",
     PORT=3306,
-    DB="db_0",
+    DB="db_1",
     USER="root",
     PASSWORD="root"
 );
 ```
 
-- Register storage unit and set connection pool properties using HOST & PORT method
+- Register storage unit and set connection pool parameters using standard mode
 
 ```sql
-REGISTER STORAGE UNIT ds_1 (
+REGISTER STORAGE UNIT ds_0 (
     HOST="127.0.0.1",
     PORT=3306,
     DB="db_1",
@@ -104,14 +96,14 @@ REGISTER STORAGE UNIT ds_1 (
 );
 ```
 
-- Register storage unit and set connection pool properties using URL method
+- Register storage unit and set connection pool parameters using URL patterns
 
 ```sql
-REGISTER STORAGE UNIT ds_2 (
-    URL="jdbc:mysql://127.0.0.1:3306/db_2?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true",
+REGISTER STORAGE UNIT ds_0 (
+    URL="jdbc:mysql://127.0.0.1:3306/db_2?serverTimezone=UTC&useSSL=false",
     USER="root",
     PASSWORD="root",
-    PROPERTIES("maximumPoolSize"=10,"idleTimeout"=30000)
+    PROPERTIES("maximumPoolSize"=10,"idleTimeout"="30000")
 );
 ```
 
@@ -127,20 +119,9 @@ REGISTER STORAGE UNIT IF NOT EXISTS ds_0 (
 );
 ```
 
-- Check `SELECT`, `XA` and `PIPELINE` privileges when registering
-
-```sql
-REGISTER STORAGE UNIT ds_3 (
-    URL="jdbc:mysql://127.0.0.1:3306/db_3?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true",
-    USER="root",
-    PASSWORD="root",
-    PROPERTIES("maximumPoolSize"=10,"idleTimeout"=30000)
-), CHECK_PRIVILEGES=SELECT,XA,PIPELINE;
-```
-
 ### Reserved word
 
-`REGISTER`, `STORAGE`, `UNIT`, `HOST`, `PORT`, `DB`, `USER`, `PASSWORD`, `PROPERTIES`, `URL`, `CHECK_PRIVILEGES`
+`REGISTER`, `STORAGE`, `UNIT`, `HOST`, `PORT`, `DB`, `USER`, `PASSWORD`, `PROPERTIES`, `URL`
 
 ### Related links
 

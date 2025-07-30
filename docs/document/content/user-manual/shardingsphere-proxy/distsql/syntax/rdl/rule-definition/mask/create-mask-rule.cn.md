@@ -1,18 +1,18 @@
 +++
 title = "CREATE MASK RULE"
-weight = 1
+weight = 2
 +++
 
 ## 描述
 
-`CREATE MASK RULE` 语法用于创建数据脱敏规则。
+The `CREATE MASK RULE` 语法用于创建数据脱敏规则.
 
 ### 语法定义
 
 {{< tabs >}}
 {{% tab name="语法" %}}
 ```sql
-CreateMaskRule ::=
+CreateEncryptRule ::=
   'CREATE' 'MASK' 'RULE' ifNotExists? maskRuleDefinition (',' maskRuleDefinition)*
 
 ifNotExists ::=
@@ -25,7 +25,7 @@ columnDefinition ::=
   '(' 'NAME' '=' columnName ',' maskAlgorithmDefinition ')'
 
 maskAlgorithmDefinition ::=
-  'TYPE' '(' 'NAME' '=' algorithmType (',' propertiesDefinition)? ')'
+  'TYPE' '(' 'NAME' '=' maskAlgorithmType (',' propertiesDefinition)? ')'
 
 propertiesDefinition ::=
   'PROPERTIES' '(' key '=' value (',' key '=' value)* ')'
@@ -36,7 +36,7 @@ ruleName ::=
 columnName ::=
   identifier
 
-algorithmType ::=
+maskAlgorithmType ::=
   literal
 
 key ::=
@@ -53,7 +53,7 @@ value ::=
 
 ### 补充说明
 
-- `algorithmType` 指定数据脱敏算法类型，请参考 [数据脱敏算法](/cn/user-manual/common-config/builtin-algorithm/mask/)；
+- `maskAlgorithmType` 指定数据脱敏算法类型，请参考 [数据脱敏算法](/cn/user-manual/common-config/builtin-algorithm/mask/)；
 - 重复的 `ruleName` 将无法被创建；
 - `ifNotExists` 子句用于避免出现 `Duplicate mask rule` 错误。
 

@@ -24,10 +24,10 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLComTerminationExecutorTest {
+public final class PostgreSQLComTerminationExecutorTest {
     
     @Test
-    void assertNewInstance() {
+    public void assertNewInstance() {
         PostgreSQLComTerminationExecutor actual = new PostgreSQLComTerminationExecutor();
         assertThat(actual.execute(), is(Collections.emptyList()));
     }

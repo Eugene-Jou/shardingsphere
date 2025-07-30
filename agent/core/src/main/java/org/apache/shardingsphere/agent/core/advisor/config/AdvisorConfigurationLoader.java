@@ -21,16 +21,16 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.agent.core.advisor.config.yaml.loader.YamlAdvisorsConfigurationLoader;
 import org.apache.shardingsphere.agent.core.advisor.config.yaml.swapper.YamlAdvisorsConfigurationSwapper;
+import org.apache.shardingsphere.agent.core.log.AgentLogger;
+import org.apache.shardingsphere.agent.core.log.AgentLoggerFactory;
 import org.apache.shardingsphere.agent.core.plugin.classloader.AgentPluginClassLoader;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Advisor configuration loader.
@@ -38,31 +38,41 @@ import java.util.logging.Logger;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AdvisorConfigurationLoader {
     
-    private static final Logger LOGGER = Logger.getLogger(AdvisorConfigurationLoader.class.getName());
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(AdvisorConfigurationLoader.class);
     
     /**
      * Load advisor configurations.
-     *
+     * 
      * @param pluginJars plugin jars
      * @param pluginTypes plugin types
+     * @param isEnhancedForProxy is enhanced for proxy
      * @return loaded configurations
      */
-    public static Map<String, AdvisorConfiguration> load(final Collection<JarFile> pluginJars, final Collection<String> pluginTypes) {
+    public static Map<String, AdvisorConfiguration> load(final Collection<JarFile> pluginJars, final Collection<String> pluginTypes, final boolean isEnhancedForProxy) {
         Map<String, AdvisorConfiguration> result = new HashMap<>();
-        AgentPluginClassLoader agentPluginClassLoader = new AgentPluginClassLoader(Thread.currentThread().getContextClassLoader(), pluginJars);
+        AgentPluginClassLoader agentPluginClassLoader = new AgentPluginClassLoader(AdvisorConfigurationLoader.class.getClassLoader(), pluginJars);
         for (String each : pluginTypes) {
-            InputStream advisorsResourceStream = getResourceStream(agentPluginClassLoader, each);
+            InputStream advisorsResourceStream = getResourceStream(agentPluginClassLoader, each, isEnhancedForProxy);
             if (null == advisorsResourceStream) {
-                LOGGER.log(Level.WARNING, "The configuration file for advice of plugin `{0}` is not found", new String[]{each});
+                LOGGER.info("No configuration of advisor for type `{}`.", each);
+            } else {
+                mergeConfigurations(result, YamlAdvisorsConfigurationSwapper.swap(YamlAdvisorsConfigurationLoader.load(advisorsResourceStream), each));
             }
-            Optional.ofNullable(advisorsResourceStream)
-                    .ifPresent(optional -> mergeConfigurations(result, YamlAdvisorsConfigurationSwapper.swap(YamlAdvisorsConfigurationLoader.load(optional), each)));
         }
         return result;
     }
     
-    private static InputStream getResourceStream(final ClassLoader pluginClassLoader, final String pluginType) {
-        return pluginClassLoader.getResourceAsStream(String.join("/", "META-INF", "conf", getFileName(pluginType)));
+    private static InputStream getResourceStream(final ClassLoader pluginClassLoader, final String pluginType, final boolean isEnhancedForProxy) {
+        InputStream accurateResourceStream = getResourceStream(pluginClassLoader, getFileName(pluginType, isEnhancedForProxy));
+        return null == accurateResourceStream ? getResourceStream(pluginClassLoader, getFileName(pluginType)) : accurateResourceStream;
+    }
+    
+    private static InputStream getResourceStream(final ClassLoader pluginClassLoader, final String fileName) {
+        return pluginClassLoader.getResourceAsStream(String.join(File.separator, "META-INF", "conf", fileName));
+    }
+    
+    private static String getFileName(final String pluginType, final boolean isEnhancedForProxy) {
+        return String.join("-", pluginType.toLowerCase(), isEnhancedForProxy ? "proxy" : "jdbc", "advisors.yaml");
     }
     
     private static String getFileName(final String pluginType) {

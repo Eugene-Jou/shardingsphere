@@ -1,6 +1,6 @@
 +++
 title = "SHOW RULES USED STORAGE UNIT"
-weight = 12
+weight = 11
 +++
 
 ### Description

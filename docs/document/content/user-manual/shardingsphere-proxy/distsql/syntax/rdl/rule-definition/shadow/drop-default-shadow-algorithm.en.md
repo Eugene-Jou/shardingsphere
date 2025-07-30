@@ -1,6 +1,6 @@
 +++
 title = "DROP DEFAULT SHADOW ALGORITHM"
-weight = 6
+weight = 7
 +++
 
 ## Description

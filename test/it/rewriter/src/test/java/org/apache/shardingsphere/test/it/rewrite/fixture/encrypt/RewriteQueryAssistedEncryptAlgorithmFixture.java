@@ -17,21 +17,13 @@
 
 package org.apache.shardingsphere.test.it.rewrite.fixture.encrypt;
 
-import lombok.Getter;
-import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
-import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithmMetaData;
-import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
-import org.apache.shardingsphere.infra.algorithm.core.context.AlgorithmSQLContext;
+import org.apache.shardingsphere.encrypt.api.encrypt.standard.StandardEncryptAlgorithm;
+import org.apache.shardingsphere.encrypt.spi.context.EncryptContext;
 
-import java.util.Properties;
-
-@Getter
-public final class RewriteQueryAssistedEncryptAlgorithmFixture implements EncryptAlgorithm {
-    
-    private final EncryptAlgorithmMetaData metaData = new EncryptAlgorithmMetaData(false, true, false);
+public final class RewriteQueryAssistedEncryptAlgorithmFixture implements StandardEncryptAlgorithm<Object, String> {
     
     @Override
-    public String encrypt(final Object plainValue, final AlgorithmSQLContext algorithmSQLContext) {
+    public String encrypt(final Object plainValue, final EncryptContext encryptContext) {
         if (null == plainValue) {
             return null;
         }
@@ -39,13 +31,11 @@ public final class RewriteQueryAssistedEncryptAlgorithmFixture implements Encryp
     }
     
     @Override
-    public Object decrypt(final Object cipherValue, final AlgorithmSQLContext algorithmSQLContext) {
-        throw new UnsupportedOperationException(String.format("Algorithm `%s` is unsupported to decrypt", getType()));
-    }
-    
-    @Override
-    public AlgorithmConfiguration toConfiguration() {
-        return new AlgorithmConfiguration(getType(), new Properties());
+    public Object decrypt(final String cipherValue, final EncryptContext encryptContext) {
+        if (null == cipherValue) {
+            return null;
+        }
+        return cipherValue.replaceAll("encrypt_", "");
     }
     
     @Override

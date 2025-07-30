@@ -18,13 +18,9 @@
 package org.apache.shardingsphere.sharding.algorithm.keygen.fixture;
 
 import lombok.Getter;
-import org.apache.shardingsphere.infra.algorithm.keygen.core.KeyGenerateAlgorithm;
-import org.apache.shardingsphere.infra.algorithm.core.context.AlgorithmSQLContext;
+import org.apache.shardingsphere.sharding.spi.KeyGenerateAlgorithm;
 
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Getter
 public final class AutoIncrementKeyGenerateAlgorithmFixture implements KeyGenerateAlgorithm {
@@ -32,8 +28,8 @@ public final class AutoIncrementKeyGenerateAlgorithmFixture implements KeyGenera
     private final AtomicInteger count = new AtomicInteger();
     
     @Override
-    public Collection<Comparable<?>> generateKeys(final AlgorithmSQLContext context, final int keyGenerateCount) {
-        return IntStream.range(0, keyGenerateCount).mapToObj(each -> count.incrementAndGet()).collect(Collectors.toList());
+    public Comparable<?> generateKey() {
+        return count.incrementAndGet();
     }
     
     @Override

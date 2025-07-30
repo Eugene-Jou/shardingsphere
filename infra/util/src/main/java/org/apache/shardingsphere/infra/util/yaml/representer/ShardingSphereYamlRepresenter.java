@@ -17,7 +17,7 @@
 
 package org.apache.shardingsphere.infra.util.yaml.representer;
 
-import org.apache.shardingsphere.infra.spi.ShardingSphereServiceLoader;
+import org.apache.shardingsphere.infra.util.spi.ShardingSphereServiceLoader;
 import org.apache.shardingsphere.infra.util.yaml.representer.processor.DefaultYamlTupleProcessor;
 import org.apache.shardingsphere.infra.util.yaml.representer.processor.ShardingSphereYamlTupleProcessor;
 import org.apache.shardingsphere.infra.util.yaml.shortcuts.ShardingSphereYamlShortcuts;
@@ -39,8 +39,7 @@ import java.util.Map.Entry;
  */
 public final class ShardingSphereYamlRepresenter extends Representer {
     
-    public ShardingSphereYamlRepresenter(final DumperOptions dumperOptions) {
-        super(dumperOptions);
+    public ShardingSphereYamlRepresenter() {
         Map<String, Class<?>> yamlShortcuts = new HashMap<>();
         ShardingSphereServiceLoader.getServiceInstances(ShardingSphereYamlShortcuts.class).stream().map(ShardingSphereYamlShortcuts::getYamlShortcuts).forEach(yamlShortcuts::putAll);
         yamlShortcuts.forEach((key, value) -> addClassTag(value, new Tag(key)));
@@ -60,7 +59,7 @@ public final class ShardingSphereYamlRepresenter extends Representer {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     protected Node representMapping(final Tag tag, final Map<?, ?> mapping, final DumperOptions.FlowStyle flowStyle) {
-        Map skippedEmptyValuesMapping = new LinkedHashMap<>(mapping.size(), 1F);
+        Map skippedEmptyValuesMapping = new LinkedHashMap<>(mapping.size(), 1);
         for (Entry<?, ?> entry : mapping.entrySet()) {
             if (entry.getValue() instanceof Collection && ((Collection) entry.getValue()).isEmpty()) {
                 continue;

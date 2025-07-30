@@ -29,6 +29,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 @Setter
 public final class ExpectedAggregationDistinctProjection extends ExpectedAggregationProjection {
     
-    @XmlAttribute(name = "distinct-inner-expression")
-    private String distinctInnerExpression;
+    @XmlAttribute(name = "distinct-expression")
+    private String distinctExpression;
 }

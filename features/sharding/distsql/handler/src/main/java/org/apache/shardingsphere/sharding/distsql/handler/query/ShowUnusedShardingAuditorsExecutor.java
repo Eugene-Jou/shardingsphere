@@ -17,60 +17,64 @@
 
 package org.apache.shardingsphere.sharding.distsql.handler.query;
 
-import lombok.Setter;
-import org.apache.shardingsphere.distsql.handler.aware.DistSQLExecutorRuleAware;
-import org.apache.shardingsphere.distsql.handler.engine.query.DistSQLQueryExecutor;
+import org.apache.shardingsphere.distsql.handler.query.RQLExecutor;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.merge.result.impl.local.LocalDataQueryResultRow;
-import org.apache.shardingsphere.mode.manager.ContextManager;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.audit.ShardingAuditStrategyConfiguration;
-import org.apache.shardingsphere.sharding.distsql.statement.ShowUnusedShardingAuditorsStatement;
+import org.apache.shardingsphere.sharding.distsql.parser.statement.ShowUnusedShardingAuditorsStatement;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.stream.Collectors;
+import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Show unused sharding auditors executor.
  */
-@Setter
-public final class ShowUnusedShardingAuditorsExecutor implements DistSQLQueryExecutor<ShowUnusedShardingAuditorsStatement>, DistSQLExecutorRuleAware<ShardingRule> {
-    
-    private ShardingRule rule;
+public final class ShowUnusedShardingAuditorsExecutor implements RQLExecutor<ShowUnusedShardingAuditorsStatement> {
     
     @Override
-    public Collection<String> getColumnNames(final ShowUnusedShardingAuditorsStatement sqlStatement) {
-        return Arrays.asList("name", "type", "props");
-    }
-    
-    @Override
-    public Collection<LocalDataQueryResultRow> getRows(final ShowUnusedShardingAuditorsStatement sqlStatement, final ContextManager contextManager) {
-        ShardingRuleConfiguration shardingRuleConfig = rule.getConfiguration();
+    public Collection<LocalDataQueryResultRow> getRows(final ShardingSphereDatabase database, final ShowUnusedShardingAuditorsStatement sqlStatement) {
+        Optional<ShardingRule> rule = database.getRuleMetaData().findSingleRule(ShardingRule.class);
+        if (!rule.isPresent()) {
+            return Collections.emptyList();
+        }
+        ShardingRuleConfiguration shardingRuleConfig = (ShardingRuleConfiguration) rule.get().getConfiguration();
         Collection<String> inUsedAuditors = getUsedAuditors(shardingRuleConfig);
-        return shardingRuleConfig.getAuditors().entrySet().stream().filter(entry -> !inUsedAuditors.contains(entry.getKey()))
-                .map(entry -> new LocalDataQueryResultRow(entry.getKey(), entry.getValue().getType(), entry.getValue().getProps())).collect(Collectors.toList());
+        Collection<LocalDataQueryResultRow> result = new LinkedList<>();
+        for (Entry<String, AlgorithmConfiguration> entry : shardingRuleConfig.getAuditors().entrySet()) {
+            if (!inUsedAuditors.contains(entry.getKey())) {
+                result.add(new LocalDataQueryResultRow(entry.getKey(), entry.getValue().getType(), entry.getValue().getProps().toString()));
+            }
+        }
+        return result;
     }
     
     private Collection<String> getUsedAuditors(final ShardingRuleConfiguration shardingRuleConfig) {
         Collection<String> result = new LinkedHashSet<>();
-        shardingRuleConfig.getTables().stream().filter(each -> null != each.getAuditStrategy()).forEach(each -> result.addAll(each.getAuditStrategy().getAuditorNames()));
-        shardingRuleConfig.getAutoTables().stream().filter(each -> null != each.getAuditStrategy()).forEach(each -> result.addAll(each.getAuditStrategy().getAuditorNames()));
+        shardingRuleConfig.getTables().stream().filter(each -> Objects.nonNull(each.getAuditStrategy())).forEach(each -> result.addAll(each.getAuditStrategy().getAuditorNames()));
+        shardingRuleConfig.getAutoTables().stream().filter(each -> Objects.nonNull(each.getAuditStrategy())).forEach(each -> result.addAll(each.getAuditStrategy().getAuditorNames()));
         ShardingAuditStrategyConfiguration auditStrategy = shardingRuleConfig.getDefaultAuditStrategy();
-        if (null != auditStrategy && !auditStrategy.getAuditorNames().isEmpty()) {
+        if (Objects.nonNull(auditStrategy) && !auditStrategy.getAuditorNames().isEmpty()) {
             result.addAll(auditStrategy.getAuditorNames());
         }
         return result;
     }
     
     @Override
-    public Class<ShardingRule> getRuleClass() {
-        return ShardingRule.class;
+    public Collection<String> getColumnNames() {
+        return Arrays.asList("name", "type", "props");
     }
     
     @Override
-    public Class<ShowUnusedShardingAuditorsStatement> getType() {
-        return ShowUnusedShardingAuditorsStatement.class;
+    public String getType() {
+        return ShowUnusedShardingAuditorsStatement.class.getName();
     }
 }

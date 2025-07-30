@@ -17,27 +17,24 @@
 
 package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.information;
 
-import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
-import org.apache.shardingsphere.infra.metadata.database.resource.unit.StorageUnit;
+import org.apache.shardingsphere.infra.metadata.database.resource.ShardingSphereResourceMetaData;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
+import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.AbstractDatabaseMetaDataExecutor;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.AbstractDatabaseMetaDataExecutor.DefaultDatabaseMetaDataExecutor;
-import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ColumnProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ShorthandProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ColumnProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ShorthandProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.SelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,7 +55,7 @@ public final class SelectInformationSchemataExecutor extends DefaultDatabaseMeta
     
     public static final String DEFAULT_ENCRYPTION = "DEFAULT_ENCRYPTION";
     
-    private static final Collection<String> SCHEMA_WITHOUT_DATA_SOURCE = new LinkedHashSet<>();
+    private static final Set<String> SCHEMA_WITHOUT_DATA_SOURCE = new LinkedHashSet<>();
     
     private final SelectStatement sqlStatement;
     
@@ -66,35 +63,47 @@ public final class SelectInformationSchemataExecutor extends DefaultDatabaseMeta
     
     private boolean queryDatabase;
     
-    public SelectInformationSchemataExecutor(final SelectStatement sqlStatement, final String sql, final List<Object> parameters) {
-        super(sql, parameters);
+    public SelectInformationSchemataExecutor(final SelectStatement sqlStatement, final String sql) {
+        super(sql);
         this.sqlStatement = sqlStatement;
     }
     
     @Override
-    protected void postProcess() {
+    protected void createPreProcessing() {
         removeDuplicatedRow();
     }
     
     private void removeDuplicatedRow() {
         if (queryDatabase) {
-            Collection<Map<String, Object>> reservedRow = getRows().stream()
-                    .collect(Collectors.groupingBy(each -> Optional.ofNullable(each.get(schemaNameAlias)), Collectors.toCollection(LinkedList::new)))
+            List<Map<String, Object>> reservedRow = getRows().stream().collect(Collectors.groupingBy(each -> each.get(schemaNameAlias), Collectors.toCollection(LinkedList::new)))
                     .values().stream().map(LinkedList::getFirst).collect(Collectors.toList());
             reservedRow.forEach(each -> getRows().removeIf(row -> !getRows().contains(each)));
         }
     }
     
     @Override
-    protected Collection<String> getDatabaseNames(final ConnectionSession connectionSession) {
-        Collection<String> databaseNames = ProxyContext.getInstance().getAllDatabaseNames().stream()
-                .filter(each -> isAuthorized(each, connectionSession.getConnectionContext().getGrantee())).collect(Collectors.toList());
-        SCHEMA_WITHOUT_DATA_SOURCE.addAll(databaseNames.stream().filter(each -> !hasDataSource(each)).collect(Collectors.toSet()));
-        Collection<String> result = databaseNames.stream().filter(AbstractDatabaseMetaDataExecutor::hasDataSource).collect(Collectors.toList());
+    protected List<String> getDatabaseNames(final ConnectionSession connectionSession) {
+        Collection<String> databaseNames = ProxyContext.getInstance().getAllDatabaseNames().stream().filter(each -> isAuthorized(each, connectionSession.getGrantee())).collect(Collectors.toList());
+        SCHEMA_WITHOUT_DATA_SOURCE.addAll(databaseNames.stream().filter(each -> !AbstractDatabaseMetaDataExecutor.hasDataSource(each)).collect(Collectors.toSet()));
+        List<String> result = databaseNames.stream().filter(AbstractDatabaseMetaDataExecutor::hasDataSource).collect(Collectors.toList());
         if (!SCHEMA_WITHOUT_DATA_SOURCE.isEmpty()) {
             fillSchemasWithoutDataSource();
         }
         return result;
+    }
+    
+    @Override
+    protected void rowPostProcessing(final String databaseName, final Map<String, Object> rowMap, final Map<String, String> aliasMap) {
+        ShardingSphereResourceMetaData resourceMetaData = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getDatabase(databaseName).getResourceMetaData();
+        Set<String> catalogs = resourceMetaData.getDataSources().keySet().stream().map(each -> resourceMetaData.getDataSourceMetaData(each).getCatalog()).collect(Collectors.toSet());
+        schemaNameAlias = aliasMap.getOrDefault(SCHEMA_NAME, "");
+        String rowValue = rowMap.getOrDefault(schemaNameAlias, "").toString();
+        queryDatabase = !rowValue.isEmpty();
+        if (catalogs.contains(rowValue)) {
+            rowMap.replace(schemaNameAlias, databaseName);
+        } else {
+            rowMap.clear();
+        }
     }
     
     private void fillSchemasWithoutDataSource() {
@@ -103,62 +112,21 @@ public final class SelectInformationSchemataExecutor extends DefaultDatabaseMeta
         }
         Map<String, String> defaultRowData = getTheDefaultRowData();
         SCHEMA_WITHOUT_DATA_SOURCE.forEach(each -> {
-            Map<String, Object> row = new LinkedHashMap<>(defaultRowData);
-            row.replace(schemaNameAlias, each);
-            getRows().add(row);
+            Map<String, Object> row = new HashMap<>(defaultRowData);
+            row.replace(SCHEMA_NAME, each);
+            getRows().addLast(row);
         });
         SCHEMA_WITHOUT_DATA_SOURCE.clear();
     }
     
     private Map<String, String> getTheDefaultRowData() {
+        Map<String, String> result;
         Collection<ProjectionSegment> projections = sqlStatement.getProjections().getProjections();
-        if (projections.stream().anyMatch(ShorthandProjectionSegment.class::isInstance)) {
-            return Stream.of(CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, SQL_PATH, DEFAULT_ENCRYPTION)
-                    .collect(Collectors.toMap(each -> each, each -> "", (oldValue, currentValue) -> oldValue, LinkedHashMap::new));
-        }
-        return getDefaultRowsFromProjections(projections);
-    }
-    
-    private Map<String, String> getDefaultRowsFromProjections(final Collection<ProjectionSegment> projections) {
-        Map<String, String> result = new LinkedHashMap<>(projections.size(), 1F);
-        for (ProjectionSegment each : projections) {
-            if (!each.getClass().isAssignableFrom(ColumnProjectionSegment.class)) {
-                continue;
-            }
-            if (((ColumnProjectionSegment) each).getAlias().isPresent()) {
-                String alias = ((ColumnProjectionSegment) each).getAlias().get().getValue();
-                if (((ColumnProjectionSegment) each).getColumn().getIdentifier().getValue().equalsIgnoreCase(SCHEMA_NAME)) {
-                    schemaNameAlias = alias;
-                }
-                result.put(alias, "");
-                continue;
-            }
-            result.put(((ColumnProjectionSegment) each).getColumn().getIdentifier().getValue().toUpperCase(), "");
+        if (projections.stream().anyMatch(each -> each instanceof ShorthandProjectionSegment)) {
+            result = Stream.of(CATALOG_NAME, SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME, SQL_PATH, DEFAULT_ENCRYPTION).collect(Collectors.toMap(each -> each, each -> ""));
+        } else {
+            result = projections.stream().map(each -> ((ColumnProjectionSegment) each).getColumn().getIdentifier()).map(IdentifierValue::getValue).collect(Collectors.toMap(each -> each, each -> ""));
         }
         return result;
-    }
-    
-    @Override
-    protected void preProcess(final String databaseName, final Map<String, Object> rows, final Map<String, String> alias) throws SQLException {
-        ResourceMetaData resourceMetaData = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getDatabase(databaseName).getResourceMetaData();
-        Collection<String> catalogs = getCatalogs(resourceMetaData);
-        schemaNameAlias = alias.getOrDefault(SCHEMA_NAME, alias.getOrDefault(schemaNameAlias, schemaNameAlias));
-        String rowValue = rows.getOrDefault(schemaNameAlias, "").toString();
-        queryDatabase = !rowValue.isEmpty();
-        if (catalogs.contains(rowValue)) {
-            rows.replace(schemaNameAlias, databaseName);
-        } else {
-            rows.clear();
-        }
-    }
-    
-    private Collection<String> getCatalogs(final ResourceMetaData resourceMetaData) throws SQLException {
-        Optional<StorageUnit> storageUnit = resourceMetaData.getStorageUnits().values().stream().findFirst();
-        if (!storageUnit.isPresent()) {
-            return Collections.emptySet();
-        }
-        try (Connection connection = storageUnit.get().getDataSource().getConnection()) {
-            return Collections.singleton(connection.getCatalog());
-        }
     }
 }

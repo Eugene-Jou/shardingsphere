@@ -17,8 +17,7 @@
 
 package org.apache.shardingsphere.encrypt.rewrite.condition;
 
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.column.ColumnSegment;
-
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,44 +26,52 @@ import java.util.Map;
 public interface EncryptCondition {
     
     /**
-     * Get column segment.
-     *
-     * @return column segment
+     * Get column name.
+     * 
+     * @return column name
      */
-    ColumnSegment getColumnSegment();
+    String getColumnName();
     
     /**
      * Get table name.
-     *
+     * 
      * @return table name
      */
     String getTableName();
     
     /**
      * Get start index.
-     *
+     * 
      * @return start index
      */
     int getStartIndex();
     
     /**
      * Get stop index.
-     *
+     * 
      * @return stop index
      */
     int getStopIndex();
     
     /**
      * Get position index map.
-     *
+     * 
      * @return position index map
      */
     Map<Integer, Integer> getPositionIndexMap();
     
     /**
      * Get position value map.
-     *
+     * 
      * @return position value map
      */
     Map<Integer, Object> getPositionValueMap();
+    
+    /**
+     * Get values.
+     *
+     * @param params SQL parameters
+     * @return values
+     */
+    List<Object> getValues(List<Object> params);
 }

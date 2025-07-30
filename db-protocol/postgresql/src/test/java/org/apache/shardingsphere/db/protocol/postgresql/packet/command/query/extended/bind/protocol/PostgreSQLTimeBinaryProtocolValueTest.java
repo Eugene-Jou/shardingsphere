@@ -17,7 +17,6 @@
 
 package org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.bind.protocol;
 
-import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.bind.protocol.util.PostgreSQLBinaryTimestampUtils;
 import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacketPayload;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,29 +31,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLTimeBinaryProtocolValueTest {
+public final class PostgreSQLTimeBinaryProtocolValueTest {
     
     @Mock
     private PostgreSQLPacketPayload payload;
     
     @Test
-    void assertGetColumnLength() {
+    public void assertNewInstance() {
         PostgreSQLTimeBinaryProtocolValue actual = new PostgreSQLTimeBinaryProtocolValue();
-        assertThat(actual.getColumnLength(payload, null), is(8));
-    }
-    
-    @Test
-    void assertRead() {
-        PostgreSQLTimeBinaryProtocolValue actual = new PostgreSQLTimeBinaryProtocolValue();
+        assertThat(actual.getColumnLength(null), is(8));
         when(payload.readInt8()).thenReturn(1L);
         assertThat(actual.read(payload, 8), is(1L));
-    }
-    
-    @Test
-    void assertWrite() {
-        PostgreSQLTimeBinaryProtocolValue actual = new PostgreSQLTimeBinaryProtocolValue();
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         actual.write(payload, timestamp);
-        verify(payload).writeInt8(PostgreSQLBinaryTimestampUtils.toPostgreSQLTime(timestamp));
+        verify(payload).writeInt8(PostgreSQLBinaryTimestampUtils.toPostgreSQLTime(timestamp, false));
     }
 }

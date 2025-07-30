@@ -20,8 +20,7 @@ package org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.AbstractExpectedSQLSegment;
-import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.projection.ExpectedProjection;
-import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.projection.impl.expression.ExpectedExpressionProjection;
+import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.projection.impl.column.ExpectedColumnProjection;
 
 import javax.xml.bind.annotation.XmlElement;
 import java.util.LinkedList;
@@ -35,8 +34,5 @@ import java.util.List;
 public final class ExpectedOutputColumn extends AbstractExpectedSQLSegment {
     
     @XmlElement(name = "column-projection")
-    private final List<ExpectedProjection> columnProjections = new LinkedList<>();
-    
-    @XmlElement(name = "expression-projection")
-    private final List<ExpectedExpressionProjection> expressionProjections = new LinkedList<>();
+    private final List<ExpectedColumnProjection> columnProjections = new LinkedList<>();
 }

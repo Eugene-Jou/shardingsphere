@@ -18,14 +18,15 @@
 package org.apache.shardingsphere.sqlfederation.rule.builder;
 
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
+import org.apache.shardingsphere.infra.config.props.ConfigurationPropertyKey;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.rule.builder.global.GlobalRuleBuilder;
-import org.apache.shardingsphere.infra.rule.scope.GlobalRule;
-import org.apache.shardingsphere.sqlfederation.config.SQLFederationRuleConfiguration;
+import org.apache.shardingsphere.infra.rule.identifier.scope.GlobalRule;
+import org.apache.shardingsphere.sqlfederation.api.config.SQLFederationRuleConfiguration;
 import org.apache.shardingsphere.sqlfederation.constant.SQLFederationOrder;
 import org.apache.shardingsphere.sqlfederation.rule.SQLFederationRule;
 
-import java.util.Collection;
+import java.util.Map;
 
 /**
  * SQL federation rule builder.
@@ -33,8 +34,9 @@ import java.util.Collection;
 public final class SQLFederationRuleBuilder implements GlobalRuleBuilder<SQLFederationRuleConfiguration> {
     
     @Override
-    public GlobalRule build(final SQLFederationRuleConfiguration ruleConfig, final Collection<ShardingSphereDatabase> databases, final ConfigurationProperties props) {
-        return new SQLFederationRule(ruleConfig, databases);
+    public GlobalRule build(final SQLFederationRuleConfiguration ruleConfig, final Map<String, ShardingSphereDatabase> databases, final ConfigurationProperties props) {
+        ruleConfig.setSqlFederationType(props.getValue(ConfigurationPropertyKey.SQL_FEDERATION_TYPE));
+        return new SQLFederationRule(ruleConfig);
     }
     
     @Override

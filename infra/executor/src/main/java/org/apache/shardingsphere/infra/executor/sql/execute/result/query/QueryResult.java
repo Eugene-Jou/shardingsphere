@@ -20,16 +20,13 @@ package org.apache.shardingsphere.infra.executor.sql.execute.result.query;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.ExecuteResult;
 
 import java.io.InputStream;
-import java.io.Reader;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
-import java.util.Optional;
 
 /**
  * Query result.
  */
-public interface QueryResult extends ExecuteResult, AutoCloseable {
+public interface QueryResult extends ExecuteResult {
     
     /**
      * Iterate next data.
@@ -58,7 +55,7 @@ public interface QueryResult extends ExecuteResult, AutoCloseable {
      * @return calendar value
      * @throws SQLException SQL exception
      */
-    Object getCalendarValue(int columnIndex, Class<?> type, @SuppressWarnings("UseOfObsoleteDateTimeApi") Calendar calendar) throws SQLException;
+    Object getCalendarValue(int columnIndex, Class<?> type, Calendar calendar) throws SQLException;
     
     /**
      * Get input stream.
@@ -71,15 +68,6 @@ public interface QueryResult extends ExecuteResult, AutoCloseable {
     InputStream getInputStream(int columnIndex, String type) throws SQLException;
     
     /**
-     * Get CharacterStream.
-     *
-     * @param columnIndex column index
-     * @return reader
-     * @throws SQLException SQL exception
-     */
-    Reader getCharacterStream(int columnIndex) throws SQLException;
-    
-    /**
      * Judge result set is null or not.
      *
      * @return result set is null or not
@@ -89,17 +77,15 @@ public interface QueryResult extends ExecuteResult, AutoCloseable {
     
     /**
      * Get query result meta data.
-     *
+     * 
      * @return query result meta data
      */
     QueryResultMetaData getMetaData();
     
     /**
-     * Get JDBC result set.
+     * Close.
      *
-     * @return JDBC result set
+     * @throws SQLException SQL exception
      */
-    default Optional<ResultSet> getJDBCResultSet() {
-        return Optional.empty();
-    }
+    void close() throws SQLException;
 }

@@ -18,7 +18,7 @@
 package org.apache.shardingsphere.sharding.algorithm.sharding.classbased;
 
 import org.apache.shardingsphere.sharding.api.sharding.standard.StandardShardingAlgorithm;
-import org.apache.shardingsphere.sharding.exception.algorithm.ShardingAlgorithmClassImplementationException;
+import org.apache.shardingsphere.sharding.exception.algorithm.sharding.ShardingAlgorithmClassImplementationException;
 import org.apache.shardingsphere.sharding.fixture.ClassBasedHintShardingAlgorithmFixture;
 import org.apache.shardingsphere.sharding.fixture.ClassBasedStandardShardingAlgorithmFixture;
 import org.junit.jupiter.api.Test;
@@ -29,16 +29,16 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class ClassBasedShardingAlgorithmFactoryTest {
+public final class ClassBasedShardingAlgorithmFactoryTest {
     
     @Test
-    void assertNewInstanceWithUnAssignableFrom() {
+    public void assertNewInstanceWithUnAssignableFrom() {
         assertThrows(ShardingAlgorithmClassImplementationException.class,
                 () -> ClassBasedShardingAlgorithmFactory.newInstance(ClassBasedHintShardingAlgorithmFixture.class.getName(), StandardShardingAlgorithm.class, new Properties()));
     }
     
     @Test
-    void assertNewInstance() {
+    public void assertNewInstance() {
         assertThat(ClassBasedShardingAlgorithmFactory.newInstance(ClassBasedStandardShardingAlgorithmFixture.class.getName(), StandardShardingAlgorithm.class, new Properties()),
                 instanceOf(ClassBasedStandardShardingAlgorithmFixture.class));
     }

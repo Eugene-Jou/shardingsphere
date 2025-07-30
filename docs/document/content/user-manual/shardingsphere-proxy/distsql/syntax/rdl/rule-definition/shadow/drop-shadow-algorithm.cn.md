@@ -1,11 +1,11 @@
 +++
 title = "DROP SHADOW ALGORITHM"
-weight = 7
+weight = 8
 +++
 
 ## 描述
 
-`DROP SHADOW ALGORITHM` 语法用于为指定逻辑库删除影子库压测算法。
+`DROP SHADOW ALGORITHM` 语法用于为指定逻辑库删除影子库压测算法
 
 ### 语法定义
 
@@ -13,12 +13,12 @@ weight = 7
 {{% tab name="语法" %}}
 ```sql
 DropShadowAlgorithm ::=
-  'DROP' 'SHADOW' 'ALGORITHM' ifExists? algorithmName (',' algorithmName)* ('FROM' databaseName)?
+  'DROP' 'SHADOW' 'ALGORITHM' ifExists? shadowAlgorithmName (',' shadowAlgorithmName)* ('FROM' databaseName)?
 
 ifExists ::=
   'IF' 'EXISTS'
 
-algorithmName ::=
+shadowAlgorithmName ::=
   identifier
 
 databaseName ::=

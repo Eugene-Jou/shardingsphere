@@ -17,107 +17,106 @@
 
 package org.apache.shardingsphere.agent.plugin.metrics.core.advice;
 
-import org.apache.shardingsphere.agent.api.advice.TargetAdviceMethod;
 import org.apache.shardingsphere.agent.plugin.metrics.core.collector.MetricsCollectorRegistry;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricCollectorType;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricConfiguration;
 import org.apache.shardingsphere.agent.plugin.metrics.core.fixture.TargetAdviceObjectFixture;
 import org.apache.shardingsphere.agent.plugin.metrics.core.fixture.collector.MetricsCollectorFixture;
-import org.apache.shardingsphere.data.pipeline.scenario.migration.distsql.statement.queryable.ShowMigrationListStatement;
-import org.apache.shardingsphere.distsql.statement.rdl.resource.unit.type.RegisterStorageUnitStatement;
-import org.apache.shardingsphere.distsql.statement.rql.resource.ShowStorageUnitsStatement;
-import org.apache.shardingsphere.distsql.statement.rul.sql.ParseStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dal.FromDatabaseSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.DatabaseSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dcl.user.CreateUserStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.database.CreateDatabaseStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.DeleteStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.InsertStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.UpdateStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.tcl.CommitStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.database.MySQLShowDatabasesStatement;
+import org.apache.shardingsphere.distsql.parser.statement.rdl.create.RegisterStorageUnitStatement;
+import org.apache.shardingsphere.distsql.parser.statement.rql.show.ShowStorageUnitsStatement;
+import org.apache.shardingsphere.distsql.parser.statement.rul.sql.FormatStatement;
+import org.apache.shardingsphere.migration.distsql.statement.ShowMigrationListStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.DatabaseSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowDatabasesStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dcl.MySQLCreateUserStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.ddl.MySQLCreateDatabaseStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dml.MySQLDeleteStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dml.MySQLInsertStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dml.MySQLSelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dml.MySQLUpdateStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.tcl.MySQLCommitStatement;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
-class SQLParseCountAdviceTest {
+public final class SQLParseCountAdviceTest {
     
     private final MetricConfiguration config = new MetricConfiguration("parsed_sql_total", MetricCollectorType.COUNTER, null, Collections.singletonList("type"), Collections.emptyMap());
     
     @AfterEach
-    void reset() {
+    public void reset() {
         ((MetricsCollectorFixture) MetricsCollectorRegistry.get(config, "FIXTURE")).reset();
     }
     
     @Test
-    void assertParseInsertSQL() {
-        assertParse(mock(InsertStatement.class), "INSERT=1");
+    public void assertParseInsertSQL() {
+        assertParse(new MySQLInsertStatement(), "INSERT=1");
     }
     
     @Test
-    void assertParseUpdateSQL() {
-        assertParse(mock(UpdateStatement.class), "UPDATE=1");
+    public void assertParseUpdateSQL() {
+        assertParse(new MySQLUpdateStatement(), "UPDATE=1");
     }
     
     @Test
-    void assertParseDeleteSQL() {
-        assertParse(mock(DeleteStatement.class), "DELETE=1");
+    public void assertParseDeleteSQL() {
+        assertParse(new MySQLDeleteStatement(), "DELETE=1");
     }
     
     @Test
-    void assertParseSelectSQL() {
-        assertParse(mock(SelectStatement.class), "SELECT=1");
+    public void assertParseSelectSQL() {
+        assertParse(new MySQLSelectStatement(), "SELECT=1");
     }
     
     @Test
-    void assertParseDDL() {
-        assertParse(mock(CreateDatabaseStatement.class), "DDL=1");
+    public void assertParseDDL() {
+        assertParse(new MySQLCreateDatabaseStatement(), "DDL=1");
     }
     
     @Test
-    void assertParseDCL() {
-        assertParse(mock(CreateUserStatement.class), "DCL=1");
+    public void assertParseDCL() {
+        assertParse(new MySQLCreateUserStatement(), "DCL=1");
     }
     
     @Test
-    void assertParseDAL() {
-        assertParse(mock(MySQLShowDatabasesStatement.class), "DAL=1");
+    public void assertParseDAL() {
+        assertParse(new MySQLShowDatabasesStatement(), "DAL=1");
     }
     
     @Test
-    void assertParseTCL() {
-        assertParse(mock(CommitStatement.class), "TCL=1");
+    public void assertParseTCL() {
+        assertParse(new MySQLCommitStatement(), "TCL=1");
     }
     
     @Test
-    void assertParseRQL() {
-        assertParse(new ShowStorageUnitsStatement(new FromDatabaseSegment(0, new DatabaseSegment(0, 0, null)), null), "RQL=1");
+    public void assertParseRQL() {
+        assertParse(new ShowStorageUnitsStatement(new DatabaseSegment(0, 0, null), null), "RQL=1");
     }
     
     @Test
-    void assertParseRDL() {
-        assertParse(new RegisterStorageUnitStatement(false, Collections.emptyList(), Collections.emptySet()), "RDL=1");
+    public void assertParseRDL() {
+        assertParse(new RegisterStorageUnitStatement(false, Collections.emptyList()), "RDL=1");
     }
     
     @Test
-    void assertParseRAL() {
+    public void assertParseRAL() {
         assertParse(new ShowMigrationListStatement(), "RAL=1");
     }
     
     @Test
-    void assertParseRUL() {
-        assertParse(new ParseStatement("SELECT * FROM tbl"), "RUL=1");
+    public void assertParseRUL() {
+        assertParse(new FormatStatement("SELECT * FROM tbl"), "RUL=1");
     }
     
     private void assertParse(final SQLStatement sqlStatement, final String expected) {
-        new SQLParseCountAdvice().afterMethod(new TargetAdviceObjectFixture(), mock(TargetAdviceMethod.class), new Object[]{}, sqlStatement, "FIXTURE");
+        new SQLParseCountAdvice().afterMethod(new TargetAdviceObjectFixture(), mock(Method.class), new Object[]{}, sqlStatement, "FIXTURE");
         assertThat(MetricsCollectorRegistry.get(config, "FIXTURE").toString(), is(expected));
     }
 }

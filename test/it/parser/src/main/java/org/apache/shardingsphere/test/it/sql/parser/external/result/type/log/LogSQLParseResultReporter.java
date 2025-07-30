@@ -32,8 +32,4 @@ public final class LogSQLParseResultReporter implements SQLParseResultReporter {
             log.warn("SQL parse failed. SQL Case ID is: {}, database type is: {}, SQL is: {}", sqlCaseId, databaseType, sql);
         }
     }
-    
-    @Override
-    public void close() {
-    }
 }

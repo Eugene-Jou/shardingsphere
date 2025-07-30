@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.db.protocol.postgresql.payload;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.CompositeByteBuf;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.db.protocol.payload.PacketPayload;
@@ -111,7 +112,7 @@ public final class PostgreSQLPacketPayload implements PacketPayload {
     
     /**
      * Write variable length bytes to byte buffers.
-     *
+     * 
      * @param value fixed length bytes
      */
     public void writeBytes(final byte[] value) {
@@ -129,7 +130,7 @@ public final class PostgreSQLPacketPayload implements PacketPayload {
     
     /**
      * Read null terminated string from byte buffers.
-     *
+     * 
      * @return null terminated string
      */
     public String readStringNul() {
@@ -140,7 +141,7 @@ public final class PostgreSQLPacketPayload implements PacketPayload {
     
     /**
      * Write null terminated string to byte buffers.
-     *
+     * 
      * @param value null terminated string
      */
     public void writeStringNul(final String value) {
@@ -150,7 +151,7 @@ public final class PostgreSQLPacketPayload implements PacketPayload {
     
     /**
      * Write rest of packet string to byte buffers.
-     *
+     * 
      * @param value rest of packet string
      */
     public void writeStringEOF(final String value) {
@@ -159,7 +160,7 @@ public final class PostgreSQLPacketPayload implements PacketPayload {
     
     /**
      * Skip reserved from byte buffers.
-     *
+     * 
      * @param length length of reserved
      */
     public void skipReserved(final int length) {
@@ -174,5 +175,17 @@ public final class PostgreSQLPacketPayload implements PacketPayload {
      */
     public boolean hasCompletePacket() {
         return byteBuf.readableBytes() >= 5 && byteBuf.readableBytes() - 1 >= byteBuf.getInt(byteBuf.readerIndex() + 1);
+    }
+    
+    @Override
+    public void close() {
+        if (byteBuf instanceof CompositeByteBuf) {
+            int remainBytes = byteBuf.readableBytes();
+            if (remainBytes > 0) {
+                byteBuf.skipBytes(remainBytes);
+            }
+            ((CompositeByteBuf) byteBuf).discardReadComponents();
+        }
+        byteBuf.release();
     }
 }

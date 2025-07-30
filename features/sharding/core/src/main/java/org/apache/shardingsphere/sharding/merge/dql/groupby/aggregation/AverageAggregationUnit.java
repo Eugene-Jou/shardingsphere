@@ -39,10 +39,10 @@ public final class AverageAggregationUnit implements AggregationUnit {
             return;
         }
         if (null == count) {
-            count = BigDecimal.ZERO;
+            count = new BigDecimal("0");
         }
         if (null == sum) {
-            sum = BigDecimal.ZERO;
+            sum = new BigDecimal("0");
         }
         count = count.add(new BigDecimal(values.get(0).toString()));
         sum = sum.add(new BigDecimal(values.get(1).toString()));
@@ -50,7 +50,7 @@ public final class AverageAggregationUnit implements AggregationUnit {
     
     @Override
     public Comparable<?> getResult() {
-        if (null == count || BigDecimal.ZERO.compareTo(count) == 0) {
+        if (null == count || BigDecimal.ZERO.equals(count)) {
             return count;
         }
         // TODO use metadata to fetch float number precise for database field

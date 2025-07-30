@@ -26,21 +26,21 @@ import org.mockito.internal.configuration.plugins.Plugins;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class ConnectionIdGeneratorTest {
+public final class ConnectionIdGeneratorTest {
     
     @BeforeEach
     @AfterEach
-    void resetConnectionId() {
+    public void resetConnectionId() {
         setCurrentConnectionId(0);
     }
     
     @Test
-    void assertNextId() {
+    public void assertNextId() {
         assertThat(ConnectionIdGenerator.getInstance().nextId(), is(1));
     }
     
     @Test
-    void assertMaxNextId() {
+    public void assertMaxNextId() {
         setCurrentConnectionId(Integer.MAX_VALUE);
         assertThat(ConnectionIdGenerator.getInstance().nextId(), is(1));
     }

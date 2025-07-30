@@ -26,15 +26,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MySQLBinlogEventTypeTest {
+public final class MySQLBinlogEventTypeTest {
     
     @Test
-    void assertGetValue() {
-        assertThat(MySQLBinlogEventType.WRITE_ROWS_EVENT_V2.getValue(), is(0x1e));
+    public void assertGetValue() {
+        assertThat(MySQLBinlogEventType.WRITE_ROWS_EVENTv2.getValue(), is(0x1e));
     }
     
     @Test
-    void assertValueOfValidType() {
+    public void assertValueOfValidType() {
         for (MySQLBinlogEventType each : MySQLBinlogEventType.values()) {
             Optional<MySQLBinlogEventType> eventType = MySQLBinlogEventType.valueOf(each.getValue());
             assertTrue(eventType.isPresent());
@@ -43,7 +43,7 @@ class MySQLBinlogEventTypeTest {
     }
     
     @Test
-    void assertValueOfInvalidType() {
+    public void assertValueOfInvalidType() {
         assertFalse(MySQLBinlogEventType.valueOf(-1).isPresent());
     }
 }

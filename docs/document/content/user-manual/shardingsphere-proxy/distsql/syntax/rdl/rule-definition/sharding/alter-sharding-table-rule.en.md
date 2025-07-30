@@ -1,6 +1,6 @@
 +++
 title = "ALTER SHARDING TABLE RULE"
-weight = 2
+weight = 3
 +++
 
 ## Description
@@ -13,13 +13,13 @@ The `ALTER SHARDING TABLE RULE` syntax is used to alter sharding table rule for 
 {{% tab name="Grammar" %}}
 ```sql
 AlterShardingTableRule ::=
-  'ALTER' 'SHARDING' 'TABLE' 'RULE' (tableRuleDefinition | autoTableRuleDefinition) (',' (tableRuleDefinition | autoTableRuleDefinition))*
+  'ALTER' 'SHARDING' 'TABLE' 'RULE' (tableDefinition | autoTableDefinition) (',' (tableDefinition | autoTableDefinition))*
 
-tableRuleDefinition ::= 
-  ruleName '(' 'DATANODES' '(' dataNode (',' dataNode)* ')' (','  'DATABASE_STRATEGY' '(' strategyDefinition ')')? (','  'TABLE_STRATEGY' '(' strategyDefinition ')')? (','  'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
+tableDefinition ::= 
+  tableName '(' 'DATANODES' '(' dataNode (',' dataNode)* ')' (','  'DATABASE_STRATEGY' '(' strategyDefinition ')')? (','  'TABLE_STRATEGY' '(' strategyDefinition ')')? (','  'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
 
-autoTableRuleDefinition ::=
-  ruleName '(' 'STORAGE_UNITS' '(' storageUnitName (',' storageUnitName)*  ')' ',' 'SHARDING_COLUMN' '=' columnName ',' algorithmDefinition (',' 'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
+autoTableDefinition ::=
+  tableName '(' 'STORAGE_UNITS' '(' storageUnitName (',' storageUnitName)*  ')' ',' 'SHARDING_COLUMN' '=' columnName ',' algorithmDefinition (',' 'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
 
 strategyDefinition ::=
   'TYPE' '=' strategyType ',' ('SHARDING_COLUMN' | 'SHARDING_COLUMNS') '=' columnName ',' algorithmDefinition
@@ -42,7 +42,7 @@ key ::=
 value ::=
   literal
 
-ruleName ::=
+tableName ::=
   identifier
 
 dataNode ::=
@@ -54,10 +54,10 @@ storageUnitName ::=
 columnName ::=
   identifier
 
-strategyType ::=
-  string
-
 algorithmType ::=
+  identifier
+
+strategyType ::=
   string
 ```
 {{% /tab %}}
@@ -68,7 +68,7 @@ algorithmType ::=
 
 ### Supplement
 
-- `tableRuleDefinition` is defined for standard sharding table rule; `autoTableRuleDefinition` is defined for auto sharding
+- `tableDefinition` is defined for standard sharding table rule; `autoTableDefinition` is defined for auto sharding
   table rule. For standard sharding rules and auto sharding rule, refer
   to [Data Sharding](/en/user-manual/shardingsphere-jdbc/yaml-config/rules/sharding/);
 - use standard sharding table rule:
@@ -77,7 +77,7 @@ algorithmType ::=
     - `DATABASE_STRATEGY`, `TABLE_STRATEGY` are the database sharding strategy and the table sharding strategy, which
       are optional, and the default strategy is used when not configured;
     - The attribute `TYPE` in `strategyDefinition` is used to specify the type
-      of [Sharding Algorithm](/en/user-manual/common-config/builtin-algorithm/sharding/#class-based-sharding-algorithm), currently only
+      of [Sharding Algorithm](/en/features/sharding/concept/sharding/#user-defined-sharding-algorithm), currently only
       supports `STANDARD`, `COMPLEX`. Using `COMPLEX` requires specifying multiple sharding columns
       with `SHARDING_COLUMNS`.
 - use auto sharding table rule:
@@ -86,7 +86,7 @@ algorithmType ::=
     - Only auto sharding algorithm can be used, please refer
       to [Auto Sharding Algorithm](/en/user-manual/common-config/builtin-algorithm/sharding/#auto-sharding-algorithm).
 - `algorithmType` is the sharding algorithm type, please refer
-  to [Sharding Algorithm](/en/user-manual/common-config/builtin-algorithm/sharding);
+  to [Sharding Algorithm](/en/user-manual/shardingsphere-jdbc/builtin-algorithm/sharding);
 - The auto-generated algorithm naming rule is `tableName` _ `strategyType` _ `shardingAlgorithmType`;
 - The auto-generated primary key strategy naming rule is `tableName` _ `strategyType`;
 - `KEY_GENERATE_STRATEGY` is used to specify the primary key generation strategy, which is optional. For the primary key
@@ -128,4 +128,4 @@ AUDIT_STRATEGY(TYPE(NAME="dml_sharding_conditions"),ALLOW_HINT_DISABLE=true)
 ### Related links
 
 - [Reserved word](/en/user-manual/shardingsphere-proxy/distsql/syntax/reserved-word/)
-- [ALTER DEFAULT_SHARDING STRATEGY](/en/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/sharding/alter-default-sharding-strategy/)
+- [ALTER DEFAULT_SHARDING STRATEGY](/en/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/alter-default-sharding-strategy/)

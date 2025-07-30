@@ -30,13 +30,4 @@ public final class ModeConfiguration {
     private final String type;
     
     private final PersistRepositoryConfiguration repository;
-    
-    /**
-     * Is cluster mode or not.
-     *
-     * @return true if is cluster, else false
-     */
-    public boolean isCluster() {
-        return type.contains("Cluster");
-    }
 }

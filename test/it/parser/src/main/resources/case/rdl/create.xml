@@ -320,171 +320,169 @@
         <table>t_2</table>
     </create-broadcast-table-rule>
     
-    <create-readwrite-splitting-rule sql-case-id="create-readwrite-splitting-rule">
-        <rule name="ms_group_0" write-data-source="primary_ds">
+    <create-readwrite-splitting-rule sql-case-id="create-static-readwrite-splitting-rule">
+        <rule name="ms_group_0" write-data-source="primary_ds" load-balancer="random">
             <read-data-source>replica_ds_0</read-data-source>
             <read-data-source>replica_ds_1</read-data-source>
-            <load-balancer algorithm-name="random" />
         </rule>
     </create-readwrite-splitting-rule>
     
-    <create-readwrite-splitting-rule sql-case-id="create-readwrite-splitting-rule-if-not-exists" if-not-exists="true">
-        <rule name="ms_group_0" write-data-source="primary_ds">
+    <create-readwrite-splitting-rule sql-case-id="create-static-readwrite-splitting-rule-if-not-exists" if-not-exists="true">
+        <rule name="ms_group_0" write-data-source="primary_ds" load-balancer="random">
             <read-data-source>replica_ds_0</read-data-source>
             <read-data-source>replica_ds_1</read-data-source>
-            <load-balancer algorithm-name="random" />
         </rule>
     </create-readwrite-splitting-rule>
-    
-    <create-readwrite-splitting-rule sql-case-id="create-readwrite-splitting-rule-with-transactional-read-query-strategy">
-        <rule name="ms_group_0" write-data-source="primary_ds" transactional-read-query-strategy="DYNAMIC">
-            <read-data-source>replica_ds_0</read-data-source>
-            <read-data-source>replica_ds_1</read-data-source>
-            <load-balancer algorithm-name="random" />
-        </rule>
-    </create-readwrite-splitting-rule>
-    
+
     <create-readwrite-splitting-rule sql-case-id="create-readwrite-splitting-rule-with-quota">
-        <rule name="ms_group_0" write-data-source="primary_ds">
+        <rule name="ms_group_0" write-data-source="primary_ds" load-balancer="random">
             <read-data-source>replica_ds_0</read-data-source>
             <read-data-source>replica_ds_1</read-data-source>
-            <load-balancer algorithm-name="random" />
         </rule>
     </create-readwrite-splitting-rule>
     
     <create-readwrite-splitting-rule sql-case-id="create-dynamic-readwrite-splitting-rule">
-        <rule name="ms_group_1" auto-aware-resource="group_0">
-            <load-balancer algorithm-name="WEIGHT">
-                <property key="test_read_ds_1" value="5" />
-                <property key="test_read_ds_2" value="5" />
-            </load-balancer>
+        <rule name="ms_group_1" auto-aware-resource="group_0" load-balancer="random">
+            <property key="read_weight" value="2:1" />
         </rule>
     </create-readwrite-splitting-rule>
     
     <create-readwrite-splitting-rule sql-case-id="create-dynamic-readwrite-splitting-rule-if-not-exists" if-not-exists="true">
-        <rule name="ms_group_1" auto-aware-resource="group_0">
-            <load-balancer algorithm-name="WEIGHT">
-                <property key="test_read_ds_1" value="5" />
-                <property key="test_read_ds_2" value="5" />
-            </load-balancer>
+        <rule name="ms_group_1" auto-aware-resource="group_0" load-balancer="random">
+            <property key="read_weight" value="2:1" />
         </rule>
     </create-readwrite-splitting-rule>
     
+    <create-database-discovery-rule sql-case-id="create-database-discovery-rule">
+        <rule name="ha_group_0" type="mgr">
+            <data-source>ds_0</data-source>
+            <data-source>ds_1</data-source>
+            <discovery-type algorithm-name="mgr">
+                <property key="groupName" value="92504d5b-6dec" />
+            </discovery-type>
+            <property key="keepAliveCron" value="0/5 * * * * ?" />
+        </rule>
+        <rule name="ha_group_1" type="mgr2">
+            <data-source>ds_2</data-source>
+            <data-source>ds_3</data-source>
+            <discovery-type algorithm-name="mgr2">
+                <property key="groupName" value="92504d5b-6dec-2" />
+            </discovery-type>
+            <property key="keepAliveCron" value="0/6 * * * * ?" />
+        </rule>
+    </create-database-discovery-rule>
+    
+    <create-database-discovery-rule sql-case-id="create-database-discovery-rule-if-not-exists" if-not-exists="true">
+        <rule name="ha_group_0" type="mgr">
+            <data-source>ds_0</data-source>
+            <data-source>ds_1</data-source>
+            <discovery-type algorithm-name="mgr">
+                <property key="groupName" value="92504d5b-6dec" />
+            </discovery-type>
+            <property key="keepAliveCron" value="0/5 * * * * ?" />
+        </rule>
+        <rule name="ha_group_1" type="mgr2">
+            <data-source>ds_2</data-source>
+            <data-source>ds_3</data-source>
+            <discovery-type algorithm-name="mgr2">
+                <property key="groupName" value="92504d5b-6dec-2" />
+            </discovery-type>
+            <property key="keepAliveCron" value="0/6 * * * * ?" />
+        </rule>
+    </create-database-discovery-rule>
+
+    <create-database-discovery-rule sql-case-id="create-database-discovery-rule-with-quota">
+        <rule name="ha_group_0" type="mgr">
+            <data-source>ds_0</data-source>
+            <data-source>ds_1</data-source>
+            <discovery-type algorithm-name="mgr">
+                <property key="groupName" value="92504d5b-6dec" />
+            </discovery-type>
+            <property key="keepAliveCron" value="0/5 * * * * ?" />
+        </rule>
+        <rule name="ha_group_1" type="mgr2">
+            <data-source>ds_2</data-source>
+            <data-source>ds_3</data-source>
+            <discovery-type algorithm-name="mgr2">
+                <property key="groupName" value="92504d5b-6dec-2" />
+            </discovery-type>
+            <property key="keepAliveCron" value="0/6 * * * * ?" />
+        </rule>
+    </create-database-discovery-rule>
+    
     <create-encrypt-rule sql-case-id="create-encrypt-rule">
         <rule name="t_encrypt">
-            <column name="user_id">
-                <cipher name="user_cipher">
-                    <encryptor algorithm-name="AES">
-                        <property key="aes-key-value" value="123456abc" />
-                        <property key="digest-algorithm-name" value="SHA-1" />
-                    </encryptor>
-                </cipher>
+            <column name="user_id" plain-column="user_plain" cipher-column="user_cipher">
+                <encryptor algorithm-name="AES">
+                    <property key="aes-key-value" value="123456abc" />
+                </encryptor>
             </column>
-            <column name="order_id">
-                <cipher name="order_cipher">
-                    <encryptor algorithm-name="RC4">
-                        <property key="rc4-key-value" value="123456abc" />
-                    </encryptor>
-                </cipher>
+            <column name="order_id" cipher-column="order_cipher">
+                <encryptor algorithm-name="MD5" />
             </column>
         </rule>
     </create-encrypt-rule>
     
     <create-encrypt-rule sql-case-id="create-encrypt-rule-if-not-exists" if-not-exists="true">
         <rule name="t_encrypt">
-            <column name="user_id">
-                <cipher name="user_cipher">
-                    <encryptor algorithm-name="AES">
-                        <property key="aes-key-value" value="123456abc" />
-                        <property key="digest-algorithm-name" value="SHA-1" />
-                    </encryptor>
-                </cipher>
+            <column name="user_id" plain-column="user_plain" cipher-column="user_cipher">
+                <encryptor algorithm-name="AES">
+                    <property key="aes-key-value" value="123456abc" />
+                </encryptor>
             </column>
-            <column name="order_id">
-                <cipher name="order_cipher">
-                    <encryptor algorithm-name="RC4">
-                        <property key="rc4-key-value" value="123456abc" />
-                    </encryptor>
-                </cipher>
+            <column name="order_id" cipher-column="order_cipher">
+                <encryptor algorithm-name="MD5" />
             </column>
         </rule>
     </create-encrypt-rule>
 
     <create-encrypt-rule sql-case-id="create-encrypt-rule-with-quota">
         <rule name="encrypt">
-            <column name="user_id">
-                <cipher name="user_cipher">
-                    <encryptor algorithm-name="AES">
-                        <property key="aes-key-value" value="123456abc" />
-                        <property key="digest-algorithm-name" value="SHA-1" />
-                    </encryptor>
-                </cipher>
+            <column name="user_id" plain-column="user_plain" cipher-column="user_cipher">
+                <encryptor algorithm-name="AES">
+                    <property key="aes-key-value" value="123456abc" />
+                </encryptor>
             </column>
-            <column name="order_id">
-                <cipher name="order_cipher">
-                    <encryptor algorithm-name="RC4">
-                        <property key="rc4-key-value" value="123456abc" />
-                    </encryptor>
-                </cipher>
+            <column name="order_id" cipher-column="order_cipher">
+                <encryptor algorithm-name="MD5" />
             </column>
         </rule>
     </create-encrypt-rule>
     
     <create-encrypt-rule sql-case-id="create-encrypt-rule-with-assisted-query-column">
         <rule name="t_encrypt">
-            <column name="user_id">
-                <cipher name="user_cipher">
-                    <encryptor algorithm-name="AES">
-                        <property key="aes-key-value" value="123456abc" />
-                        <property key="digest-algorithm-name" value="SHA-1" />
-                    </encryptor>
-                </cipher>
-                <assisted-query name="assisted_column">
-                    <encryptor algorithm-name="MD5" />
-                </assisted-query>
+            <column name="user_id" plain-column="user_plain" cipher-column="user_cipher" assisted-query-column="assisted_column">
+                <encryptor algorithm-name="AES">
+                    <property key="aes-key-value" value="123456abc" />
+                </encryptor>
+                <assisted-query-encryptor algorithm-name="MD5" />
             </column>
-            <column name="order_id">
-                <cipher name="order_cipher">
-                    <encryptor algorithm-name="RC4">
-                        <property key="rc4-key-value" value="123456abc" />
-                    </encryptor>
-                </cipher>
+            <column name="order_id" cipher-column="order_cipher">
+                <encryptor algorithm-name="MD5" />
             </column>
         </rule>
     </create-encrypt-rule>
     
     <create-encrypt-rule sql-case-id="create-encrypt-rule-with-like-query-column">
         <rule name="t_encrypt">
-            <column name="user_id">
-                <cipher name="user_cipher">
-                    <encryptor algorithm-name="AES">
-                        <property key="aes-key-value" value="123456abc" />
-                        <property key="digest-algorithm-name" value="SHA-1" />
-                    </encryptor>
-                </cipher>
-                <like-query name="like_column">
-                    <encryptor algorithm-name="CHAR_DIGEST_LIKE" />
-                </like-query>
+            <column name="user_id" plain-column="user_plain" cipher-column="user_cipher" like-query-column="like_column">
+                <encryptor algorithm-name="AES">
+                    <property key="aes-key-value" value="123456abc" />
+                </encryptor>
+                <like-query-encryptor algorithm-name="CHAR_DIGEST_LIKE" />
             </column>
-            <column name="order_id">
-                <cipher name="order_cipher">
-                    <encryptor algorithm-name="RC4">
-                        <property key="rc4-key-value" value="123456abc" />
-                    </encryptor>
-                </cipher>
+            <column name="order_id" cipher-column="order_cipher">
+                <encryptor algorithm-name="MD5" />
             </column>
         </rule>
     </create-encrypt-rule>
     
     <create-encrypt-rule sql-case-id="create-encrypt-rule-with-query-with-cipher-column">
         <rule name="encrypt" query-with-cipher-column="false">
-            <column name="user_id">
-                <cipher name="user_cipher">
-                    <encryptor algorithm-name="AES">
-                        <property key="aes-key-value" value="123456abc" />
-                        <property key="digest-algorithm-name" value="SHA-1" />
-                    </encryptor>
-                </cipher>
+            <column name="user_id" plain-column="user_plain" cipher-column="user_cipher">
+                <encryptor algorithm-name="AES">
+                    <property key="aes-key-value" value="123456abc" />
+                </encryptor>
             </column>
         </rule>
     </create-encrypt-rule>
@@ -581,9 +579,9 @@
     </create-default-sharding-strategy>
     
     <create-default-sharding-strategy sql-case-id="create-default-sharding-table-strategy-with-hint-strategy-type">
-        <strategy default-type="TABLE" strategy-type="hint">
+        <strategy default-type="TABLE" strategy-type="hint" sharding-column="user_id">
             <algorithm-segment algorithm-name="HINT_INLINE">
-                <property key="algorithm-expression" value="t_order_${value % 2}" />
+                <property key="algorithm-expression" value="t_order_${user_id % 2}" />
             </algorithm-segment>
         </strategy>
     </create-default-sharding-strategy>
@@ -601,9 +599,9 @@
     </create-default-sharding-strategy>
     
     <create-default-sharding-strategy sql-case-id="create-default-sharding-database-strategy-with-hint-strategy-type">
-        <strategy default-type="DATABASE" strategy-type="hint">
+        <strategy default-type="DATABASE" strategy-type="hint" sharding-column="user_id">
             <algorithm-segment algorithm-name="HINT_INLINE">
-                <property key="algorithm-expression" value="t_order_${value % 2}" />
+                <property key="algorithm-expression" value="t_order_${user_id % 2}" />
             </algorithm-segment>
         </strategy>
     </create-default-sharding-strategy>
@@ -669,9 +667,9 @@
     <create-sharding-table-rule sql-case-id="create-sharding-table-rule-with-none-table-strategy-and-hint-database-strategy">
         <rule name="t_order_item">
             <data-node>ds_${0..1}.t_order_item_${0..1}</data-node>
-            <database-strategy type="hint">
+            <database-strategy type="hint" sharding-column="user_id">
                 <algorithm-segment algorithm-name="hint_inline">
-                    <property key="algorithm-expression" value="t_order_${value % 2}" />
+                    <property key="algorithm-expression" value="t_order_${user_id % 2}" />
                 </algorithm-segment>
             </database-strategy>
             <table-strategy type="none" />
@@ -680,16 +678,13 @@
 
     <create-encrypt-rule sql-case-id="create-encrypt-rule-without-quote-on-build-in-algorithm-type-name">
         <rule name="t_encrypt" query-with-cipher-column="true">
-            <column name="user_id" cipher-column="user_cipher">
+            <column name="user_id" plain-column="user_plain" cipher-column="user_cipher">
                 <encryptor algorithm-name="AES">
                     <property key="aes-key-value" value="123456abc" />
-                    <property key="digest-algorithm-name" value="SHA-1" />
                 </encryptor>
             </column>
             <column name="order_id" cipher-column="order_cipher">
-                <encryptor algorithm-name="RC4">
-                    <property key="rc4-key-value" value="123456abc" />
-                </encryptor>
+                <encryptor algorithm-name="MD5" />
             </column>
         </rule>
     </create-encrypt-rule>
@@ -700,6 +695,17 @@
             <read-data-source>read_ds_1</read-data-source>
         </rule>
     </create-readwrite-splitting-rule>
+
+    <create-database-discovery-rule sql-case-id="create-db-discovery-rule-without-quote-on-build-in-db-discovery-type-name">
+        <rule name="db_discovery_group_0" type="MYSQL.MGR">
+            <data-source>ds_0</data-source>
+            <data-source>ds_1</data-source>
+            <discovery-type algorithm-name="MYSQL.MGR">
+                <property key="group-name" value="92504d5b-6dec" />
+            </discovery-type>
+            <property key="keep-alive-cron" value="0/5 * * * * ?" />
+        </rule>
+    </create-database-discovery-rule>
 
     <create-shadow-rule sql-case-id="create-shadow-rule-without-quote-on-build-in-shadow-algorithm-name">
         <rule name="shadow_rule" source="demo_ds" shadow="demo_ds_shadow">

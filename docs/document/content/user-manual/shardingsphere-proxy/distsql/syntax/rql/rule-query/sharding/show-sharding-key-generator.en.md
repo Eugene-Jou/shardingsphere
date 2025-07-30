@@ -1,6 +1,6 @@
 +++
 title = "SHOW SHARDING KEY GENERATORS"
-weight = 5
+weight = 6
 +++
 
 ### Description
@@ -30,11 +30,11 @@ databaseName ::=
 
 ### Return value description
 
-| column | Description                       |
-|--------|-----------------------------------|
-| name   | Sharding key generator name       |
-| type   | Sharding key generator type       |
-| props  | Sharding key generator properties |
+| column                 | Description                          |
+| -----------------------| -------------------------------------|
+| name                   | Sharding key generator name          |
+| type                   | Sharding key generator type          |
+| props                  | Sharding key generator properties    |
 
 ### Example
 
@@ -49,7 +49,7 @@ mysql> SHOW SHARDING KEY GENERATORS FROM sharding_db;
 +-------------------------+-----------+-------+
 | name                    | type      | props |
 +-------------------------+-----------+-------+
-| snowflake_key_generator | snowflake |       |
+| snowflake_key_generator | snowflake | {}    |
 +-------------------------+-----------+-------+
 1 row in set (0.00 sec)
 ```
@@ -65,7 +65,7 @@ mysql> SHOW SHARDING KEY GENERATORS;
 +-------------------------+-----------+-------+
 | name                    | type      | props |
 +-------------------------+-----------+-------+
-| snowflake_key_generator | snowflake |       |
+| snowflake_key_generator | snowflake | {}    |
 +-------------------------+-----------+-------+
 1 row in set (0.00 sec)
 ```

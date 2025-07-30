@@ -1,6 +1,6 @@
 +++
 title = "SHOW SHARDING AUDITORS"
-weight = 7
+weight = 8
 
 +++
 
@@ -31,11 +31,11 @@ databaseName ::=
 
 ### Return value description
 
-| column | Description                           |
-|--------|---------------------------------------|
-| name   | Sharding auditor name                 |
-| type   | Sharding auditor algorithm type       |
-| props  | Sharding auditor algorithm properties |
+| column                 | Description                           |
+| -----------------------|---------------------------------------|
+| name                   | Sharding auditor name                 |
+| type                   | Sharding auditor algorithm type       |
+| props                  | Sharding auditor algorithm properties |
 
 ### Example
 
@@ -50,7 +50,7 @@ mysql> SHOW SHARDING AUDITORS FROM sharding_db;
 +-------------------------------+-------------------------+-------+
 | name                          | type                    | props |
 +-------------------------------+-------------------------+-------+
-| sharding_key_required_auditor | dml_sharding_conditions |       |
+| sharding_key_required_auditor | dml_sharding_conditions | {}    |
 +-------------------------------+-------------------------+-------+
 1 row in set (0.01 sec)
 ```
@@ -66,7 +66,7 @@ mysql> SHOW SHARDING AUDITORS;
 +-------------------------------+-------------------------+-------+
 | name                          | type                    | props |
 +-------------------------------+-------------------------+-------+
-| sharding_key_required_auditor | dml_sharding_conditions |       |
+| sharding_key_required_auditor | dml_sharding_conditions | {}    |
 +-------------------------------+-------------------------+-------+
 1 row in set (0.00 sec)
 ```

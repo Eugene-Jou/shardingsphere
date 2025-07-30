@@ -28,10 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class HintManagerTest {
+public final class HintManagerTest {
     
     @Test
-    void assertGetInstanceTwice() {
+    public void assertGetInstanceTwice() {
         try {
             HintManager.getInstance();
             assertThrows(IllegalStateException.class, HintManager::getInstance);
@@ -41,7 +41,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertSetDatabaseShardingValue() {
+    public void assertSetDatabaseShardingValue() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setDatabaseShardingValue(1);
             hintManager.setDatabaseShardingValue(3);
@@ -53,7 +53,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertAddDatabaseShardingValue() {
+    public void assertAddDatabaseShardingValue() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.addDatabaseShardingValue("logicTable", 1);
             hintManager.addDatabaseShardingValue("logicTable", 3);
@@ -65,7 +65,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertAddTableShardingValue() {
+    public void assertAddTableShardingValue() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.addTableShardingValue("logicTable", 1);
             hintManager.addTableShardingValue("logicTable", 3);
@@ -77,7 +77,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertGetDatabaseShardingValuesWithoutLogicTable() {
+    public void assertGetDatabaseShardingValuesWithoutLogicTable() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setDatabaseShardingValue(1);
             assertThat(HintManager.getDatabaseShardingValues().size(), is(1));
@@ -87,7 +87,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertGetDatabaseShardingValuesWithLogicTable() {
+    public void assertGetDatabaseShardingValuesWithLogicTable() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.addDatabaseShardingValue("logic_table", 1);
             assertThat(HintManager.getDatabaseShardingValues("logic_table").size(), is(1));
@@ -97,7 +97,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertGetTableShardingValues() {
+    public void assertGetTableShardingValues() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.addTableShardingValue("logic_table", 1);
             assertThat(HintManager.getTableShardingValues("logic_table").size(), is(1));
@@ -107,7 +107,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertIsDatabaseShardingOnly() {
+    public void assertIsDatabaseShardingOnly() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setDatabaseShardingValue(1);
             assertTrue(HintManager.isDatabaseShardingOnly());
@@ -115,14 +115,14 @@ class HintManagerTest {
     }
     
     @Test
-    void assertIsDatabaseShardingOnlyWithoutSet() {
+    public void assertIsDatabaseShardingOnlyWithoutSet() {
         HintManager hintManager = HintManager.getInstance();
         hintManager.close();
         assertFalse(HintManager.isDatabaseShardingOnly());
     }
     
     @Test
-    void assertAddDatabaseShardingValueOnlyDatabaseSharding() {
+    public void assertAddDatabaseShardingValueOnlyDatabaseSharding() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setDatabaseShardingValue(1);
             assertTrue(HintManager.isDatabaseShardingOnly());
@@ -135,7 +135,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertAddTableShardingValueOnlyDatabaseSharding() {
+    public void assertAddTableShardingValueOnlyDatabaseSharding() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setDatabaseShardingValue(1);
             assertTrue(HintManager.isDatabaseShardingOnly());
@@ -148,7 +148,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertSetWriteRouteOnly() {
+    public void assertSetWriteRouteOnly() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setWriteRouteOnly();
             assertTrue(HintManager.isWriteRouteOnly());
@@ -156,7 +156,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertIsWriteRouteOnly() {
+    public void assertIsWriteRouteOnly() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setWriteRouteOnly();
             assertTrue(HintManager.isWriteRouteOnly());
@@ -164,14 +164,14 @@ class HintManagerTest {
     }
     
     @Test
-    void assertIsWriteRouteOnlyWithoutSet() {
+    public void assertIsWriteRouteOnlyWithoutSet() {
         HintManager hintManager = HintManager.getInstance();
         hintManager.close();
         assertFalse(HintManager.isWriteRouteOnly());
     }
     
     @Test
-    void assertSetReadwriteSplittingAuto() {
+    public void assertSetReadwriteSplittingAuto() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.setReadwriteSplittingAuto();
             assertFalse(HintManager.isWriteRouteOnly());
@@ -179,7 +179,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertClearShardingValues() {
+    public void assertClearShardingValues() {
         try (HintManager hintManager = HintManager.getInstance()) {
             hintManager.addDatabaseShardingValue("t_order", 1);
             hintManager.addTableShardingValue("t_order", 1);
@@ -190,7 +190,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertClose() {
+    public void assertClose() {
         HintManager hintManager = HintManager.getInstance();
         hintManager.addDatabaseShardingValue("logic_table", 1);
         hintManager.addTableShardingValue("logic_table", 1);
@@ -200,7 +200,7 @@ class HintManagerTest {
     }
     
     @Test
-    void assertIsInstantiated() {
+    public void assertIsInstantiated() {
         assertFalse(HintManager.isInstantiated());
         HintManager hintManager = HintManager.getInstance();
         assertTrue(HintManager.isInstantiated());

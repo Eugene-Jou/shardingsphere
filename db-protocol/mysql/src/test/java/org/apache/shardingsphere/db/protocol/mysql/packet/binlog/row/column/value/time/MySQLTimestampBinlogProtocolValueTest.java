@@ -19,7 +19,6 @@ package org.apache.shardingsphere.db.protocol.mysql.packet.binlog.row.column.val
 
 import org.apache.shardingsphere.db.protocol.mysql.packet.binlog.row.column.MySQLBinlogColumnDef;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.infra.util.datetime.DateTimeFormatterFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -32,7 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLTimestampBinlogProtocolValueTest {
+public final class MySQLTimestampBinlogProtocolValueTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -41,16 +40,15 @@ class MySQLTimestampBinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @Test
-    void assertRead() {
-        int currentSeconds = (int) (System.currentTimeMillis() / 1000L);
+    public void assertRead() {
+        int currentSeconds = Long.valueOf(System.currentTimeMillis() / 1000).intValue();
         when(payload.readInt4()).thenReturn(currentSeconds);
-        assertThat(new MySQLTimestampBinlogProtocolValue().read(columnDef, payload),
-                is(DateTimeFormatterFactory.getStandardFormatter().format(new Timestamp(currentSeconds * 1000L).toLocalDateTime())));
+        assertThat(new MySQLTimestampBinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtil.getSimpleDateFormat().format(new Timestamp(currentSeconds * 1000L))));
     }
     
     @Test
-    void assertReadNullTime() {
+    public void assertReadNullTime() {
         when(payload.readInt4()).thenReturn(0);
-        assertThat(new MySQLTimestampBinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtils.DATETIME_OF_ZERO));
+        assertThat(new MySQLTimestampBinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtil.DATETIME_OF_ZERO));
     }
 }

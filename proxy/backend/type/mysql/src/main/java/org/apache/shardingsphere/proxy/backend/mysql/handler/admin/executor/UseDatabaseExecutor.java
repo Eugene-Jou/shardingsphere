@@ -20,13 +20,13 @@ package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.authority.checker.AuthorityChecker;
 import org.apache.shardingsphere.authority.rule.AuthorityRule;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
-import org.apache.shardingsphere.infra.exception.dialect.exception.syntax.database.UnknownDatabaseException;
+import org.apache.shardingsphere.dialect.exception.syntax.database.UnknownDatabaseException;
+import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminExecutor;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.MySQLUseStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.util.SQLUtils;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dal.UseStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.util.SQLUtil;
 
 /**
  * Use database executor.
@@ -34,15 +34,15 @@ import org.apache.shardingsphere.sql.parser.statement.core.util.SQLUtils;
 @RequiredArgsConstructor
 public final class UseDatabaseExecutor implements DatabaseAdminExecutor {
     
-    private final MySQLUseStatement useStatement;
+    private final UseStatement useStatement;
     
     @Override
     public void execute(final ConnectionSession connectionSession) {
-        String databaseName = SQLUtils.getExactlyValue(useStatement.getDatabase());
+        String databaseName = SQLUtil.getExactlyValue(useStatement.getSchema());
         AuthorityRule authorityRule = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getGlobalRuleMetaData().getSingleRule(AuthorityRule.class);
-        AuthorityChecker authorityChecker = new AuthorityChecker(authorityRule, connectionSession.getConnectionContext().getGrantee());
+        AuthorityChecker authorityChecker = new AuthorityChecker(authorityRule, connectionSession.getGrantee());
         ShardingSpherePreconditions.checkState(ProxyContext.getInstance().databaseExists(databaseName) && authorityChecker.isAuthorized(databaseName),
                 () -> new UnknownDatabaseException(databaseName));
-        connectionSession.setCurrentDatabaseName(databaseName);
+        connectionSession.setCurrentDatabase(databaseName);
     }
 }

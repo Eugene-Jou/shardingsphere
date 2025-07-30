@@ -24,15 +24,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class PostgreSQLMessagePacketTypeTest {
+public final class PostgreSQLMessagePacketTypeTest {
     
     @Test
-    void assertValueOf() {
+    public void assertValueOf() {
         assertThat(PostgreSQLMessagePacketType.valueOf(PostgreSQLMessagePacketType.AUTHENTICATION_REQUEST.getValue()), is(PostgreSQLMessagePacketType.AUTHENTICATION_REQUEST));
     }
     
     @Test
-    void assertGetValueWithIllegalArgument() {
+    public void assertGetValueWithIllegalArgument() {
         assertThrows(PostgreSQLProtocolException.class, () -> PostgreSQLMessagePacketType.valueOf(-1));
     }
 }

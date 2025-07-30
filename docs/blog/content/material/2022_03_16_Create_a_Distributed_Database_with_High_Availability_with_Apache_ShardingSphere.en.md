@@ -69,7 +69,7 @@ dataSources:
 
 rules:
   - !READWRITE_SPLITTING
-    dataSourceGroups:
+    dataSources:
       replication_ds:
         type: Dynamic
         props:

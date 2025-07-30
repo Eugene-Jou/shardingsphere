@@ -21,16 +21,16 @@ import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.database.core.spi.DatabaseTypedSPILoader;
-import org.apache.shardingsphere.infra.exception.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.util.exception.external.sql.type.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.transaction.xa.jta.datasource.properties.XADataSourceDefinition;
 import org.apache.shardingsphere.transaction.xa.jta.datasource.swapper.DataSourceSwapper;
 
 import javax.sql.DataSource;
 
 /**
- * Data source utility class.
+ * Data source utility.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DataSourceUtils {
@@ -42,7 +42,6 @@ public final class DataSourceUtils {
      * @param databaseType database type
      * @param databaseName database name
      * @return built data source
-     * @throws UnsupportedSQLOperationException unsupported SQL operation exception
      */
     public static DataSource build(final Class<? extends DataSource> dataSourceClass, final DatabaseType databaseType, final String databaseName) {
         if (HikariDataSource.class == dataSourceClass) {
@@ -61,15 +60,15 @@ public final class DataSourceUtils {
         result.setPassword("root");
         result.setMaximumPoolSize(10);
         result.setMinimumIdle(2);
-        result.setConnectionTimeout(15L * 1000L);
-        result.setIdleTimeout(40L * 1000L);
+        result.setConnectionTimeout(15 * 1000L);
+        result.setIdleTimeout(40 * 1000L);
         return result;
     }
     
     private static AtomikosDataSourceBean createAtomikosDataSourceBean(final DatabaseType databaseType, final DataSource dataSource, final String databaseName) {
         AtomikosDataSourceBean result = new AtomikosDataSourceBean();
         result.setUniqueResourceName(databaseName);
-        result.setXaDataSource(new DataSourceSwapper(DatabaseTypedSPILoader.getService(XADataSourceDefinition.class, databaseType)).swap(dataSource));
+        result.setXaDataSource(new DataSourceSwapper(TypedSPILoader.getService(XADataSourceDefinition.class, databaseType.getType())).swap(dataSource));
         return result;
     }
     
@@ -89,8 +88,6 @@ public final class DataSourceUtils {
                 return String.format("jdbc:sqlserver://localhost:1433;DatabaseName=%s", databaseName);
             case "H2":
                 return String.format("jdbc:h2:mem:%s;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;MODE=MYSQL", databaseName);
-            case "Firebird":
-                return String.format("jdbc:firebirdsql://localhost:3050/%s", databaseName);
             default:
                 throw new UnsupportedSQLOperationException(databaseType.getType());
         }

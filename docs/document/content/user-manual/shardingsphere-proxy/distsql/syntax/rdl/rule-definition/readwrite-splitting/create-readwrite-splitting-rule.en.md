@@ -1,11 +1,11 @@
 +++
 title = "CREATE READWRITE_SPLITTING RULE"
-weight = 1
+weight = 2
 +++
 
 ## Description
 
-The `CREATE READWRITE_SPLITTING RULE` syntax is used to create a read/write splitting rule.
+The `CREATE READWRITE_SPLITTING RULE` syntax is used to create a readwrite splitting rule.
 
 ### Syntax
 
@@ -19,16 +19,16 @@ ifNotExists ::=
   'IF' 'NOT' 'EXISTS'
 
 readwriteSplittingDefinition ::=
-  ruleName '(' dataSourceDefinition (',' transactionalReadQueryStrategyDefinition)? (',' loadBalancerDefinition)? ')'
+  ruleName '(' (staticReadwriteSplittingDefinition | dynamicReadwriteSplittingDefinition) (',' loadBalancerDefinition)? ')'
 
-dataSourceDefinition ::=
-    'WRITE_STORAGE_UNIT' '=' writeStorageUnitName ',' 'READ_STORAGE_UNITS' '(' storageUnitName (',' storageUnitName)* ')' 
+staticReadwriteSplittingDefinition ::=
+    'WRITE_STORAGE_UNIT' '=' writeStorageUnitName ',' 'READ_STORAGE_UNITS' '(' storageUnitName (',' storageUnitName)* ')'
 
-transactionalReadQueryStrategyDefinition ::=
-    'TRANSACTIONAL_READ_QUERY_STRATEGY' '=' transactionalReadQueryStrategyType
+dynamicReadwriteSplittingDefinition ::=
+    'AUTO_AWARE_RESOURCE' '=' resourceName
 
 loadBalancerDefinition ::=
-    'TYPE' '(' 'NAME' '=' algorithmType (',' propertiesDefinition)? ')'
+    'TYPE' '(' 'NAME' '=' loadBalancerType (',' propertiesDefinition)? ')'
 
 ruleName ::=
   identifier
@@ -39,10 +39,10 @@ writeStorageUnitName ::=
 storageUnitName ::=
   identifier
 
-transactionalReadQueryStrategyType ::=
-  string
-
-algorithmType ::=
+resourceName ::=
+  identifier
+    
+loadBalancerType ::=
   string
 
 propertiesDefinition ::=
@@ -60,16 +60,17 @@ value ::=
 {{% /tab %}}
 {{< /tabs >}}
 
-### Note
+### Supplement
 
-- `transactionalReadQueryStrategyType` specifies the routing strategy for read query within a transaction, please refer to [YAML configuration](/en/user-manual/shardingsphere-jdbc/yaml-config/rules/readwrite-splitting/);
-- `algorithmType` specifies the load balancing algorithm type, please refer to [Load Balance Algorithm](/en/user-manual/common-config/builtin-algorithm/load-balance/);
+- Support the creation of static readwrite-splitting rules and dynamic readwrite-splitting rules;
+- Dynamic readwrite-splitting rules rely on database discovery rules;
+- `loadBalancerType` specifies the load balancing algorithm type, please refer to [Load Balance Algorithm](/en/user-manual/common-config/builtin-algorithm/load-balance/);
 - Duplicate `ruleName` will not be created;
-- `ifNotExists` clause used to avoid the `Duplicate readwrite_splitting rule` error.
+- `ifNotExists` clause used for avoid `Duplicate readwrite_splitting rule` error.
 
 ### Example
 
-#### Create a read/write splitting rule
+#### Create a statics readwrite splitting rule
 
 ```sql
 CREATE READWRITE_SPLITTING RULE ms_group_0 (
@@ -79,9 +80,18 @@ CREATE READWRITE_SPLITTING RULE ms_group_0 (
 );
 ```
 
-#### Create read/write splitting rule with the `ifNotExists` clause
+#### Create a dynamic readwrite splitting rule
 
-- read/write splitting rule
+```sql
+CREATE READWRITE_SPLITTING RULE ms_group_1 (
+    AUTO_AWARE_RESOURCE=group_0
+    TYPE(NAME="random")
+);
+```
+
+#### Create readwrite splitting rule with `ifNotExists` clause
+
+- Statics readwrite splitting rule
 
 ```sql
 CREATE READWRITE_SPLITTING RULE IF NOT EXISTS ms_group_0 (
@@ -91,12 +101,21 @@ CREATE READWRITE_SPLITTING RULE IF NOT EXISTS ms_group_0 (
 );
 ```
 
-### Reserved words
+- Dynamic readwrite splitting rule
 
-`CREATE`, `READWRITE_SPLITTING`, `RULE`, `WRITE_STORAGE_UNIT`, `READ_STORAGE_UNITS`
+```sql
+CREATE READWRITE_SPLITTING RULE IF NOT EXISTS ms_group_1 (
+    AUTO_AWARE_RESOURCE=group_0
+    TYPE(NAME="random")
+);
+```
+
+### Reserved word
+
+`CREATE`, `READWRITE_SPLITTING`, `RULE`, `WRITE_STORAGE_UNIT`, `READ_STORAGE_UNITS`, `AUTO_AWARE_RESOURCE`
 , `TYPE`, `NAME`, `PROPERTIES`, `TRUE`, `FALSE`
 
 ### Related links
 
-- [Reserved words](/en/user-manual/shardingsphere-proxy/distsql/syntax/reserved-word/)
+- [Reserved word](/en/user-manual/shardingsphere-proxy/distsql/syntax/reserved-word/)
 - [Load Balance Algorithm](/en/user-manual/common-config/builtin-algorithm/load-balance/)

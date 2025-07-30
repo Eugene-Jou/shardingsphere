@@ -32,7 +32,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class MySQLJsonValueDecoderTest {
+public final class MySQLJsonValueDecoderTest {
     
     private static final int SMALL_JSON_INT_LENGTH = 2;
     
@@ -47,7 +47,7 @@ class MySQLJsonValueDecoderTest {
     private static final int LARGE_JSON_VALUE_META_DATA_LENGTH = LARGE_JSON_INT_LENGTH + 1;
     
     @Test
-    void assertDecodeSmallJsonObjectWithLiteral() {
+    public void assertDecodeSmallJsonObjectWithLiteral() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.LITERAL, "key1", JsonValueTypes.LITERAL_NULL));
         jsonEntries.add(new JsonEntry(JsonValueTypes.LITERAL, "key2", JsonValueTypes.LITERAL_TRUE));
@@ -58,7 +58,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeLargeJsonObjectWithLiteral() {
+    public void assertDecodeLargeJsonObjectWithLiteral() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.LITERAL, "key1", JsonValueTypes.LITERAL_NULL));
         jsonEntries.add(new JsonEntry(JsonValueTypes.LITERAL, "key2", JsonValueTypes.LITERAL_TRUE));
@@ -69,7 +69,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithInt16() {
+    public void assertDecodeSmallJsonObjectWithInt16() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, "key1", 0x00007fff));
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, "key2", 0x00008000));
@@ -79,7 +79,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeLargeJsonObjectWithInt16() {
+    public void assertDecodeLargeJsonObjectWithInt16() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, "key1", 0x00007fff));
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, "key2", 0x00008000));
@@ -89,7 +89,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithUInt16() {
+    public void assertDecodeSmallJsonObjectWithUInt16() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT16, "key1", 0x00007fff));
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT16, "key2", 0x00008000));
@@ -99,7 +99,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeLargeJsonObjectWithUInt16() {
+    public void assertDecodeLargeJsonObjectWithUInt16() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT16, "key1", 0x00007fff));
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT16, "key2", 0x00008000));
@@ -109,7 +109,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithInt32() {
+    public void assertDecodeSmallJsonObjectWithInt32() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT32, "key1", Integer.MAX_VALUE));
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT32, "key2", Integer.MIN_VALUE));
@@ -119,7 +119,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeLargeJsonObjectWithInt32() {
+    public void assertDecodeLargeJsonObjectWithInt32() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT32, "key1", Integer.MAX_VALUE));
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT32, "key2", Integer.MIN_VALUE));
@@ -129,7 +129,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithUInt32() {
+    public void assertDecodeSmallJsonObjectWithUInt32() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT32, "key1", Integer.MAX_VALUE));
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT32, "key2", Integer.MIN_VALUE));
@@ -139,7 +139,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeLargeJsonObjectWithUInt32() {
+    public void assertDecodeLargeJsonObjectWithUInt32() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT32, "key1", Integer.MAX_VALUE));
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT32, "key2", Integer.MIN_VALUE));
@@ -149,7 +149,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithInt64() {
+    public void assertDecodeSmallJsonObjectWithInt64() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT64, "key1", Long.MAX_VALUE));
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT64, "key2", Long.MIN_VALUE));
@@ -159,7 +159,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithUInt64() {
+    public void assertDecodeSmallJsonObjectWithUInt64() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT64, "key1", Long.MAX_VALUE));
         jsonEntries.add(new JsonEntry(JsonValueTypes.UINT64, "key2", Long.MIN_VALUE));
@@ -169,7 +169,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithDouble() {
+    public void assertDecodeSmallJsonObjectWithDouble() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.DOUBLE, "key1", Double.MAX_VALUE));
         ByteBuf payload = mockJsonObjectByteBuf(jsonEntries, true);
@@ -178,12 +178,12 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithString() {
+    public void assertDecodeSmallJsonObjectWithString() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         String value1 = "";
-        String value2 = Strings.repeat("1", (int) (Math.pow(2D, 7D) - 1D));
-        String value3 = Strings.repeat("1", (int) (Math.pow(2D, 7D) - 1D + 1D));
-        String value4 = Strings.repeat("1", (int) (Math.pow(2D, 14D) - 1D));
+        String value2 = Strings.repeat("1", (int) (Math.pow(2, 7) - 1));
+        String value3 = Strings.repeat("1", (int) (Math.pow(2, 7) - 1 + 1));
+        String value4 = Strings.repeat("1", (int) (Math.pow(2, 14) - 1));
         jsonEntries.add(new JsonEntry(JsonValueTypes.STRING, "key1", value1));
         jsonEntries.add(new JsonEntry(JsonValueTypes.STRING, "key2", value2));
         jsonEntries.add(new JsonEntry(JsonValueTypes.STRING, "key3", value3));
@@ -194,7 +194,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithSubJson() {
+    public void assertDecodeSmallJsonObjectWithSubJson() {
         List<JsonEntry> subJsons = Collections.singletonList(new JsonEntry(JsonValueTypes.INT32, "key1", 111));
         ByteBuf payload = mockJsonObjectByteBuf(Collections.singletonList(new JsonEntry(JsonValueTypes.SMALL_JSON_OBJECT, "subJson", subJsons)), true);
         String actual = (String) MySQLJsonValueDecoder.decode(payload);
@@ -202,7 +202,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeLargeJsonObjectWithSubJson() {
+    public void assertDecodeLargeJsonObjectWithSubJson() {
         List<JsonEntry> subJsons = Collections.singletonList(new JsonEntry(JsonValueTypes.INT32, "key1", 111));
         ByteBuf payload = mockJsonObjectByteBuf(Collections.singletonList(new JsonEntry(JsonValueTypes.SMALL_JSON_OBJECT, "subJson", subJsons)), false);
         String actual = (String) MySQLJsonValueDecoder.decode(payload);
@@ -210,7 +210,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonObjectWithSubArray() {
+    public void assertDecodeSmallJsonObjectWithSubArray() {
         List<JsonEntry> subArrays = Collections.singletonList(new JsonEntry(JsonValueTypes.INT32, null, 111));
         ByteBuf payload = mockJsonObjectByteBuf(Collections.singletonList(new JsonEntry(JsonValueTypes.SMALL_JSON_ARRAY, "subJson", subArrays)), true);
         String actual = (String) MySQLJsonValueDecoder.decode(payload);
@@ -218,7 +218,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeSmallJsonArray() {
+    public void assertDecodeSmallJsonArray() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, null, 0x00007fff));
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, null, 0x00008000));
@@ -228,7 +228,7 @@ class MySQLJsonValueDecoderTest {
     }
     
     @Test
-    void assertDecodeLargeJsonArray() {
+    public void assertDecodeLargeJsonArray() {
         List<JsonEntry> jsonEntries = new LinkedList<>();
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, null, 0x00007fff));
         jsonEntries.add(new JsonEntry(JsonValueTypes.INT16, null, 0x00008000));
@@ -370,11 +370,10 @@ class MySQLJsonValueDecoderTest {
         }
         // compress
         int index = lengthData.length - 1;
-        while (index > 0) {
+        for (; index > 0; index--) {
             if (0 != lengthData[index]) {
                 break;
             }
-            index--;
         }
         for (int i = 0; i < index; i++) {
             lengthData[i] |= 0x80;

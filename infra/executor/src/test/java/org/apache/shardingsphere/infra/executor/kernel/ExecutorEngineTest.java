@@ -33,9 +33,10 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-class ExecutorEngineTest {
+public final class ExecutorEngineTest {
     
     private final ExecutorEngine executorEngine = ExecutorEngine.createExecutorEngineWithSize(10);
     
@@ -48,14 +49,14 @@ class ExecutorEngineTest {
     private ExecutorCallbackFixture callback;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         executionGroupContext = createMockedExecutionGroups(2, 2);
         firstCallback = new ExecutorCallbackFixture(latch);
         callback = new ExecutorCallbackFixture(latch);
     }
     
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
         executorEngine.close();
     }
     
@@ -76,16 +77,31 @@ class ExecutorEngineTest {
     }
     
     @Test
-    void assertParallelExecuteWithFirstCallback() throws SQLException, InterruptedException {
+    public void assertParallelExecuteWithoutFirstCallback() throws SQLException, InterruptedException {
+        List<String> actual = executorEngine.execute(executionGroupContext, callback);
+        latch.await();
+        assertThat(actual.size(), is(4));
+    }
+    
+    @Test
+    public void assertParallelExecuteWithFirstCallback() throws SQLException, InterruptedException {
         List<String> actual = executorEngine.execute(executionGroupContext, firstCallback, callback, false);
         latch.await();
         assertThat(actual.size(), is(4));
     }
     
     @Test
-    void assertSerialExecute() throws SQLException, InterruptedException {
+    public void assertSerialExecute() throws SQLException, InterruptedException {
         List<String> actual = executorEngine.execute(executionGroupContext, firstCallback, callback, true);
         latch.await();
         assertThat(actual.size(), is(4));
+    }
+    
+    @Test
+    public void assertExecutionGroupIsEmpty() throws SQLException {
+        CountDownLatch latch = new CountDownLatch(1);
+        List<String> actual = executorEngine.execute(new ExecutionGroupContext<>(new LinkedList<>(), mock(ExecutionGroupReportContext.class)), new ExecutorCallbackFixture(latch));
+        latch.countDown();
+        assertTrue(actual.isEmpty());
     }
 }

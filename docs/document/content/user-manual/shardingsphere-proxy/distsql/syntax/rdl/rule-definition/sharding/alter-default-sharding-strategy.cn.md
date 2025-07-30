@@ -1,11 +1,11 @@
 +++
 title = "ALTER DEFAULT SHARDING STRATEGY"
-weight = 5
+weight = 6
 +++
 
 ## 描述
 
-`ALTER DEFAULT SHARDING STRATEGY` 语法用于修改默认的分片策略。
+`ALTER DEFAULT SHARDING STRATEGY` 语法用于修改默认的分片策略
 
 ### 语法定义
 

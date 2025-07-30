@@ -26,12 +26,10 @@ import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.authority.model.ShardingSpherePrivileges;
 import org.apache.shardingsphere.authority.rule.AuthorityRule;
+import org.apache.shardingsphere.data.pipeline.cdc.common.CDCResponseErrorCode;
+import org.apache.shardingsphere.data.pipeline.cdc.constant.CDCConnectionStatus;
 import org.apache.shardingsphere.data.pipeline.cdc.context.CDCConnectionContext;
-import org.apache.shardingsphere.data.pipeline.cdc.exception.CDCExceptionWrapper;
-import org.apache.shardingsphere.data.pipeline.cdc.exception.CDCLoginFailedException;
-import org.apache.shardingsphere.data.pipeline.cdc.exception.EmptyCDCLoginRequestBodyException;
-import org.apache.shardingsphere.data.pipeline.cdc.generator.CDCResponseUtils;
-import org.apache.shardingsphere.data.pipeline.cdc.handler.CDCBackendHandler;
+import org.apache.shardingsphere.data.pipeline.cdc.generator.CDCResponseGenerator;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.AckStreamingRequestBody;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.CDCRequest;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.DropStreamingRequestBody;
@@ -40,26 +38,22 @@ import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.StartStreami
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.StopStreamingRequestBody;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.request.StreamDataRequestBody;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.response.CDCResponse;
-import org.apache.shardingsphere.data.pipeline.cdc.protocol.response.CDCResponse.Status;
 import org.apache.shardingsphere.data.pipeline.cdc.protocol.response.ServerGreetingResult;
-import org.apache.shardingsphere.data.pipeline.core.exception.param.PipelineInvalidParameterException;
+import org.apache.shardingsphere.distsql.handler.exception.rule.MissingRequiredRuleException;
 import org.apache.shardingsphere.infra.autogen.version.ShardingSphereVersion;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
-import org.apache.shardingsphere.infra.exception.core.external.sql.sqlstate.XOpenSQLState;
-import org.apache.shardingsphere.infra.exception.core.external.sql.type.kernel.category.PipelineSQLException;
-import org.apache.shardingsphere.infra.exception.dialect.SQLExceptionTransformEngine;
-import org.apache.shardingsphere.infra.exception.dialect.exception.syntax.database.UnknownDatabaseException;
-import org.apache.shardingsphere.infra.exception.kernel.metadata.rule.MissingRequiredRuleException;
-import org.apache.shardingsphere.infra.exception.dialect.exception.connection.AccessDeniedException;
+import org.apache.shardingsphere.infra.executor.audit.exception.SQLAuditException;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
 import org.apache.shardingsphere.infra.metadata.user.ShardingSphereUser;
+import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
+import org.apache.shardingsphere.infra.util.exception.external.sql.ShardingSphereSQLException;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
-import org.apache.shardingsphere.proxy.frontend.protocol.FrontDatabaseProtocolTypeFactory;
+import org.apache.shardingsphere.proxy.backend.handler.cdc.CDCBackendHandler;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * CDC channel inbound handler.
@@ -73,16 +67,19 @@ public final class CDCChannelInboundHandler extends ChannelInboundHandlerAdapter
     
     @Override
     public void channelActive(final ChannelHandlerContext ctx) {
-        CDCResponse response = CDCResponse.newBuilder().setServerGreetingResult(ServerGreetingResult.newBuilder().setServerVersion(ShardingSphereVersion.VERSION).setProtocolVersion("1").build())
-                .setStatus(Status.SUCCEED).build();
+        CDCConnectionContext context = new CDCConnectionContext();
+        context.setStatus(CDCConnectionStatus.NOT_LOGGED_IN);
+        ctx.channel().attr(CONNECTION_CONTEXT_KEY).setIfAbsent(context);
+        CDCResponse response = CDCResponse.newBuilder().setServerGreetingResult(ServerGreetingResult.newBuilder().setServerVersion(ShardingSphereVersion.VERSION).setProtocolVersion("1")
+                .build()).build();
         ctx.writeAndFlush(response);
     }
     
     @Override
     public void channelInactive(final ChannelHandlerContext ctx) {
         CDCConnectionContext connectionContext = ctx.channel().attr(CONNECTION_CONTEXT_KEY).get();
-        if (null != connectionContext && null != connectionContext.getJobId()) {
-            backendHandler.stopStreaming(connectionContext.getJobId(), ctx.channel().id());
+        if (null != connectionContext.getJobId()) {
+            backendHandler.stopStreaming(connectionContext.getJobId());
         }
         ctx.channel().attr(CONNECTION_CONTEXT_KEY).set(null);
     }
@@ -91,16 +88,16 @@ public final class CDCChannelInboundHandler extends ChannelInboundHandlerAdapter
     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
         log.error("caught CDC resolution error", cause);
         // TODO add CDC exception to wrapper this exception, and add the parameters requestId and whether to close connect
-        ChannelFuture channelFuture;
-        if (cause instanceof CDCExceptionWrapper) {
-            CDCExceptionWrapper wrapper = (CDCExceptionWrapper) cause;
-            SQLException sqlException = SQLExceptionTransformEngine.toSQLException(wrapper.getCause(), FrontDatabaseProtocolTypeFactory.getDatabaseType());
-            channelFuture = ctx.writeAndFlush(CDCResponseUtils.failed(wrapper.getRequestId(), sqlException.getSQLState(), sqlException.getMessage()));
-        } else {
-            channelFuture = ctx.writeAndFlush(CDCResponseUtils.failed("", XOpenSQLState.GENERAL_ERROR.getValue(), String.valueOf(cause.getMessage())));
-        }
         CDCConnectionContext connectionContext = ctx.channel().attr(CONNECTION_CONTEXT_KEY).get();
-        if (null == connectionContext) {
+        ChannelFuture channelFuture;
+        if (cause instanceof ShardingSphereSQLException) {
+            SQLException sqlException = ((ShardingSphereSQLException) cause).toSQLException();
+            String errorMessage = String.format("ERROR %s (%s): %s", sqlException.getErrorCode(), sqlException.getSQLState(), sqlException.getMessage());
+            channelFuture = ctx.writeAndFlush(CDCResponseGenerator.failed("", CDCResponseErrorCode.SERVER_ERROR, errorMessage));
+        } else {
+            channelFuture = ctx.writeAndFlush(CDCResponseGenerator.failed("", CDCResponseErrorCode.SERVER_ERROR, cause.getMessage()));
+        }
+        if (CDCConnectionStatus.NOT_LOGGED_IN == connectionContext.getStatus()) {
             channelFuture.addListener(ChannelFutureListener.CLOSE);
         }
     }
@@ -108,9 +105,10 @@ public final class CDCChannelInboundHandler extends ChannelInboundHandlerAdapter
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
         CDCConnectionContext connectionContext = ctx.channel().attr(CONNECTION_CONTEXT_KEY).get();
+        CDCConnectionStatus status = connectionContext.getStatus();
         CDCRequest request = (CDCRequest) msg;
-        if (null == connectionContext || request.hasLoginRequestBody()) {
-            processLogin(ctx, request);
+        if (CDCConnectionStatus.NOT_LOGGED_IN == status) {
+            processLogin(ctx, request, connectionContext);
             return;
         }
         switch (request.getType()) {
@@ -118,7 +116,7 @@ public final class CDCChannelInboundHandler extends ChannelInboundHandlerAdapter
                 processStreamDataRequest(ctx, request, connectionContext);
                 break;
             case ACK_STREAMING:
-                processAckStreamingRequest(request);
+                processAckStreamingRequest(ctx, request);
                 break;
             case STOP_STREAMING:
                 processStopStreamingRequest(ctx, request, connectionContext);
@@ -131,30 +129,33 @@ public final class CDCChannelInboundHandler extends ChannelInboundHandlerAdapter
                 break;
             default:
                 log.warn("can't handle this type of request {}", request);
-                break;
         }
     }
     
-    private void processLogin(final ChannelHandlerContext ctx, final CDCRequest request) {
-        ShardingSpherePreconditions.checkState(request.hasLoginRequestBody() && request.getLoginRequestBody().hasBasicBody(),
-                () -> new CDCExceptionWrapper(request.getRequestId(), new EmptyCDCLoginRequestBodyException()));
+    private void processLogin(final ChannelHandlerContext ctx, final CDCRequest request, final CDCConnectionContext connectionContext) {
+        if (!request.hasLoginRequestBody() || !request.getLoginRequestBody().hasBasicBody()) {
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "Miss login request body")).addListener(ChannelFutureListener.CLOSE);
+            return;
+        }
         BasicBody body = request.getLoginRequestBody().getBasicBody();
         AuthorityRule authorityRule = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getGlobalRuleMetaData().getSingleRule(AuthorityRule.class);
-        ShardingSphereUser user = authorityRule.findUser(new Grantee(body.getUsername(), getHostAddress(ctx)))
-                .orElseThrow(() -> new CDCExceptionWrapper(request.getRequestId(), new CDCLoginFailedException()));
-        ShardingSpherePreconditions.checkState(Objects.equals(Hashing.sha256().hashBytes(user.getPassword().getBytes()).toString().toUpperCase(), body.getPassword()),
-                () -> new CDCExceptionWrapper(request.getRequestId(), new CDCLoginFailedException()));
-        ctx.channel().attr(CONNECTION_CONTEXT_KEY).set(new CDCConnectionContext(user));
-        ctx.writeAndFlush(CDCResponseUtils.succeed(request.getRequestId()));
+        Optional<ShardingSphereUser> user = authorityRule.findUser(new Grantee(body.getUsername(), getHostAddress(ctx)));
+        if (user.isPresent() && Objects.equals(Hashing.sha256().hashBytes(user.get().getPassword().getBytes()).toString().toUpperCase(), body.getPassword())) {
+            connectionContext.setStatus(CDCConnectionStatus.LOGGED_IN);
+            connectionContext.setCurrentUser(user.get());
+            ctx.writeAndFlush(CDCResponseGenerator.succeedBuilder(request.getRequestId()).build());
+        } else {
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_USERNAME_OR_PASSWORD, "Illegal username or password"))
+                    .addListener(ChannelFutureListener.CLOSE);
+        }
     }
     
-    private void checkPrivileges(final String requestId, final Grantee grantee, final String currentDatabase) {
+    private void checkPrivileges(final Grantee grantee, final String currentDatabase) {
         AuthorityRule authorityRule = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getGlobalRuleMetaData().findSingleRule(AuthorityRule.class)
-                .orElseThrow(() -> new CDCExceptionWrapper(requestId, new MissingRequiredRuleException("authority")));
+                .orElseThrow(() -> new MissingRequiredRuleException("authority"));
         ShardingSpherePrivileges privileges = authorityRule.findPrivileges(grantee)
-                .orElseThrow(() -> new CDCExceptionWrapper(requestId, new AccessDeniedException(grantee.getUsername(), grantee.getHostname(), false)));
-        ShardingSpherePreconditions.checkState(privileges.hasPrivileges(currentDatabase),
-                () -> new CDCExceptionWrapper(requestId, new UnknownDatabaseException(currentDatabase)));
+                .orElseThrow(() -> new SQLAuditException(String.format("Access denied for user '%s'@'%s'", grantee.getUsername(), grantee.getHostname())));
+        ShardingSpherePreconditions.checkState(privileges.hasPrivileges(currentDatabase), () -> new SQLAuditException(String.format("Unknown database '%s'", currentDatabase)));
     }
     
     private String getHostAddress(final ChannelHandlerContext context) {
@@ -164,63 +165,76 @@ public final class CDCChannelInboundHandler extends ChannelInboundHandlerAdapter
     
     private void processStreamDataRequest(final ChannelHandlerContext ctx, final CDCRequest request, final CDCConnectionContext connectionContext) {
         if (!request.hasStreamDataRequestBody()) {
-            throw new CDCExceptionWrapper(request.getRequestId(), new PipelineInvalidParameterException("Stream data request body is empty"));
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "Miss stream data request body"));
+            return;
         }
         StreamDataRequestBody requestBody = request.getStreamDataRequestBody();
         if (requestBody.getDatabase().isEmpty()) {
-            throw new CDCExceptionWrapper(request.getRequestId(), new PipelineInvalidParameterException("Database is empty"));
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "database not allowed to be empty"));
+            return;
         }
         if (requestBody.getSourceSchemaTableList().isEmpty()) {
-            throw new CDCExceptionWrapper(request.getRequestId(), new PipelineInvalidParameterException("Source schema table is empty"));
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "Illegal stream data request parameter"));
+            return;
         }
-        checkPrivileges(request.getRequestId(), connectionContext.getCurrentUser().getGrantee(), requestBody.getDatabase());
-        try {
-            CDCResponse response = backendHandler.streamData(request.getRequestId(), requestBody, connectionContext, ctx.channel());
-            ctx.writeAndFlush(response);
-        } catch (final PipelineSQLException ex) {
-            throw new CDCExceptionWrapper(request.getRequestId(), ex);
-        }
+        checkPrivileges(connectionContext.getCurrentUser().getGrantee(), requestBody.getDatabase());
+        CDCResponse response = backendHandler.streamData(request.getRequestId(), requestBody, connectionContext, ctx.channel());
+        ctx.writeAndFlush(response);
     }
     
-    private void processAckStreamingRequest(final CDCRequest request) {
+    private void processAckStreamingRequest(final ChannelHandlerContext ctx, final CDCRequest request) {
         if (!request.hasAckStreamingRequestBody()) {
-            throw new CDCExceptionWrapper(request.getRequestId(), new PipelineInvalidParameterException("Ack request body is empty"));
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "Miss ack request body")).addListener(ChannelFutureListener.CLOSE);
+            return;
         }
         AckStreamingRequestBody requestBody = request.getAckStreamingRequestBody();
         if (requestBody.getAckId().isEmpty()) {
-            throw new CDCExceptionWrapper(request.getRequestId(), new PipelineInvalidParameterException("Ack request is empty"));
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "Illegal ack request parameter"));
+            return;
         }
         backendHandler.processAck(requestBody);
     }
     
     private void processStartStreamingRequest(final ChannelHandlerContext ctx, final CDCRequest request, final CDCConnectionContext connectionContext) {
         if (!request.hasStartStreamingRequestBody()) {
-            throw new CDCExceptionWrapper(request.getRequestId(), new PipelineInvalidParameterException("Start streaming request body is empty"));
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "Miss start streaming request body"))
+                    .addListener(ChannelFutureListener.CLOSE);
+            return;
         }
         StartStreamingRequestBody requestBody = request.getStartStreamingRequestBody();
+        // TODO improve after cdc exception refactor
         if (requestBody.getStreamingId().isEmpty()) {
-            throw new CDCExceptionWrapper(request.getRequestId(), new PipelineInvalidParameterException("Streaming id is empty"));
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.ILLEGAL_REQUEST_ERROR, "Illegal start streaming request parameter"))
+                    .addListener(ChannelFutureListener.CLOSE);
+            return;
         }
         String database = backendHandler.getDatabaseNameByJobId(requestBody.getStreamingId());
-        checkPrivileges(request.getRequestId(), connectionContext.getCurrentUser().getGrantee(), database);
-        backendHandler.startStreaming(requestBody.getStreamingId(), connectionContext, ctx.channel());
-        ctx.writeAndFlush(CDCResponseUtils.succeed(request.getRequestId()));
+        checkPrivileges(connectionContext.getCurrentUser().getGrantee(), database);
+        CDCResponse response = backendHandler.startStreaming(request.getRequestId(), requestBody.getStreamingId(), connectionContext, ctx.channel());
+        ctx.writeAndFlush(response);
     }
     
     private void processStopStreamingRequest(final ChannelHandlerContext ctx, final CDCRequest request, final CDCConnectionContext connectionContext) {
         StopStreamingRequestBody requestBody = request.getStopStreamingRequestBody();
         String database = backendHandler.getDatabaseNameByJobId(requestBody.getStreamingId());
-        checkPrivileges(request.getRequestId(), connectionContext.getCurrentUser().getGrantee(), database);
-        backendHandler.stopStreaming(requestBody.getStreamingId(), ctx.channel().id());
+        checkPrivileges(connectionContext.getCurrentUser().getGrantee(), database);
+        backendHandler.stopStreaming(connectionContext.getJobId());
+        connectionContext.setStatus(CDCConnectionStatus.LOGGED_IN);
         connectionContext.setJobId(null);
-        ctx.writeAndFlush(CDCResponseUtils.succeed(request.getRequestId()));
+        ctx.writeAndFlush(CDCResponseGenerator.succeedBuilder(request.getRequestId()).build());
     }
     
     private void processDropStreamingRequest(final ChannelHandlerContext ctx, final CDCRequest request, final CDCConnectionContext connectionContext) {
         DropStreamingRequestBody requestBody = request.getDropStreamingRequestBody();
-        checkPrivileges(request.getRequestId(), connectionContext.getCurrentUser().getGrantee(), backendHandler.getDatabaseNameByJobId(requestBody.getStreamingId()));
-        backendHandler.dropStreaming(requestBody.getStreamingId());
-        connectionContext.setJobId(null);
-        ctx.writeAndFlush(CDCResponseUtils.succeed(request.getRequestId()));
+        String database = backendHandler.getDatabaseNameByJobId(requestBody.getStreamingId());
+        checkPrivileges(connectionContext.getCurrentUser().getGrantee(), database);
+        try {
+            backendHandler.dropStreaming(connectionContext.getJobId());
+            connectionContext.setStatus(CDCConnectionStatus.LOGGED_IN);
+            connectionContext.setJobId(null);
+            ctx.writeAndFlush(CDCResponseGenerator.succeedBuilder(request.getRequestId()).build());
+        } catch (final SQLException ex) {
+            ctx.writeAndFlush(CDCResponseGenerator.failed(request.getRequestId(), CDCResponseErrorCode.SERVER_ERROR, ex.getMessage()));
+        }
     }
 }

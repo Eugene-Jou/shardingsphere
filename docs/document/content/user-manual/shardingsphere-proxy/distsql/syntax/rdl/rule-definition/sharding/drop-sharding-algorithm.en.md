@@ -1,6 +1,6 @@
 +++
 title = "DROP SHARDING ALGORITHM"
-weight = 11
+weight = 12
 +++
 
 ## Description
@@ -13,12 +13,12 @@ The `DROP SHARDING ALGORITHM` syntax is used to drop sharding algorithm for spec
 {{% tab name="Grammar" %}}
 ```sql
 DropShardingAlgorithm ::=
-  'DROP' 'SHARDING' 'ALGORITHM' algorithmName ifExists? ('FROM' databaseName)?
+  'DROP' 'SHARDING' 'ALGORITHM' shardingAlgorithmName ifExists? ('FROM' databaseName)?
 
 ifExists ::=
   'IF' 'EXISTS'
 
-algorithmName ::=
+shardingAlgorithmName ::=
   identifier
 
 databaseName ::=

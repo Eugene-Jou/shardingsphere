@@ -20,19 +20,21 @@ package org.apache.shardingsphere.infra.instance.workerid;
 import java.util.Properties;
 
 /**
- * Worker ID generator.
+ * Worker id generator.
  */
 public interface WorkerIdGenerator {
     
     String WORKER_ID_KEY = "worker-id";
     
+    int DEFAULT_WORKER_ID = 0;
+    
     int MAX_WORKER_ID = 1023;
     
     /**
-     * Generate worker ID.
+     * Generate worker id.
      *
-     * @param props properties
-     * @return worker ID
+     * @param props props
+     * @return worker id
      */
     int generate(Properties props);
 }

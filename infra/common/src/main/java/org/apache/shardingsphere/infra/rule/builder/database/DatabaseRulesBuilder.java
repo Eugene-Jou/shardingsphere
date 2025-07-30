@@ -21,14 +21,12 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.infra.config.database.DatabaseConfiguration;
 import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
-import org.apache.shardingsphere.infra.config.rule.checker.DatabaseRuleConfigurationChecker;
+import org.apache.shardingsphere.infra.config.rule.checker.RuleConfigurationChecker;
 import org.apache.shardingsphere.infra.config.rule.function.DistributedRuleConfiguration;
 import org.apache.shardingsphere.infra.config.rule.function.EnhancedRuleConfiguration;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.instance.ComputeNodeInstanceContext;
-import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
+import org.apache.shardingsphere.infra.instance.InstanceContext;
 import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
-import org.apache.shardingsphere.infra.spi.type.ordered.OrderedSPILoader;
+import org.apache.shardingsphere.infra.util.spi.type.ordered.OrderedSPILoader;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,48 +48,22 @@ public final class DatabaseRulesBuilder {
      * Build database rules.
      *
      * @param databaseName database name
-     * @param protocolType protocol type
      * @param databaseConfig database configuration
-     * @param computeNodeInstanceContext compute node instance context
-     * @param resourceMetaData  resource meta data
+     * @param instanceContext instance context
      * @return built rules
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Collection<ShardingSphereRule> build(final String databaseName, final DatabaseType protocolType, final DatabaseConfiguration databaseConfig,
-                                                       final ComputeNodeInstanceContext computeNodeInstanceContext, final ResourceMetaData resourceMetaData) {
+    public static Collection<ShardingSphereRule> build(final String databaseName, final DatabaseConfiguration databaseConfig, final InstanceContext instanceContext) {
         Collection<ShardingSphereRule> result = new LinkedList<>();
         for (Entry<RuleConfiguration, DatabaseRuleBuilder> entry : getRuleBuilderMap(databaseConfig).entrySet()) {
-            DatabaseRuleConfigurationChecker configChecker = OrderedSPILoader.getServicesByClass(
-                    DatabaseRuleConfigurationChecker.class, Collections.singleton(entry.getKey().getClass())).get(entry.getKey().getClass());
+            RuleConfigurationChecker configChecker = OrderedSPILoader.getServicesByClass(
+                    RuleConfigurationChecker.class, Collections.singleton(entry.getKey().getClass())).get(entry.getKey().getClass());
             if (null != configChecker) {
-                configChecker.check(databaseName, entry.getKey(), resourceMetaData.getDataSourceMap(), result);
+                configChecker.check(databaseName, entry.getKey(), databaseConfig.getDataSources(), result);
             }
-            result.add(entry.getValue().build(entry.getKey(), databaseName, protocolType, resourceMetaData, result, computeNodeInstanceContext));
+            result.add(entry.getValue().build(entry.getKey(), databaseName, databaseConfig.getDataSources(), result, instanceContext));
         }
         return result;
-    }
-    
-    /**
-     * Build database rule.
-     *
-     * @param databaseName database name
-     * @param protocolType protocol type
-     * @param rules rules
-     * @param ruleConfig rule configuration
-     * @param computeNodeInstanceContext compute node instance context
-     * @param resourceMetaData  resource meta data
-     * @return built rule
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static ShardingSphereRule build(final String databaseName, final DatabaseType protocolType, final Collection<ShardingSphereRule> rules, final RuleConfiguration ruleConfig,
-                                           final ComputeNodeInstanceContext computeNodeInstanceContext, final ResourceMetaData resourceMetaData) {
-        DatabaseRuleBuilder databaseRuleBuilder = OrderedSPILoader.getServices(DatabaseRuleBuilder.class, Collections.singleton(ruleConfig)).get(ruleConfig);
-        DatabaseRuleConfigurationChecker configChecker =
-                OrderedSPILoader.getServicesByClass(DatabaseRuleConfigurationChecker.class, Collections.singleton(ruleConfig.getClass())).get(ruleConfig.getClass());
-        if (null != configChecker) {
-            configChecker.check(databaseName, ruleConfig, resourceMetaData.getDataSourceMap(), rules);
-        }
-        return databaseRuleBuilder.build(ruleConfig, databaseName, protocolType, resourceMetaData, rules, computeNodeInstanceContext);
     }
     
     @SuppressWarnings("rawtypes")

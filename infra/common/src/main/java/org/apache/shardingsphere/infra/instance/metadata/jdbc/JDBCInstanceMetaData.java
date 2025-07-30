@@ -21,7 +21,7 @@ import lombok.Getter;
 import org.apache.shardingsphere.infra.autogen.version.ShardingSphereVersion;
 import org.apache.shardingsphere.infra.instance.metadata.InstanceMetaData;
 import org.apache.shardingsphere.infra.instance.metadata.InstanceType;
-import org.apache.shardingsphere.infra.instance.util.IpUtils;
+import org.apache.shardingsphere.infra.instance.utils.IpUtils;
 
 /**
  * JDBC instance meta data.
@@ -35,20 +35,16 @@ public final class JDBCInstanceMetaData implements InstanceMetaData {
     
     private final String version;
     
-    private final String databaseName;
-    
-    public JDBCInstanceMetaData(final String id, final String databaseName) {
+    public JDBCInstanceMetaData(final String id) {
         this.id = id;
         ip = IpUtils.getIp();
-        version = ShardingSphereVersion.VERSION;
-        this.databaseName = databaseName;
+        this.version = ShardingSphereVersion.VERSION;
     }
     
-    public JDBCInstanceMetaData(final String id, final String attributes, final String version, final String databaseName) {
+    public JDBCInstanceMetaData(final String id, final String version) {
         this.id = id;
-        ip = attributes;
+        ip = IpUtils.getIp();
         this.version = version;
-        this.databaseName = databaseName;
     }
     
     @Override
@@ -58,12 +54,6 @@ public final class JDBCInstanceMetaData implements InstanceMetaData {
     
     @Override
     public String getAttributes() {
-        return ip;
+        return "";
     }
-    
-    @Override
-    public String getDatabaseName() {
-        return databaseName;
-    }
-    
 }

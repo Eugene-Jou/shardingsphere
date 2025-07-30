@@ -19,13 +19,13 @@ package org.apache.shardingsphere.sharding.rewrite.token.pojo;
 
 import com.google.common.base.Strings;
 import lombok.Getter;
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
-import org.apache.shardingsphere.infra.rewrite.sql.token.common.pojo.RouteUnitAware;
-import org.apache.shardingsphere.infra.rewrite.sql.token.common.pojo.SQLToken;
-import org.apache.shardingsphere.infra.rewrite.sql.token.common.pojo.Substitutable;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.rewrite.sql.token.pojo.RouteUnitAware;
+import org.apache.shardingsphere.infra.rewrite.sql.token.pojo.SQLToken;
+import org.apache.shardingsphere.infra.rewrite.sql.token.pojo.Substitutable;
 import org.apache.shardingsphere.infra.route.context.RouteUnit;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
-import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 
 import java.util.Map;
 
@@ -39,16 +39,17 @@ public final class CursorToken extends SQLToken implements Substitutable, RouteU
     
     private final IdentifierValue identifier;
     
-    private final SQLStatementContext sqlStatementContext;
+    private final SQLStatementContext<?> sqlStatementContext;
     
-    private final ShardingRule rule;
+    private final ShardingRule shardingRule;
     
-    public CursorToken(final int startIndex, final int stopIndex, final IdentifierValue identifier, final SQLStatementContext sqlStatementContext, final ShardingRule rule) {
+    public CursorToken(final int startIndex, final int stopIndex, final IdentifierValue identifier,
+                       final SQLStatementContext<?> sqlStatementContext, final ShardingRule shardingRule) {
         super(startIndex);
         this.stopIndex = stopIndex;
         this.identifier = identifier;
         this.sqlStatementContext = sqlStatementContext;
-        this.rule = rule;
+        this.shardingRule = shardingRule;
     }
     
     @Override
@@ -57,8 +58,8 @@ public final class CursorToken extends SQLToken implements Substitutable, RouteU
     }
     
     private String getCursorValue(final RouteUnit routeUnit) {
-        Map<String, String> logicAndActualTables = ShardingTokenUtils.getLogicAndActualTableMap(routeUnit, sqlStatementContext, rule);
-        String actualTableName = logicAndActualTables.values().stream().sorted().findFirst().orElse(null);
+        Map<String, String> logicAndActualTables = TokenUtil.getLogicAndActualTables(routeUnit, sqlStatementContext, shardingRule);
+        String actualTableName = logicAndActualTables.isEmpty() ? null : logicAndActualTables.values().iterator().next();
         return Strings.isNullOrEmpty(actualTableName) ? identifier.getValue() : identifier.getValue() + "_" + actualTableName;
     }
 }

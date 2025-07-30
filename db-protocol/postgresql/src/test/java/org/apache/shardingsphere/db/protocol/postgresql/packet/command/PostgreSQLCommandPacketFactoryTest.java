@@ -33,55 +33,49 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLCommandPacketFactoryTest {
+public final class PostgreSQLCommandPacketFactoryTest {
     
     @Mock
     private PostgreSQLPacketPayload payload;
     
     @Test
-    void assertNewInstanceWithQueryComPacket() {
+    public void assertNewInstanceWithQueryComPacket() {
         when(payload.getByteBuf()).thenReturn(mock(ByteBuf.class));
-        when(payload.readStringNul()).thenReturn("");
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.SIMPLE_QUERY, payload), instanceOf(PostgreSQLComQueryPacket.class));
     }
     
     @Test
-    void assertNewInstanceWithParseComPacket() {
+    public void assertNewInstanceWithParseComPacket() {
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.PARSE_COMMAND, payload), instanceOf(PostgreSQLAggregatedCommandPacket.class));
     }
     
     @Test
-    void assertNewInstanceWithBindComPacket() {
+    public void assertNewInstanceWithBindComPacket() {
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.BIND_COMMAND, payload), instanceOf(PostgreSQLAggregatedCommandPacket.class));
     }
     
     @Test
-    void assertNewInstanceWithDescribeComPacket() {
+    public void assertNewInstanceWithDescribeComPacket() {
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.DESCRIBE_COMMAND, payload), instanceOf(PostgreSQLAggregatedCommandPacket.class));
     }
     
     @Test
-    void assertNewInstanceWithExecuteComPacket() {
+    public void assertNewInstanceWithExecuteComPacket() {
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.EXECUTE_COMMAND, payload), instanceOf(PostgreSQLAggregatedCommandPacket.class));
     }
     
     @Test
-    void assertNewInstanceWithSyncComPacket() {
+    public void assertNewInstanceWithSyncComPacket() {
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.SYNC_COMMAND, payload), instanceOf(PostgreSQLAggregatedCommandPacket.class));
     }
     
     @Test
-    void assertNewInstanceWithCloseComPacket() {
+    public void assertNewInstanceWithCloseComPacket() {
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.CLOSE_COMMAND, payload), instanceOf(PostgreSQLAggregatedCommandPacket.class));
     }
     
     @Test
-    void assertNewInstanceWithFlushComPacket() {
-        assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.FLUSH_COMMAND, payload), instanceOf(PostgreSQLAggregatedCommandPacket.class));
-    }
-    
-    @Test
-    void assertNewInstanceWithTerminationComPacket() {
+    public void assertNewInstanceWithTerminationComPacket() {
         when(payload.getByteBuf()).thenReturn(mock(ByteBuf.class));
         assertThat(PostgreSQLCommandPacketFactory.newInstance(PostgreSQLCommandPacketType.TERMINATE, payload), instanceOf(PostgreSQLComTerminationPacket.class));
     }

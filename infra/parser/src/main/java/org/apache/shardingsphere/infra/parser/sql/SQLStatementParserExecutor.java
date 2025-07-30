@@ -17,11 +17,12 @@
 
 package org.apache.shardingsphere.infra.parser.sql;
 
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.sql.parser.api.CacheOption;
 import org.apache.shardingsphere.sql.parser.api.SQLParserEngine;
-import org.apache.shardingsphere.sql.parser.api.SQLStatementVisitorEngine;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
+import org.apache.shardingsphere.sql.parser.api.SQLVisitorEngine;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
+
+import java.util.Properties;
 
 /**
  * SQL statement parser executor.
@@ -30,20 +31,11 @@ public final class SQLStatementParserExecutor {
     
     private final SQLParserEngine parserEngine;
     
-    private final SQLStatementVisitorEngine visitorEngine;
+    private final SQLVisitorEngine visitorEngine;
     
-    public SQLStatementParserExecutor(final DatabaseType databaseType, final CacheOption parseTreeCacheOption) {
+    public SQLStatementParserExecutor(final String databaseType, final CacheOption parseTreeCacheOption, final boolean isParseComment) {
         parserEngine = new SQLParserEngine(databaseType, parseTreeCacheOption);
-        visitorEngine = new SQLStatementVisitorEngine(databaseType);
-    }
-    
-    /**
-     * Update cache option.
-     *
-     * @param parseTreeCacheOption parse tree cache option
-     */
-    public void updateCacheOption(final CacheOption parseTreeCacheOption) {
-        parserEngine.updateCacheOption(parseTreeCacheOption);
+        visitorEngine = new SQLVisitorEngine(databaseType, "STATEMENT", isParseComment, new Properties());
     }
     
     /**

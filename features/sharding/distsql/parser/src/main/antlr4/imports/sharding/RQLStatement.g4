@@ -27,6 +27,10 @@ showShardingTableReferenceRules
     : SHOW SHARDING TABLE REFERENCE (RULE ruleName | RULES) (FROM databaseName)?
     ;
 
+showBroadcastTableRules
+    : SHOW BROADCAST TABLE RULES (FROM databaseName)?
+    ;
+
 showShardingAlgorithms
     : SHOW SHARDING ALGORITHMS (FROM databaseName)?
     ;
@@ -77,4 +81,8 @@ countShardingRule
 
 tableRule
     : RULE tableName
+    ;
+
+databaseName
+    : IDENTIFIER_
     ;

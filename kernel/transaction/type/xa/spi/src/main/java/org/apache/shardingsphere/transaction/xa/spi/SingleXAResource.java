@@ -33,41 +33,21 @@ public final class SingleXAResource implements XAResource {
     
     private final String resourceName;
     
-    private final String uniqueName;
-    
     private final XAResource delegate;
-    
-    public SingleXAResource(final String resourceName, final XAResource delegate) {
-        this.resourceName = resourceName;
-        this.uniqueName = "";
-        this.delegate = delegate;
-    }
     
     @Override
     public void commit(final Xid xid, final boolean onePhase) throws XAException {
-        try {
-            delegate.commit(xid, onePhase);
-        } catch (final XAException ex) {
-            throw mapXAException(ex);
-        }
+        delegate.commit(xid, onePhase);
     }
     
     @Override
     public void end(final Xid xid, final int flags) throws XAException {
-        try {
-            delegate.end(xid, flags);
-        } catch (final XAException ex) {
-            throw mapXAException(ex);
-        }
+        delegate.end(xid, flags);
     }
     
     @Override
     public void forget(final Xid xid) throws XAException {
-        try {
-            delegate.forget(xid);
-        } catch (final XAException ex) {
-            throw mapXAException(ex);
-        }
+        delegate.forget(xid);
     }
     
     @Override
@@ -78,34 +58,22 @@ public final class SingleXAResource implements XAResource {
     @Override
     public boolean isSameRM(final XAResource xaResource) {
         SingleXAResource singleXAResource = (SingleXAResource) xaResource;
-        return resourceName.equals(singleXAResource.resourceName) && uniqueName.equals(singleXAResource.uniqueName);
+        return resourceName.equals(singleXAResource.resourceName);
     }
     
     @Override
     public int prepare(final Xid xid) throws XAException {
-        try {
-            return delegate.prepare(xid);
-        } catch (final XAException ex) {
-            throw mapXAException(ex);
-        }
+        return delegate.prepare(xid);
     }
     
     @Override
     public Xid[] recover(final int flags) throws XAException {
-        try {
-            return delegate.recover(flags);
-        } catch (final XAException ex) {
-            throw mapXAException(ex);
-        }
+        return delegate.recover(flags);
     }
     
     @Override
     public void rollback(final Xid xid) throws XAException {
-        try {
-            delegate.rollback(xid);
-        } catch (final XAException ex) {
-            throw mapXAException(ex);
-        }
+        delegate.rollback(xid);
     }
     
     @Override
@@ -115,14 +83,6 @@ public final class SingleXAResource implements XAResource {
     
     @Override
     public void start(final Xid xid, final int flags) throws XAException {
-        try {
-            delegate.start(xid, flags);
-        } catch (final XAException ex) {
-            throw mapXAException(ex);
-        }
-    }
-    
-    private XAException mapXAException(final XAException exception) {
-        return exception;
+        delegate.start(xid, flags);
     }
 }

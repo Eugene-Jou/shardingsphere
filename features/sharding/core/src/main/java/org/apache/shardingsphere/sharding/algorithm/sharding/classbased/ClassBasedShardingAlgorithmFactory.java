@@ -20,7 +20,7 @@ package org.apache.shardingsphere.sharding.algorithm.sharding.classbased;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import org.apache.shardingsphere.sharding.exception.algorithm.ShardingAlgorithmClassImplementationException;
+import org.apache.shardingsphere.sharding.exception.algorithm.sharding.ShardingAlgorithmClassImplementationException;
 import org.apache.shardingsphere.sharding.spi.ShardingAlgorithm;
 
 import java.util.Properties;
@@ -33,18 +33,17 @@ public final class ClassBasedShardingAlgorithmFactory {
     
     /**
      * Create sharding algorithm.
-     *
+     * 
      * @param shardingAlgorithmClassName sharding algorithm class name
      * @param superShardingAlgorithmClass sharding algorithm super class
      * @param props properties
      * @param <T> class generic type
      * @return sharding algorithm instance
-     * @throws ShardingAlgorithmClassImplementationException sharding algorithm class implementation exception
      */
     @SuppressWarnings("unchecked")
     @SneakyThrows(ReflectiveOperationException.class)
     public static <T extends ShardingAlgorithm> T newInstance(final String shardingAlgorithmClassName, final Class<T> superShardingAlgorithmClass, final Properties props) {
-        Class<?> algorithmClass = loadClass(shardingAlgorithmClassName);
+        Class<?> algorithmClass = Class.forName(shardingAlgorithmClassName);
         if (!superShardingAlgorithmClass.isAssignableFrom(algorithmClass)) {
             throw new ShardingAlgorithmClassImplementationException(shardingAlgorithmClassName, superShardingAlgorithmClass);
         }
@@ -57,24 +56,5 @@ public final class ClassBasedShardingAlgorithmFactory {
         Properties result = new Properties();
         props.forEach((key, value) -> result.setProperty(key.toString(), null == value ? null : value.toString()));
         return result;
-    }
-    
-    private static Class<?> loadClass(final String className) throws ClassNotFoundException {
-        ClassLoader[] classLoaders = new ClassLoader[]{
-                Thread.currentThread().getContextClassLoader(),
-                ClassBasedShardingAlgorithmFactory.class.getClassLoader(),
-                ClassLoader.getSystemClassLoader()
-        };
-        
-        for (ClassLoader cl : classLoaders) {
-            if (cl != null) {
-                try {
-                    return Class.forName(className, true, cl);
-                } catch (final ClassNotFoundException ex) {
-                    // Try next classloader
-                }
-            }
-        }
-        throw new ClassNotFoundException("Could not load class: " + className);
     }
 }

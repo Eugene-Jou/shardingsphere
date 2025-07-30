@@ -19,22 +19,21 @@ package org.apache.shardingsphere.proxy.backend.connector.jdbc.datasource;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.exception.kernel.connection.OverallConnectionNotEnoughException;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.type.dialect.H2DatabaseType;
+import org.apache.shardingsphere.infra.exception.OverallConnectionNotEnoughException;
 import org.apache.shardingsphere.infra.executor.sql.execute.engine.ConnectionMode;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.metadata.statistics.ShardingSphereStatistics;
-import org.apache.shardingsphere.infra.metadata.statistics.builder.ShardingSphereStatisticsFactory;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
+import org.apache.shardingsphere.mode.metadata.persist.MetaDataPersistService;
 import org.apache.shardingsphere.proxy.backend.connector.jdbc.datasource.fixture.CallTimeRecordDataSource;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
 import org.apache.shardingsphere.test.mock.StaticMockSettings;
+import org.apache.shardingsphere.transaction.ShardingSphereTransactionManagerEngine;
 import org.apache.shardingsphere.transaction.rule.TransactionRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +48,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -72,35 +72,42 @@ import static org.mockito.Mockito.when;
 @ExtendWith(AutoMockExtension.class)
 @StaticMockSettings(ProxyContext.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class JDBCBackendDataSourceTest {
+public final class JDBCBackendDataSourceTest {
     
     private static final String DATA_SOURCE_PATTERN = "ds_%s";
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         ContextManager contextManager = mockContextManager();
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
     }
     
     private ContextManager mockContextManager() {
         ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
-        ShardingSphereMetaData metaData = new ShardingSphereMetaData(Collections.singleton(mockDatabase()),
-                mock(ResourceMetaData.class), new RuleMetaData(Collections.singleton(mock(TransactionRule.class, RETURNS_DEEP_STUBS))), new ConfigurationProperties(new Properties()));
-        MetaDataContexts metaDataContexts = new MetaDataContexts(metaData, ShardingSphereStatisticsFactory.create(metaData, new ShardingSphereStatistics()));
+        MetaDataContexts metaDataContexts = new MetaDataContexts(mock(MetaDataPersistService.class),
+                new ShardingSphereMetaData(createDatabases(), mockGlobalRuleMetaData(), new ConfigurationProperties(new Properties())));
         when(result.getMetaDataContexts()).thenReturn(metaDataContexts);
         return result;
     }
     
-    private ShardingSphereDatabase mockDatabase() {
-        ShardingSphereDatabase result = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
-        when(result.getName()).thenReturn("schema");
-        when(result.getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "FIXTURE"));
-        mockDataSources(2).forEach((key, value) -> when(result.getResourceMetaData().getStorageUnits().get(key).getDataSource()).thenReturn(value));
-        return result;
+    private Map<String, ShardingSphereDatabase> createDatabases() {
+        ShardingSphereDatabase database = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
+        Map<String, DatabaseType> storageTypes = new LinkedHashMap<>(2, 1);
+        storageTypes.put("ds_0", new H2DatabaseType());
+        storageTypes.put("ds_1", new H2DatabaseType());
+        when(database.getResourceMetaData().getStorageTypes()).thenReturn(storageTypes);
+        when(database.getResourceMetaData().getDataSources()).thenReturn(mockDataSources(2));
+        return Collections.singletonMap("schema", database);
+    }
+    
+    private ShardingSphereRuleMetaData mockGlobalRuleMetaData() {
+        TransactionRule transactionRule = mock(TransactionRule.class);
+        when(transactionRule.getResource()).thenReturn(mock(ShardingSphereTransactionManagerEngine.class));
+        return new ShardingSphereRuleMetaData(Collections.singleton(transactionRule));
     }
     
     private Map<String, DataSource> mockDataSources(final int size) {
-        Map<String, DataSource> result = new HashMap<>(size, 1F);
+        Map<String, DataSource> result = new HashMap<>(size, 1);
         for (int i = 0; i < size; i++) {
             result.put(String.format(DATA_SOURCE_PATTERN, i), new CallTimeRecordDataSource());
         }
@@ -108,18 +115,18 @@ class JDBCBackendDataSourceTest {
     }
     
     @Test
-    void assertGetConnectionsSucceed() throws SQLException {
+    public void assertGetConnectionsSucceed() throws SQLException {
         List<Connection> actual = new JDBCBackendDataSource().getConnections("schema", String.format(DATA_SOURCE_PATTERN, 1), 5, ConnectionMode.MEMORY_STRICTLY);
         assertThat(actual.size(), is(5));
     }
     
     @Test
-    void assertGetConnectionsFailed() {
+    public void assertGetConnectionsFailed() {
         assertThrows(OverallConnectionNotEnoughException.class, () -> new JDBCBackendDataSource().getConnections("schema", String.format(DATA_SOURCE_PATTERN, 1), 6, ConnectionMode.MEMORY_STRICTLY));
     }
     
     @Test
-    void assertGetConnectionsByMultiThreads() throws InterruptedException {
+    public void assertGetConnectionsByMultiThreads() throws InterruptedException {
         JDBCBackendDataSource jdbcBackendDataSource = new JDBCBackendDataSource();
         ExecutorService executorService = Executors.newFixedThreadPool(20);
         Collection<Future<List<Connection>>> futures = new LinkedList<>();

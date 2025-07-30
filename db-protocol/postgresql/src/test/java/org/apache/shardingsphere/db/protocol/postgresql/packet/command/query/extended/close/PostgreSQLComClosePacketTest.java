@@ -32,13 +32,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLComClosePacketTest {
+public final class PostgreSQLComClosePacketTest {
     
     @Mock
     private PostgreSQLPacketPayload payload;
     
     @Test
-    void assertClosePreparedStatement() {
+    public void assertClosePreparedStatement() {
         when(payload.readInt1()).thenReturn((int) 'S');
         when(payload.readStringNul()).thenReturn("S_1");
         PostgreSQLComClosePacket actual = new PostgreSQLComClosePacket(payload);
@@ -47,7 +47,7 @@ class PostgreSQLComClosePacketTest {
     }
     
     @Test
-    void assertClosePortal() {
+    public void assertClosePortal() {
         when(payload.readInt1()).thenReturn((int) 'P');
         when(payload.readStringNul()).thenReturn("P_1");
         PostgreSQLComClosePacket actual = new PostgreSQLComClosePacket(payload);
@@ -56,14 +56,14 @@ class PostgreSQLComClosePacketTest {
     }
     
     @Test
-    void assertIdentifier() {
+    public void assertIdentifier() {
         when(payload.readInt1()).thenReturn((int) 'S');
         PostgreSQLIdentifierTag actual = new PostgreSQLComClosePacket(payload).getIdentifier();
         assertThat(actual, is(PostgreSQLCommandPacketType.CLOSE_COMMAND));
     }
     
     @Test
-    void assertInvalidType() {
+    public void assertInvalidType() {
         assertThrows(PostgreSQLProtocolException.class, () -> new PostgreSQLComClosePacket(payload));
     }
 }

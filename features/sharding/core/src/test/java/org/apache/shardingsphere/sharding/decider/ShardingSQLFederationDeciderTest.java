@@ -17,27 +17,24 @@
 
 package org.apache.shardingsphere.sharding.decider;
 
-import org.apache.shardingsphere.infra.binder.context.statement.type.dml.SelectStatementContext;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.binder.QueryContext;
+import org.apache.shardingsphere.infra.binder.decider.context.SQLFederationDeciderContext;
+import org.apache.shardingsphere.infra.binder.statement.dml.SelectStatementContext;
+import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
+import org.apache.shardingsphere.infra.database.DefaultDatabase;
+import org.apache.shardingsphere.infra.database.type.dialect.PostgreSQLDatabaseType;
 import org.apache.shardingsphere.infra.datanode.DataNode;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.rule.attribute.RuleAttributes;
-import org.apache.shardingsphere.infra.rule.attribute.datanode.DataNodeRuleAttribute;
-import org.apache.shardingsphere.infra.spi.type.ordered.OrderedSPILoader;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.sharding.rule.BindingTableRule;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
-import org.apache.shardingsphere.sharding.rule.ShardingTable;
-import org.apache.shardingsphere.sqlfederation.spi.SQLFederationDecider;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.shardingsphere.sharding.rule.TableRule;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
+import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -47,178 +44,166 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ShardingSQLFederationDeciderTest {
-    
-    private ShardingSQLFederationDecider decider;
-    
-    @BeforeEach
-    void setUp() {
-        decider = (ShardingSQLFederationDecider) OrderedSPILoader.getServicesByClass(SQLFederationDecider.class, Collections.singleton(ShardingRule.class)).get(ShardingRule.class);
-    }
+public final class ShardingSQLFederationDeciderTest {
     
     @Test
-    void assertDecideWithoutShardingTable() {
+    public void assertDecideWhenNotContainsShardingTable() {
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        SelectStatementContext select = createStatementContext();
         ShardingRule rule = mock(ShardingRule.class);
-        when(rule.getShardingLogicTableNames(Arrays.asList("foo_tbl", "bar_tbl"))).thenReturn(Collections.emptyList());
-        when(rule.findShardingTable("foo_tbl")).thenReturn(Optional.of(mock(ShardingTable.class)));
-        when(rule.findShardingTable("bar_tbl")).thenReturn(Optional.of(mock(ShardingTable.class)));
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertFalse(decider.decide(createSQLStatementContext(), Collections.emptyList(), mock(RuleMetaData.class), mock(ShardingSphereDatabase.class), rule, includedDataNodes));
-        assertTrue(includedDataNodes.isEmpty());
+        when(rule.getShardingLogicTableNames(Arrays.asList("t_order", "t_order_item"))).thenReturn(Collections.emptyList());
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), mock(ShardingSphereDatabase.class), rule, new ConfigurationProperties(new Properties()));
+        assertTrue(actual.getDataNodes().isEmpty());
+        assertFalse(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithSubquery() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.isContainsSubquery()).thenReturn(true);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        ShardingRule rule = createShardingRule();
-        assertTrue(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), createDatabase(rule), rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
+    public void assertDecideWhenContainsSameShardingCondition() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsSubquery()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext deciderContext = new SQLFederationDeciderContext();
+        new ShardingSQLFederationDecider().decide(deciderContext,
+                queryContext, mock(ShardingSphereRuleMetaData.class), createDatabase(), createShardingRule(), new ConfigurationProperties(new Properties()));
+        assertThat(deciderContext.getDataNodes().size(), is(4));
     }
     
     @Test
-    void assertDecideWithHaving() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.isContainsHaving()).thenReturn(true);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        ShardingRule rule = createShardingRule();
-        assertTrue(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), createDatabase(rule), rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
+    public void assertDecideWhenContainsSubquery() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsSubquery()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), createDatabase(), createShardingRule(), new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertTrue(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithCombine() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.isContainsCombine()).thenReturn(true);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        ShardingRule rule = createShardingRule();
-        assertTrue(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), createDatabase(rule), rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
+    public void assertDecideWhenContainsHaving() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsHaving()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), createDatabase(), createShardingRule(), new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertTrue(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithPartialDistinctAggregation() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.isContainsPartialDistinctAggregation()).thenReturn(true);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        ShardingRule rule = createShardingRule();
-        assertTrue(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), createDatabase(rule), rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
+    public void assertDecideWhenContainsCombine() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsCombine()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), createDatabase(), createShardingRule(), new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertTrue(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithoutJoinQuery() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        ShardingRule rule = createShardingRule();
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertFalse(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), createDatabase(rule), rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
+    public void assertDecideWhenContainsPartialDistinctAggregation() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsPartialDistinctAggregation()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), createDatabase(), createShardingRule(), new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertTrue(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithAllTablesInSameDataSource() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.isContainsJoinQuery()).thenReturn(true);
-        ShardingRule rule = createShardingRule();
-        ShardingSphereDatabase database = createDatabase(rule);
-        when(rule.isAllTablesInSameDataSource(Arrays.asList("foo_tbl", "bar_tbl"))).thenReturn(true);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertFalse(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), database, rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
+    public void assertDecideWhenAllTablesInSameDataSource() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsJoinQuery()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        ShardingRule shardingRule = createShardingRule();
+        when(shardingRule.isAllTablesInSameDataSource(Arrays.asList("t_order", "t_order_item"))).thenReturn(true);
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), createDatabase(), shardingRule, new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertFalse(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithSelfJoinWithoutShardingColumn() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.getTablesContext().getTableNames()).thenReturn(Collections.singleton("foo_tbl"));
-        when(sqlStatementContext.isContainsJoinQuery()).thenReturn(true);
-        ShardingRule rule = createShardingRule();
-        when(rule.getShardingLogicTableNames(Collections.singleton("foo_tbl"))).thenReturn(Collections.singleton("foo_tbl"));
-        ShardingSphereDatabase database = createDatabase(rule);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertTrue(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), database, rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(2));
+    public void assertDecideWhenAllTablesIsBindingTables() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsJoinQuery()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        ShardingRule shardingRule = createShardingRule();
+        ShardingSphereDatabase database = createDatabase();
+        when(shardingRule.isAllBindingTables(database, select, Arrays.asList("t_order", "t_order_item"))).thenReturn(true);
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), database, shardingRule, new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertFalse(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithNotSelfJoin() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.getTablesContext().getTableNames()).thenReturn(Collections.singleton("foo_tbl"));
-        ShardingRule rule = createShardingRule();
-        when(rule.getShardingLogicTableNames(Collections.singleton("foo_tbl"))).thenReturn(Collections.singleton("foo_tbl"));
-        ShardingSphereDatabase database = createDatabase(rule);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertFalse(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), database, rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(2));
+    public void assertDecideWhenAllTablesIsNotBindingTables() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsJoinQuery()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        ShardingRule shardingRule = createShardingRule();
+        ShardingSphereDatabase database = createDatabase();
+        when(shardingRule.isAllBindingTables(database, select, Arrays.asList("t_order", "t_order_item"))).thenReturn(false);
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), database, shardingRule, new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertTrue(actual.isUseSQLFederation());
     }
     
     @Test
-    void assertDecideWithSelfJoinAndShardingColumn() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.getTablesContext().getTableNames()).thenReturn(Collections.singleton("foo_tbl"));
-        when(sqlStatementContext.isContainsJoinQuery()).thenReturn(true);
-        ShardingRule rule = createShardingRule();
-        when(rule.getShardingLogicTableNames(Collections.singleton("foo_tbl"))).thenReturn(Collections.singleton("foo_tbl"));
-        ShardingSphereDatabase database = createDatabase(rule);
-        when(rule.isBindingTablesUseShardingColumnsJoin(sqlStatementContext, Collections.singleton("foo_tbl"))).thenReturn(true);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertFalse(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), database, rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(2));
+    public void assertDecideWhenAllTablesIsNotBindingTablesAndContainsPagination() {
+        SelectStatementContext select = createStatementContext();
+        when(select.isContainsJoinQuery()).thenReturn(true);
+        when(select.getPaginationContext().isHasPagination()).thenReturn(true);
+        QueryContext queryContext = new QueryContext(select, "", Collections.emptyList());
+        SQLFederationDeciderContext actual = new SQLFederationDeciderContext();
+        ShardingSQLFederationDecider federationDecider = new ShardingSQLFederationDecider();
+        ShardingRule shardingRule = createShardingRule();
+        ShardingSphereDatabase database = createDatabase();
+        when(shardingRule.isAllBindingTables(database, select, Arrays.asList("t_order", "t_order_item"))).thenReturn(false);
+        federationDecider.decide(actual, queryContext, mock(ShardingSphereRuleMetaData.class), database, shardingRule, new ConfigurationProperties(new Properties()));
+        assertThat(actual.getDataNodes().size(), is(4));
+        assertTrue(actual.isUseSQLFederation());
     }
     
-    @Test
-    void assertDecideWithAllBindingTables() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.isContainsJoinQuery()).thenReturn(true);
-        ShardingRule rule = createShardingRule();
-        ShardingSphereDatabase database = createDatabase(rule);
-        when(rule.isBindingTablesUseShardingColumnsJoin(sqlStatementContext, Arrays.asList("foo_tbl", "bar_tbl"))).thenReturn(true);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertFalse(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), database, rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
-    }
-    
-    @Test
-    void assertDecideWithNotAllBindingTables() {
-        SelectStatementContext sqlStatementContext = createSQLStatementContext();
-        when(sqlStatementContext.isContainsJoinQuery()).thenReturn(true);
-        ShardingRule rule = createShardingRule();
-        ShardingSphereDatabase database = createDatabase(rule);
-        Collection<DataNode> includedDataNodes = new HashSet<>();
-        assertTrue(decider.decide(sqlStatementContext, Collections.emptyList(), mock(RuleMetaData.class), database, rule, includedDataNodes));
-        assertThat(includedDataNodes.size(), is(4));
-    }
-    
-    private SelectStatementContext createSQLStatementContext() {
+    private static SelectStatementContext createStatementContext() {
         SelectStatementContext result = mock(SelectStatementContext.class, RETURNS_DEEP_STUBS);
-        when(result.getTablesContext().getTableNames()).thenReturn(Arrays.asList("foo_tbl", "bar_tbl"));
-        when(result.getSqlStatement().getDatabaseType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "FIXTURE"));
-        when(result.getSubqueryContexts().values()).thenReturn(Collections.emptyList());
+        when(result.getTablesContext().getTableNames()).thenReturn(Arrays.asList("t_order", "t_order_item"));
+        when(result.getDatabaseType()).thenReturn(new PostgreSQLDatabaseType());
         return result;
     }
     
-    private ShardingRule createShardingRule() {
-        ShardingRule result = mock(ShardingRule.class, RETURNS_DEEP_STUBS);
-        when(result.getShardingLogicTableNames(Arrays.asList("foo_tbl", "bar_tbl"))).thenReturn(Arrays.asList("foo_tbl", "bar_tbl"));
-        DataNodeRuleAttribute dataNodeRuleAttribute = mock(DataNodeRuleAttribute.class);
-        when(dataNodeRuleAttribute.getDataNodesByTableName("foo_tbl")).thenReturn(Arrays.asList(new DataNode("ds_0", "foo_tbl"), new DataNode("ds_1", "foo_tbl")));
-        when(dataNodeRuleAttribute.getDataNodesByTableName("bar_tbl")).thenReturn(Arrays.asList(new DataNode("ds_0", "bar_tbl"), new DataNode("ds_1", "bar_tbl")));
-        when(result.getAttributes()).thenReturn(new RuleAttributes(dataNodeRuleAttribute));
-        when(result.findShardingTable("foo_tbl")).thenReturn(Optional.of(mock(ShardingTable.class)));
-        when(result.findShardingTable("bar_tbl")).thenReturn(Optional.of(mock(ShardingTable.class)));
+    private static ShardingSphereDatabase createDatabase() {
+        ShardingSphereDatabase result = mock(ShardingSphereDatabase.class);
+        when(result.getName()).thenReturn(DefaultDatabase.LOGIC_NAME);
+        return result;
+    }
+    
+    private static ShardingRule createShardingRule() {
+        ShardingRule result = mock(ShardingRule.class);
+        when(result.getShardingLogicTableNames(Arrays.asList("t_order", "t_order_item"))).thenReturn(Arrays.asList("t_order", "t_order_item"));
+        TableRule tableRule = mock(TableRule.class);
+        when(tableRule.getActualDataNodes()).thenReturn(Arrays.asList(
+                new DataNode("ds_0", "t_order"), new DataNode("ds_1", "t_order"),
+                new DataNode("ds_0", "t_order_item"), new DataNode("ds_1", "t_order_item")));
+        when(result.findTableRule("t_order")).thenReturn(Optional.of(tableRule));
         BindingTableRule bindingTableRule = mock(BindingTableRule.class);
-        when(bindingTableRule.hasLogicTable("foo_tbl")).thenReturn(true);
-        when(bindingTableRule.hasLogicTable("bar_tbl")).thenReturn(true);
-        when(result.findBindingTableRule("foo_tbl")).thenReturn(Optional.of(bindingTableRule));
-        when(result.findBindingTableRule("bar_tbl")).thenReturn(Optional.of(bindingTableRule));
-        return result;
-    }
-    
-    private ShardingSphereDatabase createDatabase(final ShardingRule rule) {
-        ShardingSphereDatabase result = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
-        when(result.getName()).thenReturn("foo_db");
-        when(result.getRuleMetaData()).thenReturn(new RuleMetaData(Collections.singleton(rule)));
+        when(bindingTableRule.hasLogicTable("t_order")).thenReturn(true);
+        when(bindingTableRule.hasLogicTable("t_order_item")).thenReturn(true);
+        when(result.findBindingTableRule("t_order")).thenReturn(Optional.of(bindingTableRule));
+        when(result.findBindingTableRule("t_order_item")).thenReturn(Optional.of(bindingTableRule));
         return result;
     }
 }

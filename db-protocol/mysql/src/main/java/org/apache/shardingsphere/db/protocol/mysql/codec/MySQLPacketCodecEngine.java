@@ -20,15 +20,16 @@ package org.apache.shardingsphere.db.protocol.mysql.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.shardingsphere.db.protocol.codec.DatabasePacketCodecEngine;
 import org.apache.shardingsphere.db.protocol.constant.CommonConstants;
+import org.apache.shardingsphere.db.protocol.codec.DatabasePacketCodecEngine;
 import org.apache.shardingsphere.db.protocol.mysql.constant.MySQLConstants;
+import org.apache.shardingsphere.db.protocol.mysql.packet.MySQLPacket;
 import org.apache.shardingsphere.db.protocol.mysql.packet.generic.MySQLErrPacket;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.db.protocol.packet.DatabasePacket;
-import org.apache.shardingsphere.infra.exception.generic.UnknownSQLException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.type.generic.UnknownSQLException;
 
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Database packet codec for MySQL.
  */
-public final class MySQLPacketCodecEngine implements DatabasePacketCodecEngine {
+public final class MySQLPacketCodecEngine implements DatabasePacketCodecEngine<MySQLPacket> {
     
     private static final int MAX_PACKET_LENGTH = 0xFFFFFF;
     
@@ -60,9 +61,11 @@ public final class MySQLPacketCodecEngine implements DatabasePacketCodecEngine {
             in.resetReaderIndex();
             return;
         }
-        ByteBuf message = in.readRetainedSlice(remainPayloadLength);
+        short sequenceId = in.readUnsignedByte();
+        context.channel().attr(MySQLConstants.MYSQL_SEQUENCE_ID).get().set(sequenceId + 1);
+        ByteBuf message = in.readRetainedSlice(payloadLength);
         if (MAX_PACKET_LENGTH == payloadLength) {
-            pendingMessages.add(message.skipBytes(SEQUENCE_LENGTH));
+            pendingMessages.add(message);
         } else if (pendingMessages.isEmpty()) {
             out.add(message);
         } else {
@@ -71,8 +74,7 @@ public final class MySQLPacketCodecEngine implements DatabasePacketCodecEngine {
     }
     
     private void aggregateMessages(final ChannelHandlerContext context, final ByteBuf lastMessage, final List<Object> out) {
-        CompositeByteBuf result = context.alloc().compositeBuffer(SEQUENCE_LENGTH + pendingMessages.size() + 1);
-        result.addComponent(true, lastMessage.readSlice(SEQUENCE_LENGTH));
+        CompositeByteBuf result = context.alloc().compositeBuffer(pendingMessages.size() + 1);
         Iterator<ByteBuf> pendingMessagesIterator = pendingMessages.iterator();
         result.addComponent(true, pendingMessagesIterator.next());
         while (pendingMessagesIterator.hasNext()) {
@@ -86,18 +88,19 @@ public final class MySQLPacketCodecEngine implements DatabasePacketCodecEngine {
     }
     
     @Override
-    public void encode(final ChannelHandlerContext context, final DatabasePacket message, final ByteBuf out) {
+    public void encode(final ChannelHandlerContext context, final MySQLPacket message, final ByteBuf out) {
         MySQLPacketPayload payload = new MySQLPacketPayload(prepareMessageHeader(out).markWriterIndex(), context.channel().attr(CommonConstants.CHARSET_ATTRIBUTE_KEY).get());
         try {
             message.write(payload);
             // CHECKSTYLE:OFF
-        } catch (final RuntimeException ex) {
+        } catch (final Exception ex) {
             // CHECKSTYLE:ON
             out.resetWriterIndex();
-            new MySQLErrPacket(new UnknownSQLException(ex).toSQLException()).write(payload);
+            SQLException unknownSQLException = new UnknownSQLException(ex).toSQLException();
+            new MySQLErrPacket(unknownSQLException.getErrorCode(), unknownSQLException.getSQLState(), unknownSQLException.getMessage()).write(payload);
         } finally {
             if (out.readableBytes() - PAYLOAD_LENGTH - SEQUENCE_LENGTH < MAX_PACKET_LENGTH) {
-                updateMessageHeader(out, context.channel().attr(MySQLConstants.SEQUENCE_ID_ATTRIBUTE_KEY).get().getAndIncrement());
+                updateMessageHeader(out, context.channel().attr(MySQLConstants.MYSQL_SEQUENCE_ID).get().getAndIncrement());
             } else {
                 writeMultiPackets(context, out);
             }
@@ -114,9 +117,9 @@ public final class MySQLPacketCodecEngine implements DatabasePacketCodecEngine {
     }
     
     private void writeMultiPackets(final ChannelHandlerContext context, final ByteBuf byteBuf) {
-        int packetCount = byteBuf.skipBytes(PAYLOAD_LENGTH + SEQUENCE_LENGTH).readableBytes() / MAX_PACKET_LENGTH + 1;
+        int packetCount = (byteBuf.skipBytes(PAYLOAD_LENGTH + SEQUENCE_LENGTH).readableBytes() / MAX_PACKET_LENGTH) + 1;
         CompositeByteBuf result = context.alloc().compositeBuffer(packetCount * 2);
-        AtomicInteger sequenceId = context.channel().attr(MySQLConstants.SEQUENCE_ID_ATTRIBUTE_KEY).get();
+        AtomicInteger sequenceId = context.channel().attr(MySQLConstants.MYSQL_SEQUENCE_ID).get();
         for (int i = 0; i < packetCount; i++) {
             ByteBuf header = context.alloc().ioBuffer(4, 4);
             int packetLength = Math.min(byteBuf.readableBytes(), MAX_PACKET_LENGTH);

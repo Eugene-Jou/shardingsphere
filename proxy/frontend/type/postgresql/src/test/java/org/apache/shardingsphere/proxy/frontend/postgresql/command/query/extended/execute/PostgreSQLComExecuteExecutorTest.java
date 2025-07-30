@@ -22,9 +22,9 @@ import org.apache.shardingsphere.db.protocol.postgresql.packet.PostgreSQLPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.execute.PostgreSQLComExecutePacket;
 import org.apache.shardingsphere.proxy.frontend.postgresql.command.PortalContext;
 import org.apache.shardingsphere.proxy.frontend.postgresql.command.query.extended.Portal;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.tcl.CommitStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.tcl.RollbackStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.tcl.CommitStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.tcl.RollbackStatement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLComExecuteExecutorTest {
+public final class PostgreSQLComExecuteExecutorTest {
     
     @Mock
     private PortalContext portalContext;
@@ -61,36 +61,36 @@ class PostgreSQLComExecuteExecutorTest {
     private PostgreSQLComExecuteExecutor executor;
     
     @BeforeEach
-    void setup() {
+    public void setup() {
         when(packet.getPortal()).thenReturn("");
         when(portalContext.get(anyString())).thenReturn(portal);
     }
     
     @Test
-    void assertExecute() throws SQLException {
+    public void assertExecute() throws SQLException {
         PostgreSQLPacket expectedPacket = mock(PostgreSQLPacket.class);
         when(portal.execute(anyInt())).thenReturn(Collections.singletonList(expectedPacket));
-        List<DatabasePacket> actualPackets = executor.execute();
+        List<DatabasePacket<?>> actualPackets = executor.execute();
         assertThat(actualPackets.size(), is(1));
         assertThat(actualPackets.iterator().next(), is(expectedPacket));
     }
     
     @Test
-    void assertCloseExecutorWhenPortalIsNotAnyTclStatement() throws SQLException {
+    public void assertCloseExecutorWhenPortalIsNotAnyTclStatement() throws SQLException {
         when(portal.getSqlStatement()).thenReturn(mock(SQLStatement.class));
         executor.close();
         verify(portalContext, never()).closeAll();
     }
     
     @Test
-    void assertCloseExecutorWhenPortalCommitStatement() throws SQLException {
+    public void assertCloseExecutorWhenPortalCommitStatement() throws SQLException {
         when(portal.getSqlStatement()).thenReturn(mock(CommitStatement.class));
         executor.close();
         verify(portalContext).closeAll();
     }
     
     @Test
-    void assertCloseExecutorWhenPortalRollbackStatement() throws SQLException {
+    public void assertCloseExecutorWhenPortalRollbackStatement() throws SQLException {
         when(portal.getSqlStatement()).thenReturn(mock(RollbackStatement.class));
         executor.close();
         verify(portalContext).closeAll();

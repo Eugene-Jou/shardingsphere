@@ -1,18 +1,18 @@
 +++
 title = "ALTER MASK RULE"
-weight = 2
+weight = 3
 +++
 
 ## 描述
 
-`ALTER MASK RULE` 语法用于修改数据脱敏规则。
+`ALTER MASK RULE` 语法用于修改数据脱敏规则.
 
 ### 语法定义
 
 {{< tabs >}}
 {{% tab name="语法" %}}
 ```sql
-AlterMaskRule ::=
+CreateEncryptRule ::=
   'ALTER' 'MASK' 'RULE' maskRuleDefinition (',' maskRuleDefinition)*
 
 maskRuleDefinition ::=
@@ -22,7 +22,7 @@ columnDefinition ::=
   '(' 'NAME' '=' columnName ',' maskAlgorithmDefinition ')'
 
 maskAlgorithmDefinition ::=
-  'TYPE' '(' 'NAME' '=' algorithmType (',' propertiesDefinition)? ')'
+  'TYPE' '(' 'NAME' '=' maskAlgorithmType (',' propertiesDefinition)? ')'
 
 propertiesDefinition ::=
   'PROPERTIES' '(' key '=' value (',' key '=' value)* ')'
@@ -33,7 +33,7 @@ ruleName ::=
 columnName ::=
   identifier
 
-algorithmType ::=
+maskAlgorithmType ::=
   literal
 
 key ::=
@@ -50,7 +50,7 @@ value ::=
 
 ### 补充说明
 
-- `algorithmType` 指定数据脱敏算法类型，请参考 [数据脱敏算法](/cn/user-manual/common-config/builtin-algorithm/mask/)。
+- `maskAlgorithmType` 指定数据脱敏算法类型，请参考 [数据脱敏算法](/cn/user-manual/common-config/builtin-algorithm/mask/)。
 
 ### 示例
 

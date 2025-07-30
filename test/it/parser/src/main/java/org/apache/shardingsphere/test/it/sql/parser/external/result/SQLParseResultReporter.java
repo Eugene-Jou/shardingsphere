@@ -17,23 +17,18 @@
 
 package org.apache.shardingsphere.test.it.sql.parser.external.result;
 
-import java.io.IOException;
-
 /**
  * SQL parse result reporter.
  */
-public interface SQLParseResultReporter extends AutoCloseable {
+public interface SQLParseResultReporter {
     
     /**
      * Print result.
-     *
+     * 
      * @param sqlCaseId SQL case ID
      * @param databaseType database type
      * @param sql SQL
      * @param isSuccess whether success
      */
     void printResult(String sqlCaseId, String databaseType, boolean isSuccess, String sql);
-    
-    @Override
-    void close() throws IOException;
 }

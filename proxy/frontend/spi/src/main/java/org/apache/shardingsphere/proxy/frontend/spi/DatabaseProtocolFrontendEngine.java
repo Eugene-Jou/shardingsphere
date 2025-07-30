@@ -19,48 +19,65 @@ package org.apache.shardingsphere.proxy.frontend.spi;
 
 import io.netty.channel.Channel;
 import org.apache.shardingsphere.db.protocol.codec.DatabasePacketCodecEngine;
-import org.apache.shardingsphere.infra.database.core.spi.DatabaseTypedSPI;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.proxy.frontend.authentication.AuthenticationEngine;
 import org.apache.shardingsphere.proxy.frontend.command.CommandExecuteEngine;
+import org.apache.shardingsphere.proxy.frontend.context.FrontendContext;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPI;
 
 /**
  * Database protocol frontend engine.
  */
-public interface DatabaseProtocolFrontendEngine extends DatabaseTypedSPI {
+public interface DatabaseProtocolFrontendEngine extends TypedSPI {
     
     /**
      * Initialize channel.
-     *
+     * 
      * @param channel channel
      */
-    default void initChannel(final Channel channel) {
+    default void initChannel(Channel channel) {
     }
     
     /**
-     * Get database packet codec engine.
+     * Set database version.
+     * 
+     * @param databaseName database name
+     * @param databaseVersion database version
+     */
+    default void setDatabaseVersion(String databaseName, String databaseVersion) {
+    }
+    
+    /**
+     * Get frontend context.
      *
+     * @return frontend context
+     */
+    FrontendContext getFrontendContext();
+    
+    /**
+     * Get database packet codec engine.
+     * 
      * @return database packet codec engine
      */
-    DatabasePacketCodecEngine getCodecEngine();
+    DatabasePacketCodecEngine<?> getCodecEngine();
     
     /**
      * Get authentication engine.
-     *
+     * 
      * @return authentication engine
      */
     AuthenticationEngine getAuthenticationEngine();
     
     /**
      * Get command execute engine.
-     *
+     * 
      * @return command execute engine
      */
     CommandExecuteEngine getCommandExecuteEngine();
     
     /**
      * Release resource.
-     *
+     * 
      * @param connectionSession connection session
      */
     void release(ConnectionSession connectionSession);

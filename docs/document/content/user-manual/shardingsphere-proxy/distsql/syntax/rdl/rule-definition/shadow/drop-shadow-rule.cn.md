@@ -1,11 +1,11 @@
 +++
 title = "DROP SHADOW RULE"
-weight = 3
+weight = 4
 +++
 
 ## 描述
 
-`DROP SHADOW RULE` 语法用于为指定逻辑库删除影子库压测规则。
+`DROP SHADOW RULE` 语法用于为指定逻辑库删除影子库压测规则
 
 ### 语法定义
 
@@ -13,12 +13,12 @@ weight = 3
 {{% tab name="语法" %}}
 ```sql
 DropShadowRule ::=
-  'DROP' 'SHADOW' 'RULE' ifExists? ruleName ('FROM' databaseName)?
+  'DROP' 'SHADOW' 'TABLE' 'RULE' ifExists? shadowRuleName ('FROM' databaseName)?
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+shadowRuleName ::=
   identifier
 
 databaseName ::=

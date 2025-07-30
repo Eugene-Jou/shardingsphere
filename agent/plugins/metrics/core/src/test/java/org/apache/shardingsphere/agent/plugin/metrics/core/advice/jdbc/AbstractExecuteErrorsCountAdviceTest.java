@@ -17,7 +17,6 @@
 
 package org.apache.shardingsphere.agent.plugin.metrics.core.advice.jdbc;
 
-import org.apache.shardingsphere.agent.api.advice.TargetAdviceMethod;
 import org.apache.shardingsphere.agent.plugin.metrics.core.collector.MetricsCollectorRegistry;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricCollectorType;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricConfiguration;
@@ -27,33 +26,34 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
-class AbstractExecuteErrorsCountAdviceTest {
+public final class AbstractExecuteErrorsCountAdviceTest {
     
     private final MetricConfiguration config = new MetricConfiguration("jdbc_statement_execute_errors_total", MetricCollectorType.COUNTER,
             "Total number of statement execute error", Collections.singletonList("statement_type"));
     
     @AfterEach
-    void reset() {
+    public void reset() {
         ((MetricsCollectorFixture) MetricsCollectorRegistry.get(config, "FIXTURE")).reset();
     }
     
     @Test
-    void assertWithStatement() {
+    public void assertWithStatement() {
         StatementExecuteErrorsCountAdvice advice = new StatementExecuteErrorsCountAdvice();
-        advice.onThrowing(new TargetAdviceObjectFixture(), mock(TargetAdviceMethod.class), new Object[]{}, mock(IOException.class), "FIXTURE");
+        advice.onThrowing(new TargetAdviceObjectFixture(), mock(Method.class), new Object[]{}, mock(IOException.class), "FIXTURE");
         assertThat(MetricsCollectorRegistry.get(config, "FIXTURE").toString(), is("statement=1"));
     }
     
     @Test
-    void assertWithPreparedStatement() {
+    public void assertWithPreparedStatement() {
         PreparedStatementExecuteErrorsCountAdvice advice = new PreparedStatementExecuteErrorsCountAdvice();
-        advice.onThrowing(new TargetAdviceObjectFixture(), mock(TargetAdviceMethod.class), new Object[]{}, mock(IOException.class), "FIXTURE");
+        advice.onThrowing(new TargetAdviceObjectFixture(), mock(Method.class), new Object[]{}, mock(IOException.class), "FIXTURE");
         assertThat(MetricsCollectorRegistry.get(config, "FIXTURE").toString(), is("prepared_statement=1"));
     }
 }

@@ -29,107 +29,108 @@ import java.util.Map;
 /**
  * Binary column type for MySQL.
  * 
+ * @see <a href="https://dev.mysql.com/doc/internals/en/com-query-response.html#column-type">Column Type</a>
  * @see <a href="https://github.com/apache/shardingsphere/issues/4355"></a>
  */
 @RequiredArgsConstructor
 @Getter
 public enum MySQLBinaryColumnType implements BinaryColumnType {
     
-    DECIMAL(0x00),
+    MYSQL_TYPE_DECIMAL(0x00),
     
-    TINY(0x01),
+    MYSQL_TYPE_TINY(0x01),
     
-    SHORT(0x02),
+    MYSQL_TYPE_SHORT(0x02),
     
-    LONG(0x03),
+    MYSQL_TYPE_LONG(0x03),
     
-    FLOAT(0x04),
+    MYSQL_TYPE_FLOAT(0x04),
     
-    DOUBLE(0x05),
+    MYSQL_TYPE_DOUBLE(0x05),
     
-    NULL(0x06),
+    MYSQL_TYPE_NULL(0x06),
     
-    TIMESTAMP(0x07),
+    MYSQL_TYPE_TIMESTAMP(0x07),
     
-    LONGLONG(0x08),
+    MYSQL_TYPE_LONGLONG(0x08),
     
-    INT24(0x09),
+    MYSQL_TYPE_INT24(0x09),
     
-    DATE(0x0a),
+    MYSQL_TYPE_DATE(0x0a),
     
-    TIME(0x0b),
+    MYSQL_TYPE_TIME(0x0b),
     
-    DATETIME(0x0c),
+    MYSQL_TYPE_DATETIME(0x0c),
     
-    YEAR(0x0d),
+    MYSQL_TYPE_YEAR(0x0d),
     
-    NEWDATE(0x0e),
+    MYSQL_TYPE_NEWDATE(0x0e),
     
-    VARCHAR(0x0f),
+    MYSQL_TYPE_VARCHAR(0x0f),
     
-    BIT(0x10),
+    MYSQL_TYPE_BIT(0x10),
     
-    TIMESTAMP2(0x11),
+    MYSQL_TYPE_TIMESTAMP2(0x11),
     
-    DATETIME2(0x12),
+    MYSQL_TYPE_DATETIME2(0x12),
     
-    TIME2(0x13),
+    MYSQL_TYPE_TIME2(0x13),
     
     /**
      * Do not describe in document, but actual exist.
      *
      * @see <a href="https://github.com/apache/shardingsphere/issues/4795"></a>
      */
-    JSON(0xf5),
+    MySQL_TYPE_JSON(0xf5),
     
-    NEWDECIMAL(0xf6),
+    MYSQL_TYPE_NEWDECIMAL(0xf6),
     
-    ENUM(0xf7),
+    MYSQL_TYPE_ENUM(0xf7),
     
-    SET(0xf8),
+    MYSQL_TYPE_SET(0xf8),
     
-    TINY_BLOB(0xf9),
+    MYSQL_TYPE_TINY_BLOB(0xf9),
     
-    MEDIUM_BLOB(0xfa),
+    MYSQL_TYPE_MEDIUM_BLOB(0xfa),
     
-    LONG_BLOB(0xfb),
+    MYSQL_TYPE_LONG_BLOB(0xfb),
     
-    BLOB(0xfc),
+    MYSQL_TYPE_BLOB(0xfc),
     
-    VAR_STRING(0xfd),
+    MYSQL_TYPE_VAR_STRING(0xfd),
     
-    STRING(0xfe),
+    MYSQL_TYPE_STRING(0xfe),
     
-    GEOMETRY(0xff);
+    MYSQL_TYPE_GEOMETRY(0xff);
     
-    private static final Map<Integer, MySQLBinaryColumnType> JDBC_TYPE_AND_COLUMN_TYPE_MAP = new HashMap<>(values().length, 1F);
+    private static final Map<Integer, MySQLBinaryColumnType> JDBC_TYPE_AND_COLUMN_TYPE_MAP = new HashMap<>(values().length, 1);
     
-    private static final Map<Integer, MySQLBinaryColumnType> VALUE_AND_COLUMN_TYPE_MAP = new HashMap<>(values().length, 1F);
+    private static final Map<Integer, MySQLBinaryColumnType> VALUE_AND_COLUMN_TYPE_MAP = new HashMap<>(values().length, 1);
     
     private final int value;
     
     static {
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BIT, BIT);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.TINYINT, TINY);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.SMALLINT, SHORT);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.INTEGER, LONG);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BIGINT, LONGLONG);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.FLOAT, FLOAT);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.REAL, FLOAT);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.DOUBLE, DOUBLE);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.NUMERIC, NEWDECIMAL);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.DECIMAL, NEWDECIMAL);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.CHAR, STRING);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.VARCHAR, VAR_STRING);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.LONGVARCHAR, VAR_STRING);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.DATE, DATE);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.TIME, TIME);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.TIMESTAMP, TIMESTAMP);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BINARY, LONG_BLOB);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.VARBINARY, TINY_BLOB);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.LONGVARBINARY, BLOB);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.NULL, NULL);
-        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BLOB, BLOB);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BIT, MYSQL_TYPE_BIT);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.TINYINT, MYSQL_TYPE_TINY);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.SMALLINT, MYSQL_TYPE_SHORT);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.INTEGER, MYSQL_TYPE_LONG);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BIGINT, MYSQL_TYPE_LONGLONG);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.FLOAT, MYSQL_TYPE_FLOAT);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.REAL, MYSQL_TYPE_FLOAT);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.DOUBLE, MYSQL_TYPE_DOUBLE);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.NUMERIC, MYSQL_TYPE_NEWDECIMAL);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.DECIMAL, MYSQL_TYPE_NEWDECIMAL);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.CHAR, MYSQL_TYPE_STRING);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.VARCHAR, MYSQL_TYPE_VAR_STRING);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.LONGVARCHAR, MYSQL_TYPE_VAR_STRING);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.DATE, MYSQL_TYPE_DATE);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.TIME, MYSQL_TYPE_TIME);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.TIMESTAMP, MYSQL_TYPE_TIMESTAMP);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BINARY, MYSQL_TYPE_STRING);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.VARBINARY, MYSQL_TYPE_VAR_STRING);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.LONGVARBINARY, MYSQL_TYPE_VAR_STRING);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.NULL, MYSQL_TYPE_NULL);
+        JDBC_TYPE_AND_COLUMN_TYPE_MAP.put(Types.BLOB, MYSQL_TYPE_BLOB);
         for (MySQLBinaryColumnType each : values()) {
             VALUE_AND_COLUMN_TYPE_MAP.put(each.value, each);
         }
@@ -148,7 +149,7 @@ public enum MySQLBinaryColumnType implements BinaryColumnType {
     
     /**
      * Value of.
-     *
+     * 
      * @param value value
      * @return column type
      */

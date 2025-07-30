@@ -17,71 +17,95 @@
 
 package org.apache.shardingsphere.test.it.rewrite.engine.scenario;
 
-import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereColumn;
+import com.google.common.base.Preconditions;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereSchema;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereTable;
 import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
-import org.apache.shardingsphere.infra.rule.attribute.datanode.MutableDataNodeRuleAttribute;
+import org.apache.shardingsphere.infra.util.yaml.YamlEngine;
+import org.apache.shardingsphere.infra.yaml.config.pojo.YamlRootConfiguration;
 import org.apache.shardingsphere.single.rule.SingleRule;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.table.CreateTableStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.CreateTableStatement;
+import org.apache.shardingsphere.test.fixture.jdbc.MockedDataSource;
 import org.apache.shardingsphere.test.it.rewrite.engine.SQLRewriterIT;
 import org.apache.shardingsphere.test.it.rewrite.engine.SQLRewriterITSettings;
+import org.apache.shardingsphere.test.it.rewrite.engine.parameter.SQLRewriteEngineTestParameters;
 
+import javax.sql.DataSource;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @SQLRewriterITSettings("scenario/encrypt/case")
-class EncryptSQLRewriterIT extends SQLRewriterIT {
+public final class EncryptSQLRewriterIT extends SQLRewriterIT {
     
     @Override
-    protected Collection<ShardingSphereSchema> mockSchemas(final String schemaName) {
-        Collection<ShardingSphereTable> tables = new LinkedList<>();
-        tables.add(new ShardingSphereTable("t_account", Arrays.asList(
-                new ShardingSphereColumn("account_id", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("certificate_number", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("password", Types.VARCHAR, false, false, false, true, false, false),
-                new ShardingSphereColumn("amount", Types.DECIMAL, false, false, false, true, false, false),
-                new ShardingSphereColumn("status", Types.TINYINT, false, false, false, false, false, false)), Collections.emptyList(), Collections.emptyList()));
-        tables.add(new ShardingSphereTable("t_account_bak", Arrays.asList(
-                new ShardingSphereColumn("account_id", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("certificate_number", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("password", Types.VARCHAR, false, false, false, true, false, false),
-                new ShardingSphereColumn("amount", Types.DECIMAL, false, false, false, true, false, false),
-                new ShardingSphereColumn("status", Types.TINYINT, false, false, false, false, false, false)), Collections.emptyList(), Collections.emptyList()));
-        tables.add(new ShardingSphereTable("t_account_detail", Arrays.asList(
-                new ShardingSphereColumn("account_id", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("certificate_number", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("password", Types.VARCHAR, false, false, false, true, false, false),
-                new ShardingSphereColumn("amount", Types.DECIMAL, false, false, false, true, false, false),
-                new ShardingSphereColumn("status", Types.TINYINT, false, false, false, false, false, false)), Collections.emptyList(), Collections.emptyList()));
-        tables.add(new ShardingSphereTable("t_order", Arrays.asList(
-                new ShardingSphereColumn("ORDER_ID", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("USER_ID", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("CONTENT", Types.VARCHAR, false, false, false, true, false, false)), Collections.emptyList(), Collections.emptyList()));
-        tables.add(new ShardingSphereTable("t_user", Arrays.asList(
-                new ShardingSphereColumn("user_id", Types.INTEGER, false, false, false, true, false, false),
-                new ShardingSphereColumn("user_name", Types.VARCHAR, false, false, false, true, false, false),
-                new ShardingSphereColumn("password", Types.VARCHAR, false, false, false, true, false, false),
-                new ShardingSphereColumn("email", Types.VARCHAR, false, false, false, true, false, false),
-                new ShardingSphereColumn("telephone", Types.VARCHAR, false, false, false, true, false, false),
-                new ShardingSphereColumn("creation_date", Types.DATE, false, false, false, true, false, false)), Collections.emptyList(), Collections.emptyList()));
-        return Collections.singleton(new ShardingSphereSchema(schemaName, tables, Collections.emptyList()));
+    protected YamlRootConfiguration createRootConfiguration(final SQLRewriteEngineTestParameters testParams) throws IOException {
+        URL url = EncryptSQLRewriterIT.class.getClassLoader().getResource(testParams.getRuleFile());
+        Preconditions.checkNotNull(url, "Can not find rewrite rule yaml configuration");
+        return YamlEngine.unmarshal(new File(url.getFile()), YamlRootConfiguration.class);
     }
     
     @Override
-    protected void mockDatabaseRules(final Collection<ShardingSphereRule> rules, final String schemaName, final SQLStatement sqlStatement) {
-        Optional<SingleRule> singleRule = rules.stream().filter(SingleRule.class::isInstance).map(SingleRule.class::cast).findFirst();
+    protected Map<String, ShardingSphereSchema> mockSchemas(final String schemaName) {
+        ShardingSphereSchema result = mock(ShardingSphereSchema.class);
+        when(result.getAllColumnNames("t_account")).thenReturn(Arrays.asList("account_id", "certificate_number", "password", "amount", "status"));
+        when(result.getAllColumnNames("t_account_bak")).thenReturn(Arrays.asList("account_id", "certificate_number", "password", "amount", "status"));
+        when(result.getAllColumnNames("t_account_detail")).thenReturn(Arrays.asList("account_id", "certificate_number", "password", "amount", "status"));
+        when(result.getAllColumnNames("t_order")).thenReturn(Arrays.asList("ORDER_ID", "USER_ID", "CONTENT"));
+        when(result.getVisibleColumnNames("t_account")).thenReturn(Arrays.asList("account_id", "certificate_number", "password", "amount"));
+        when(result.getVisibleColumnNames("t_account_bak")).thenReturn(Arrays.asList("account_id", "certificate_number", "password", "amount"));
+        when(result.getVisibleColumnNames("t_account_detail")).thenReturn(Arrays.asList("account_id", "certificate_number", "password", "amount"));
+        when(result.getVisibleColumnNames("t_order")).thenReturn(Arrays.asList("ORDER_ID", "USER_ID", "CONTENT"));
+        when(result.getTable("t_order")).thenReturn(new ShardingSphereTable("t_order", Collections.emptyList(), Collections.emptyList(), Collections.emptyList()));
+        return Collections.singletonMap(schemaName, result);
+    }
+    
+    @Override
+    protected void mockRules(final Collection<ShardingSphereRule> rules, final String schemaName, final SQLStatement sqlStatement) {
+        Optional<SingleRule> singleRule = rules.stream().filter(each -> each instanceof SingleRule).map(each -> (SingleRule) each).findFirst();
         if (singleRule.isPresent() && !(sqlStatement instanceof CreateTableStatement)) {
-            singleRule.get().getAttributes().getAttribute(MutableDataNodeRuleAttribute.class).put("encrypt_ds", schemaName, "t_account");
-            singleRule.get().getAttributes().getAttribute(MutableDataNodeRuleAttribute.class).put("encrypt_ds", schemaName, "t_account_bak");
-            singleRule.get().getAttributes().getAttribute(MutableDataNodeRuleAttribute.class).put("encrypt_ds", schemaName, "t_account_detail");
-            singleRule.get().getAttributes().getAttribute(MutableDataNodeRuleAttribute.class).put("encrypt_ds", schemaName, "t_order");
-            singleRule.get().getAttributes().getAttribute(MutableDataNodeRuleAttribute.class).put("encrypt_ds", schemaName, "t_user");
+            singleRule.get().put("encrypt_ds", schemaName, "t_account");
+            singleRule.get().put("encrypt_ds", schemaName, "t_account_bak");
+            singleRule.get().put("encrypt_ds", schemaName, "t_account_detail");
+            singleRule.get().put("encrypt_ds", schemaName, "t_order");
         }
+    }
+    
+    @SuppressWarnings("MagicConstant")
+    @Override
+    protected void mockDataSource(final Map<String, DataSource> dataSources) throws SQLException {
+        for (Entry<String, DataSource> entry : dataSources.entrySet()) {
+            Connection connection = mock(Connection.class, RETURNS_DEEP_STUBS);
+            when(connection.getMetaData().getURL()).thenReturn("jdbc:mock://127.0.0.1/foo_ds");
+            when(connection.getMetaData().getUserName()).thenReturn("root");
+            when(connection.createStatement(anyInt(), anyInt(), anyInt()).getConnection()).thenReturn(connection);
+            ResultSet typeInfo = mockTypeInfo();
+            when(connection.getMetaData().getTypeInfo()).thenReturn(typeInfo);
+            entry.setValue(new MockedDataSource(connection));
+        }
+    }
+    
+    private ResultSet mockTypeInfo() throws SQLException {
+        ResultSet result = mock(ResultSet.class);
+        when(result.next()).thenReturn(true, true, false);
+        when(result.getString("TYPE_NAME")).thenReturn("INTEGER", "VARCHAR");
+        when(result.getInt("DATA_TYPE")).thenReturn(Types.INTEGER, Types.VARCHAR);
+        return result;
     }
 }

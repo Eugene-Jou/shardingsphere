@@ -18,7 +18,6 @@
 package org.apache.shardingsphere.proxy.backend.connector.jdbc.connection;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * Connection post processor.
@@ -30,7 +29,6 @@ public interface ConnectionPostProcessor {
      * Process connection.
      *
      * @param target target connection
-     * @throws SQLException SQL exception
      */
-    void process(Connection target) throws SQLException;
+    void process(Connection target);
 }

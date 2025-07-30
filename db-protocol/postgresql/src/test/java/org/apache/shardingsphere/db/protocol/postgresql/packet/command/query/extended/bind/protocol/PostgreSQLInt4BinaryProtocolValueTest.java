@@ -29,27 +29,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLInt4BinaryProtocolValueTest {
+public final class PostgreSQLInt4BinaryProtocolValueTest {
     
     @Mock
     private PostgreSQLPacketPayload payload;
     
     @Test
-    void assertGetColumnLength() {
+    public void assertNewInstance() {
         PostgreSQLInt4BinaryProtocolValue actual = new PostgreSQLInt4BinaryProtocolValue();
-        assertThat(actual.getColumnLength(payload, null), is(4));
-    }
-    
-    @Test
-    void assertRead() {
-        PostgreSQLInt4BinaryProtocolValue actual = new PostgreSQLInt4BinaryProtocolValue();
+        assertThat(actual.getColumnLength(null), is(4));
         when(payload.readInt4()).thenReturn(1);
         assertThat(actual.read(payload, 4), is(1));
-    }
-    
-    @Test
-    void assertWrite() {
-        PostgreSQLInt4BinaryProtocolValue actual = new PostgreSQLInt4BinaryProtocolValue();
         actual.write(payload, 1);
         verify(payload).writeInt4(1);
     }

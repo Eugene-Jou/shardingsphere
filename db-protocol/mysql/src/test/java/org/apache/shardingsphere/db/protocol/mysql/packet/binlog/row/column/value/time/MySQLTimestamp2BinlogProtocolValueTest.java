@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLTimestamp2BinlogProtocolValueTest {
+public final class MySQLTimestamp2BinlogProtocolValueTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -45,32 +45,32 @@ class MySQLTimestamp2BinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @BeforeEach
-    void setUp() {
-        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.TIMESTAMP2);
+    public void setUp() {
+        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.MYSQL_TYPE_TIMESTAMP2);
         when(payload.getByteBuf()).thenReturn(byteBuf);
     }
     
     @Test
-    void assertReadWithoutFraction() {
-        int currentSeconds = (int) (System.currentTimeMillis() / 1000L);
+    public void assertReadWithoutFraction() {
+        int currentSeconds = Long.valueOf(System.currentTimeMillis() / 1000).intValue();
         when(byteBuf.readInt()).thenReturn(currentSeconds);
         assertThat(new MySQLTimestamp2BinlogProtocolValue().read(columnDef, payload), is(new Timestamp(currentSeconds * 1000L)));
     }
     
     @Test
-    void assertReadWithFraction() {
+    public void assertReadWithFraction() {
         columnDef.setColumnMeta(1);
         long currentTimeMillis = 1678795614082L;
-        int currentSeconds = (int) (System.currentTimeMillis() / 1000L);
-        int currentMilliseconds = (int) (currentTimeMillis % 100L);
+        int currentSeconds = Long.valueOf(currentTimeMillis / 1000).intValue();
+        int currentMilliseconds = Long.valueOf(currentTimeMillis % 100).intValue();
         when(payload.readInt1()).thenReturn(currentMilliseconds);
         when(byteBuf.readInt()).thenReturn(currentSeconds);
         assertThat("currentTimeMillis:" + currentTimeMillis, new MySQLTimestamp2BinlogProtocolValue().read(columnDef, payload), is(new Timestamp(currentSeconds * 1000L + currentMilliseconds * 10L)));
     }
     
     @Test
-    void assertReadNullTime() {
+    public void assertReadNullTime() {
         when(byteBuf.readInt()).thenReturn(0);
-        assertThat(new MySQLTimestamp2BinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtils.DATETIME_OF_ZERO));
+        assertThat(new MySQLTimestamp2BinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtil.DATETIME_OF_ZERO));
     }
 }

@@ -21,6 +21,7 @@ html {
   @media (min-width: 700px) {
     html {
       font-size: 16px; } }
+
 body {
   -webkit-text-size-adjust: 100%; }
 
@@ -51,6 +52,7 @@ blockquote {
   @media (min-width: 600px) {
     blockquote {
       padding: 1rem 2rem 0.25rem 2rem; } }
+
 img {
   display: block;
   margin: 0 0 1rem;
@@ -60,7 +62,7 @@ td {
   vertical-align: top; }
 
 p {
-  text-indent: 0rem; }
+  text-indent: 2rem; }
 
 table {
   width: 100%;
@@ -87,11 +89,11 @@ code {
   border-radius: 3px;
   color: #bf616a;
   font-size: 85%;
-  padding: .25em .5em; }
+  padding: .25em .5em;
+  white-space: pre-wrap; }
 
 pre {
-  margin: 0 0 1rem;
-  padding: 1rem; }
+  margin: 0 0 1rem; }
 
 pre code {
   background-color: transparent;
@@ -148,7 +150,7 @@ pre code {
   .post p {
     margin: 0 0 1rem;
     line-height: 2em;
-    text-indent: 0em; }
+    text-indent: 2em; }
   .post li {
     line-height: 2em; }
   .post a:hover {
@@ -530,7 +532,8 @@ footer {
   padding: 0 25px;
   max-height: 30em;
   margin-top: 10px; }
-  .catalogue-item:hover .catalogue-line, .catalogue-item:focus .catalogue-line {
+  .catalogue-item:hover .catalogue-line,
+  .catalogue-item:focus .catalogue-line {
     width: 5rem; }
   .catalogue-item:last-child {
     border: 0; }

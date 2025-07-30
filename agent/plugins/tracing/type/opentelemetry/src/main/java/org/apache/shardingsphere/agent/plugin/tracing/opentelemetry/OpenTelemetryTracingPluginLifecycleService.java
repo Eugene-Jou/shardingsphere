@@ -20,18 +20,16 @@ package org.apache.shardingsphere.agent.plugin.tracing.opentelemetry;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import org.apache.shardingsphere.agent.api.PluginConfiguration;
-import org.apache.shardingsphere.agent.plugin.core.context.PluginContext;
 import org.apache.shardingsphere.agent.plugin.tracing.opentelemetry.constant.OpenTelemetryConstants;
 import org.apache.shardingsphere.agent.spi.PluginLifecycleService;
 
 /**
  * Open telemetry tracing plugin lifecycle service.
  */
-public final class OpenTelemetryTracingPluginLifecycleService implements PluginLifecycleService {
+public class OpenTelemetryTracingPluginLifecycleService implements PluginLifecycleService {
     
     @Override
     public void start(final PluginConfiguration pluginConfig, final boolean isEnhancedForProxy) {
-        PluginContext.getInstance().setEnhancedForProxy(isEnhancedForProxy);
         pluginConfig.getProps().forEach((key, value) -> setSystemProperty(String.valueOf(key), String.valueOf(value)));
         OpenTelemetrySdk openTelemetrySdk = AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
         openTelemetrySdk.getTracer(OpenTelemetryConstants.TRACER_NAME);
@@ -40,6 +38,11 @@ public final class OpenTelemetryTracingPluginLifecycleService implements PluginL
     private void setSystemProperty(final String key, final String value) {
         String propertyKey = key.replaceAll("-", ".");
         System.setProperty(propertyKey, String.valueOf(value));
+    }
+    
+    @Override
+    public void close() {
+        
     }
     
     @Override

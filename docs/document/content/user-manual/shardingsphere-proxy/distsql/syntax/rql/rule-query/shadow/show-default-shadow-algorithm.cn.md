@@ -1,6 +1,6 @@
 +++
 title = "SHOW DEFAULT SHADOW ALGORITHM"
-weight = 4
+weight = 5
 +++
 
 ### 描述
@@ -12,8 +12,8 @@ weight = 4
 {{< tabs >}}
 {{% tab name="语法" %}}
 ```sql
-ShowDefaultShadowAlgorithm::=
-  'SHOW' 'DEFAULT' 'SHADOW' 'ALGORITHM' ('FROM' databaseName)?
+ShowEncryptAlgorithm::=
+  'SHOW' 'DEFAULT' 'SHADOW' 'ALGORITHMS' ('FROM' databaseName)?
 
 databaseName ::=
   identifier
@@ -30,22 +30,22 @@ databaseName ::=
 
 ### 返回值说明
 
-| 列                     | 说明     |
-|-----------------------|--------|
+| 列                    | 说明        |
+| ----------------------| ---------- |
 | shadow_algorithm_name | 影子算法名称 |
-| type                  | 算法类型   |
-| props                 | 算法参数   |
+| type                  | 算法类型    |
+| props                 | 算法参数    |
 
 ### 示例
 
 - 查询指定逻辑库中的默认影子算法
 
 ```sql
-SHOW DEFAULT SHADOW ALGORITHM FROM shadow_db;
+SHOW DEFAULT SHADOW ALGORITHMS FROM shadow_db;
 ```
 
 ```sql
-mysql> SHOW DEFAULT SHADOW ALGORITHM FROM shadow_db;
+mysql> SHOW DEFAULT SHADOW ALGORITHMS FROM shadow_db;
 +-------------------------+-------------+-----------------------------------------+
 | shadow_algorithm_name   | type        | props                                   |
 +-------------------------+-------------+-----------------------------------------+
@@ -57,11 +57,11 @@ mysql> SHOW DEFAULT SHADOW ALGORITHM FROM shadow_db;
 - 查询当前逻辑库中的默认影子算法
 
 ```sql
-SHOW DEFAULT SHADOW ALGORITHM;
+SHOW DEFAULT SHADOW ALGORITHMS;
 ```
 
 ```sql
-mysql> SHOW DEFAULT SHADOW ALGORITHM;
+mysql> SHOW DEFAULT SHADOW ALGORITHMS;
 +-------------------------+-------------+-----------------------------------------+
 | shadow_algorithm_name   | type        | props                                   |
 +-------------------------+-------------+-----------------------------------------+
@@ -73,7 +73,7 @@ mysql> SHOW DEFAULT SHADOW ALGORITHM;
 
 ### 保留字
 
-`SHOW`、`DEFAULT`、`SHADOW`、`ALGORITHM`、`FROM`
+`SHOW`、`DEFAULT`、`SHADOW`、`ALGORITHMS`、`FROM`
 
 ### 相关链接
 

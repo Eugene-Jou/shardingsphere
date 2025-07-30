@@ -1,19 +1,22 @@
 +++
 title = "IMPORT DATABASE CONFIGURATION"
-weight = 14
+weight = 10
 +++
 
 ### 描述
 
-`IMPORT DATABASE CONFIGURATION` 语法用于从 `YAML` 中的配置导入逻辑库。
+`IMPORT DATABASE CONFIGURATION` 语法用于将 `YAML` 中的配置导入到指定逻辑库中
 
 ### 语法
 
 {{< tabs >}}
 {{% tab name="语法" %}}
 ```sql
-ImportDatabaseConfiguration ::=
-  'IMPORT' 'DATABASE' 'CONFIGURATION' 'FROM' 'FILE' filePath
+ExportDatabaseConfiguration ::=
+  'IMPORT' 'DATABASE' 'CONFIGURATION' 'FROM' 'FILE' filePath ('TO' databaseName)?
+
+databaseName ::=
+  identifier
 
 filePath ::=
   string
@@ -26,11 +29,19 @@ filePath ::=
 
 ### 补充说明
 
-- 当元数据中已存在同名逻辑库时，无法导入；
-- 当 YAML 中 `databaseName` 为空时，无法导入；
-- 当 YAML 中 `dataSources` 为空时，只导入空的逻辑库。
+- 未指定 `databaseName` 时，默认是当前使用的 `DATABASE` 如果也未使用 `DATABASE` 则会提示 `No database selected`。
+
+- `IMPORT DATABASE CONFIGURATION` 语法仅支持对空逻辑库进行导入操作。
 
 ### 示例
+
+- 将 `YAML` 中的配置导入到指定逻辑库中
+
+```sql
+IMPORT DATABASE CONFIGURATION FROM FILE "/xxx/config_sharding_db.yaml" TO sharding_db;
+```
+
+- 将 `YAML` 中的配置导入到当前逻辑库中
 
 ```sql
 IMPORT DATABASE CONFIGURATION FROM FILE "/xxx/config_sharding_db.yaml";
@@ -38,7 +49,7 @@ IMPORT DATABASE CONFIGURATION FROM FILE "/xxx/config_sharding_db.yaml";
 
 ### 保留字
 
-`IMPORT`、`DATABASE`、`CONFIGURATION`、`FROM`、`FILE`
+`IMPORT`、`DATABASE`、`CONFIGURATION`、`FROM`、`FILE`、`TO`
 
 ### 相关链接
 

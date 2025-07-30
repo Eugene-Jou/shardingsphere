@@ -1,6 +1,6 @@
 +++
 title = "DROP SHADOW RULE"
-weight = 3
+weight = 4
 +++
 
 ## Description
@@ -13,12 +13,12 @@ The `DROP SHADOW RULE` syntax is used to drop shadow rule for specified database
 {{% tab name="Grammar" %}}
 ```sql
 DropShadowRule ::=
-  'DROP' 'SHADOW' 'RULE' ifExists? ruleName ('FROM' databaseName)?
+  'DROP' 'SHADOW' 'TABLE' 'RULE' ifExists? shadowRuleName ('FROM' databaseName)?
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+shadowRuleName ::=
   identifier
 
 databaseName ::=

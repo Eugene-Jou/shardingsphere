@@ -25,8 +25,6 @@ import org.apache.shardingsphere.sharding.api.sharding.ShardingValue;
 
 /**
  * Sharding value for precise.
- * 
- * @param <T> type of sharding value
  */
 @RequiredArgsConstructor
 @Getter

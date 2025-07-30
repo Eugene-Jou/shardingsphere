@@ -28,12 +28,12 @@ import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
  */
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public abstract class AbstractMySQLBinlogEventPacket extends MySQLPacket implements MySQLBinlogEventPacket {
+public abstract class AbstractMySQLBinlogEventPacket implements MySQLPacket, MySQLBinlogEventPacket {
     
     private final MySQLBinlogEventHeader binlogEventHeader;
     
     @Override
-    protected final void write(final MySQLPacketPayload payload) {
+    public final void write(final MySQLPacketPayload payload) {
         binlogEventHeader.write(payload);
         writeEvent(payload);
     }

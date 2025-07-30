@@ -21,16 +21,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.apache.shardingsphere.infra.util.json.JsonConfiguration;
 
 /**
  * Exported storage node.
  */
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
 @Setter
-public final class ExportedStorageNode implements JsonConfiguration {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ExportedStorageNode {
     
     private String ip;
     

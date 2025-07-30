@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Resource ID generator.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class ResourceIdGenerator {
+public final class ResourceIDGenerator {
     
-    private static final ResourceIdGenerator INSTANCE = new ResourceIdGenerator();
+    private static final ResourceIDGenerator INSTANCE = new ResourceIDGenerator();
     
     private final AtomicInteger count = new AtomicInteger();
     
@@ -37,7 +37,7 @@ public final class ResourceIdGenerator {
      *
      * @return instance
      */
-    public static ResourceIdGenerator getInstance() {
+    public static ResourceIDGenerator getInstance() {
         return INSTANCE;
     }
     
@@ -46,7 +46,7 @@ public final class ResourceIdGenerator {
      *
      * @return next ID
      */
-    public String nextId() {
+    String nextId() {
         return String.format("%d-", count.incrementAndGet());
     }
 }

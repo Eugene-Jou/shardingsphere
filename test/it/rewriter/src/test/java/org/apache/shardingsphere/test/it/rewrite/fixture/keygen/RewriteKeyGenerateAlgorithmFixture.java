@@ -17,18 +17,13 @@
 
 package org.apache.shardingsphere.test.it.rewrite.fixture.keygen;
 
-import org.apache.shardingsphere.infra.algorithm.keygen.core.KeyGenerateAlgorithm;
-import org.apache.shardingsphere.infra.algorithm.core.context.AlgorithmSQLContext;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import org.apache.shardingsphere.sharding.spi.KeyGenerateAlgorithm;
 
 public final class RewriteKeyGenerateAlgorithmFixture implements KeyGenerateAlgorithm {
     
     @Override
-    public Collection<Long> generateKeys(final AlgorithmSQLContext context, final int keyGenerateCount) {
-        return IntStream.range(0, keyGenerateCount).mapToObj(each -> 1L).collect(Collectors.toList());
+    public Long generateKey() {
+        return 1L;
     }
     
     @Override

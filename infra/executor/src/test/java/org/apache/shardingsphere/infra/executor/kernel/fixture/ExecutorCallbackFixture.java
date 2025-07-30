@@ -31,12 +31,12 @@ public final class ExecutorCallbackFixture implements ExecutorCallback<Object, S
     private final CountDownLatch latch;
     
     @Override
-    public Collection<String> execute(final Collection<Object> inputs, final boolean isTrunkThread, final String processId) {
+    public Collection<String> execute(final Collection<Object> inputs, final boolean isTrunkThread) {
         List<String> result = new LinkedList<>();
-        inputs.forEach(each -> {
+        for (Object each : inputs) {
             latch.countDown();
             result.add("succeed");
-        });
+        }
         return result;
     }
 }

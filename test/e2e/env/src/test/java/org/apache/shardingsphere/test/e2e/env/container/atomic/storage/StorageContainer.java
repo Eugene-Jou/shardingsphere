@@ -36,15 +36,8 @@ public interface StorageContainer extends ITContainer {
     
     /**
      * Get expected data source map.
-     *
+     * 
      * @return expected data source map
      */
     Map<String, DataSource> getExpectedDataSourceMap();
-    
-    /**
-     * Get link replacements.
-     *
-     * @return link replacements
-     */
-    Map<String, String> getLinkReplacements();
 }

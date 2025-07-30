@@ -17,8 +17,8 @@
 
 package org.apache.shardingsphere.data.pipeline.core.metadata.node.event.handler;
 
-import org.apache.shardingsphere.infra.spi.annotation.SingletonSPI;
-import org.apache.shardingsphere.mode.event.DataChangedEvent;
+import org.apache.shardingsphere.infra.util.spi.annotation.SingletonSPI;
+import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEvent;
 
 import java.util.regex.Pattern;
 
@@ -38,8 +38,7 @@ public interface PipelineMetaDataChangedEventHandler {
     /**
      * Handle meta data changed event.
      *
-     * @param jobId job id
      * @param event changed event
      */
-    void handle(String jobId, DataChangedEvent event);
+    void handle(DataChangedEvent event);
 }

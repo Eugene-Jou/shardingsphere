@@ -18,7 +18,7 @@ Apache ShardingSphere 提供 XA 事务，默认的 XA 事务实现为 Atomikos�
 Yaml:
 
 ```yaml
-transaction:
+- !TRANSACTION
   defaultType: XA
   providerType: Atomikos 
 ```

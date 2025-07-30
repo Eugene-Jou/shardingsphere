@@ -1,6 +1,6 @@
 +++
 title = "DROP SHARDING TABLE REFERENCE RULE"
-weight = 14
+weight = 15
 +++
 
 ## Description
@@ -13,12 +13,12 @@ The `DROP SHARDING TABLE REFERENCE RULE` syntax is used to drop specified shardi
 {{% tab name="Grammar" %}}
 ```sql
 DropShardingTableReferenceRule ::=
-  'DROP' 'SHARDING' 'TABLE' 'REFERENCE' 'RULE' ifExists? ruleName (',' ruleName)*
+  'DROP' 'SHARDING' 'TABLE' 'REFERENCE' 'RULE' ifExists? shardingReferenceRuleName (',' shardingReferenceRuleName)*
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+shardingReferenceRuleName ::=
   identifier
 ```
 {{% /tab %}}

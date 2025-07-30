@@ -29,19 +29,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class OpenGaussMD5PasswordAuthenticatorTest {
+public final class OpenGaussMD5PasswordAuthenticatorTest {
     
     private final String username = "root";
     
     private final String password = "password";
     
     @Test
-    void assertAuthenticationMethodName() {
-        assertThat(new OpenGaussMD5PasswordAuthenticator().getAuthenticationMethodName(), is("md5"));
+    public void assertAuthenticationMethodName() {
+        assertThat(new OpenGaussMD5PasswordAuthenticator().getAuthenticationMethod().getMethodName(), is("md5"));
     }
     
     @Test
-    void assertAuthenticate() {
+    public void assertAuthenticate() {
         ShardingSphereUser user = new ShardingSphereUser(username, password, "");
         byte[] md5Salt = PostgreSQLRandomGenerator.getInstance().generateRandomBytes(4);
         String md5Digest = md5Encode(md5Salt);

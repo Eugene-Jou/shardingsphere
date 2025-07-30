@@ -27,7 +27,7 @@ import org.apache.shardingsphere.agent.plugin.metrics.prometheus.collector.type.
 import org.apache.shardingsphere.agent.plugin.metrics.prometheus.collector.type.PrometheusMetricsSummaryCollector;
 
 /**
- * Metrics collector factory of Prometheus.
+ * Prometheus metrics collector factory.
  */
 public final class PrometheusMetricsCollectorFactory implements MetricsCollectorFactory {
     

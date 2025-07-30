@@ -18,172 +18,183 @@
 package org.apache.shardingsphere.infra.metadata.database.schema.model;
 
 import lombok.Getter;
-import org.apache.shardingsphere.infra.metadata.identifier.ShardingSphereIdentifier;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ShardingSphere schema.
  */
+@Getter
 public final class ShardingSphereSchema {
     
-    @Getter
-    private final String name;
+    private final Map<String, ShardingSphereTable> tables;
     
-    private final Map<ShardingSphereIdentifier, ShardingSphereTable> tables;
-    
-    private final Map<ShardingSphereIdentifier, ShardingSphereView> views;
+    private final Map<String, ShardingSphereView> views;
     
     @SuppressWarnings("CollectionWithoutInitialCapacity")
-    public ShardingSphereSchema(final String name) {
-        this.name = name;
+    public ShardingSphereSchema() {
         tables = new ConcurrentHashMap<>();
         views = new ConcurrentHashMap<>();
     }
     
-    public ShardingSphereSchema(final String name, final Collection<ShardingSphereTable> tables, final Collection<ShardingSphereView> views) {
-        this.name = name;
-        this.tables = new ConcurrentHashMap<>(tables.size(), 1F);
-        this.views = new ConcurrentHashMap<>(views.size(), 1F);
-        tables.forEach(each -> this.tables.put(new ShardingSphereIdentifier(each.getName()), each));
-        views.forEach(each -> this.views.put(new ShardingSphereIdentifier(each.getName()), each));
+    public ShardingSphereSchema(final Map<String, ShardingSphereTable> tables, final Map<String, ShardingSphereView> views) {
+        this.tables = new ConcurrentHashMap<>(tables.size(), 1);
+        this.views = new ConcurrentHashMap<>(views.size(), 1);
+        tables.forEach((key, value) -> this.tables.put(key.toLowerCase(), value));
+        views.forEach((key, value) -> this.views.put(key.toLowerCase(), value));
     }
     
     /**
-     * Get all tables.
+     * Get all table names.
      *
-     * @return all tables
+     * @return all table names
      */
-    public Collection<ShardingSphereTable> getAllTables() {
-        return tables.values();
+    public Collection<String> getAllTableNames() {
+        return tables.keySet();
     }
     
     /**
-     * Judge whether contains table.
+     * Get all view names.
      *
-     * @param tableName table name
-     * @return contains table or not
+     * @return all view names
      */
-    public boolean containsTable(final String tableName) {
-        return tables.containsKey(new ShardingSphereIdentifier(tableName));
+    public Collection<String> getAllViewNames() {
+        return views.keySet();
     }
     
     /**
-     * Get table.
-     *
-     * @param tableName table name
-     * @return table
+     * Get table meta data via table name.
+     * 
+     * @param tableName tableName table name
+     * @return table meta data
      */
     public ShardingSphereTable getTable(final String tableName) {
-        return tables.get(new ShardingSphereIdentifier(tableName));
+        return tables.get(tableName.toLowerCase());
+    }
+    
+    /**
+     * Get view meta data via view name.
+     *
+     * @param viewName viewName view name
+     * @return view meta data
+     */
+    public ShardingSphereView getView(final String viewName) {
+        return views.get(viewName.toLowerCase());
     }
     
     /**
      * Add table.
-     *
+     * 
+     * @param tableName table name
      * @param table table
      */
-    public void putTable(final ShardingSphereTable table) {
-        tables.put(new ShardingSphereIdentifier(table.getName()), table);
-    }
-    
-    /**
-     * Remove table.
-     *
-     * @param tableName table name
-     */
-    public void removeTable(final String tableName) {
-        tables.remove(new ShardingSphereIdentifier(tableName));
-    }
-    
-    /**
-     * Get all views.
-     *
-     * @return all views
-     */
-    public Collection<ShardingSphereView> getAllViews() {
-        return views.values();
-    }
-    
-    /**
-     * Judge whether contains view.
-     *
-     * @param viewName view name
-     * @return contains view or not
-     */
-    public boolean containsView(final String viewName) {
-        return views.containsKey(new ShardingSphereIdentifier(viewName));
-    }
-    
-    /**
-     * Get view.
-     *
-     * @param viewName view name
-     * @return view
-     */
-    public ShardingSphereView getView(final String viewName) {
-        return views.get(new ShardingSphereIdentifier(viewName));
+    public void putTable(final String tableName, final ShardingSphereTable table) {
+        tables.put(tableName.toLowerCase(), table);
     }
     
     /**
      * Add view.
      *
+     * @param viewName view name
      * @param view view
      */
-    public void putView(final ShardingSphereView view) {
-        views.put(new ShardingSphereIdentifier(view.getName()), view);
+    public void putView(final String viewName, final ShardingSphereView view) {
+        views.put(viewName.toLowerCase(), view);
     }
     
     /**
-     * Remove view.
+     * Add tables.
+     *
+     * @param tables tables
+     */
+    public void putAll(final Map<String, ShardingSphereTable> tables) {
+        for (Entry<String, ShardingSphereTable> entry : tables.entrySet()) {
+            putTable(entry.getKey(), entry.getValue());
+        }
+    }
+    
+    /**
+     * Remove table meta data.
+     *
+     * @param tableName table name
+     */
+    public void removeTable(final String tableName) {
+        tables.remove(tableName.toLowerCase());
+    }
+    
+    /**
+     * Remove view meta data.
      *
      * @param viewName view name
      */
     public void removeView(final String viewName) {
-        views.remove(new ShardingSphereIdentifier(viewName));
+        views.remove(viewName.toLowerCase());
     }
     
     /**
-     * Judge whether contains index.
+     * Judge contains table from table meta data or not.
+     *
+     * @param tableName table name
+     * @return contains table from table meta data or not
+     */
+    public boolean containsTable(final String tableName) {
+        return tables.containsKey(tableName.toLowerCase());
+    }
+    
+    /**
+     * Judge whether contains column name.
+     *
+     * @param tableName table name
+     * @param columnName column name
+     * @return contains column name or not
+     */
+    public boolean containsColumn(final String tableName, final String columnName) {
+        return containsTable(tableName) && getTable(tableName).getColumns().containsKey(columnName.toLowerCase());
+    }
+    
+    /**
+     * Judge whether contains index name.
      *
      * @param tableName table name
      * @param indexName index name
-     * @return contains index or not
+     * @return whether contains index name or not
      */
     public boolean containsIndex(final String tableName, final String indexName) {
-        return containsTable(tableName) && getTable(tableName).containsIndex(indexName);
+        return containsTable(tableName) && getTable(tableName).getIndexes().containsKey(indexName.toLowerCase());
     }
     
     /**
-     * Get visible column names.
+     * Judge contains view from table meta data or not.
+     *
+     * @param viewName view name
+     * @return contains view from table meta data or not
+     */
+    public boolean containsView(final String viewName) {
+        return views.containsKey(viewName.toLowerCase());
+    }
+    
+    /**
+     * Get all column names via table.
+     *
+     * @param tableName table name
+     * @return column names
+     */
+    public List<String> getAllColumnNames(final String tableName) {
+        return containsTable(tableName) ? getTable(tableName).getColumnNames() : Collections.emptyList();
+    }
+    
+    /**
+     * Get visible column names via table.
      *
      * @param tableName table name
      * @return visible column names
      */
     public List<String> getVisibleColumnNames(final String tableName) {
         return containsTable(tableName) ? getTable(tableName).getVisibleColumns() : Collections.emptyList();
-    }
-    
-    /**
-     * Get visible column and index map.
-     *
-     * @param tableName table name
-     * @return visible column and index map
-     */
-    public Map<String, Integer> getVisibleColumnAndIndexMap(final String tableName) {
-        return containsTable(tableName) ? getTable(tableName).getVisibleColumnAndIndexMap() : Collections.emptyMap();
-    }
-    
-    /**
-     * Whether empty schema.
-     *
-     * @return empty schema or not
-     */
-    public boolean isEmpty() {
-        return tables.isEmpty() && views.isEmpty();
     }
 }

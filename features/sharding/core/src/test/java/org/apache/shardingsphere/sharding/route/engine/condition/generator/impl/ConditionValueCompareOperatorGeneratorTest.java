@@ -18,17 +18,17 @@
 package org.apache.shardingsphere.sharding.route.engine.condition.generator.impl;
 
 import com.google.common.collect.Range;
-import org.apache.shardingsphere.infra.metadata.database.schema.HashColumn;
+import org.apache.shardingsphere.sharding.route.engine.condition.Column;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.ListShardingConditionValue;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.RangeShardingConditionValue;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.ShardingConditionValue;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.column.ColumnSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.BinaryOperationExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.complex.CommonExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simple.LiteralExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simple.ParameterMarkerExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
-import org.apache.shardingsphere.timeservice.core.rule.TimestampServiceRule;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.ColumnSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.BinaryOperationExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.complex.CommonExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.LiteralExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.ParameterMarkerExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.timeservice.core.rule.TimeServiceRule;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -42,18 +42,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-class ConditionValueCompareOperatorGeneratorTest {
+public final class ConditionValueCompareOperatorGeneratorTest {
     
     private final ConditionValueCompareOperatorGenerator generator = new ConditionValueCompareOperatorGenerator();
     
-    private final HashColumn column = new HashColumn("id", "tbl");
+    private final Column column = new Column("id", "tbl");
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValue() {
+    public void assertGenerateConditionValue() {
         int value = 1;
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, value), "=", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class));
         assertTrue(shardingConditionValue.isPresent());
         assertTrue(((ListShardingConditionValue<Integer>) shardingConditionValue.get()).getValues().contains(value));
         assertTrue(shardingConditionValue.get().getParameterMarkerIndexes().isEmpty());
@@ -61,36 +61,19 @@ class ConditionValueCompareOperatorGeneratorTest {
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateNullConditionValue() {
-        BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, null), "=", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
-        assertTrue(shardingConditionValue.isPresent());
-        assertTrue(((ListShardingConditionValue<Integer>) shardingConditionValue.get()).getValues().contains(null));
-        assertTrue(shardingConditionValue.get().getParameterMarkerIndexes().isEmpty());
-    }
-    
-    @SuppressWarnings("unchecked")
-    @Test
-    void assertGenerateConditionValueWithLessThanOperator() {
+    public void assertGenerateConditionValueWithLessThanOperator() {
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, 1), "<", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class));
         assertTrue(shardingConditionValue.isPresent());
         assertTrue(Range.lessThan(1).encloses(((RangeShardingConditionValue<Integer>) shardingConditionValue.get()).getValueRange()));
         assertTrue(shardingConditionValue.get().getParameterMarkerIndexes().isEmpty());
     }
     
-    @Test
-    void assertGenerateNullConditionValueWithLessThanOperator() {
-        BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, null), "<", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
-        assertFalse(shardingConditionValue.isPresent());
-    }
-    
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValueWithGreaterThanOperator() {
+    public void assertGenerateConditionValueWithGreaterThanOperator() {
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, 1), ">", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class));
         assertTrue(shardingConditionValue.isPresent());
         assertTrue(Range.greaterThan(1).encloses(((RangeShardingConditionValue<Integer>) shardingConditionValue.get()).getValueRange()));
         assertTrue(shardingConditionValue.get().getParameterMarkerIndexes().isEmpty());
@@ -98,9 +81,9 @@ class ConditionValueCompareOperatorGeneratorTest {
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValueWithAtMostOperator() {
+    public void assertGenerateConditionValueWithAtMostOperator() {
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, 1), "<=", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class));
         assertTrue(shardingConditionValue.isPresent());
         assertTrue(Range.atMost(1).encloses(((RangeShardingConditionValue<Integer>) shardingConditionValue.get()).getValueRange()));
         assertTrue(shardingConditionValue.get().getParameterMarkerIndexes().isEmpty());
@@ -108,31 +91,31 @@ class ConditionValueCompareOperatorGeneratorTest {
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValueWithAtLeastOperator() {
+    public void assertGenerateConditionValueWithAtLeastOperator() {
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, 1), ">=", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class));
         assertTrue(shardingConditionValue.isPresent());
         assertTrue(Range.atLeast(1).encloses(((RangeShardingConditionValue<Integer>) shardingConditionValue.get()).getValueRange()));
         assertTrue(shardingConditionValue.get().getParameterMarkerIndexes().isEmpty());
     }
     
     @Test
-    void assertGenerateConditionValueWithErrorOperator() {
+    public void assertGenerateConditionValueWithErrorOperator() {
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, 1), "!=", null);
-        assertFalse(generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class)).isPresent());
+        assertFalse(generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class)).isPresent());
     }
     
     @Test
-    void assertGenerateConditionValueWithoutNowExpression() {
+    public void assertGenerateConditionValueWithoutNowExpression() {
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new CommonExpressionSegment(0, 0, "value"), "=", null);
-        assertFalse(generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class)).isPresent());
+        assertFalse(generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class)).isPresent());
     }
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValueWithNowExpression() {
+    public void assertGenerateConditionValueWithNowExpression() {
         BinaryOperationExpression rightValue = new BinaryOperationExpression(0, 0, mock(ColumnSegment.class), new LiteralExpressionSegment(0, 0, "now()"), "=", null);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(rightValue, column, new LinkedList<>(), mock(TimeServiceRule.class));
         assertTrue(shardingConditionValue.isPresent());
         assertFalse(((ListShardingConditionValue<Integer>) shardingConditionValue.get()).getValues().isEmpty());
         assertTrue(shardingConditionValue.get().getParameterMarkerIndexes().isEmpty());
@@ -140,11 +123,11 @@ class ConditionValueCompareOperatorGeneratorTest {
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValueWithParameter() {
+    public void assertGenerateConditionValueWithParameter() {
         ColumnSegment left = new ColumnSegment(0, 0, new IdentifierValue("id"));
         ParameterMarkerExpressionSegment right = new ParameterMarkerExpressionSegment(0, 0, 0);
         BinaryOperationExpression predicate = new BinaryOperationExpression(0, 0, left, right, "=", "id = ?");
-        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, Collections.singletonList(1), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, Collections.singletonList(1), mock(TimeServiceRule.class));
         assertTrue(actual.isPresent());
         assertThat(actual.get(), instanceOf(ListShardingConditionValue.class));
         ListShardingConditionValue<Integer> conditionValue = (ListShardingConditionValue<Integer>) actual.get();
@@ -155,11 +138,11 @@ class ConditionValueCompareOperatorGeneratorTest {
     }
     
     @Test
-    void assertGenerateConditionValueWithoutParameter() {
+    public void assertGenerateConditionValueWithoutParameter() {
         ColumnSegment left = new ColumnSegment(0, 0, new IdentifierValue("order_id"));
         ParameterMarkerExpressionSegment right = new ParameterMarkerExpressionSegment(0, 0, 0);
         BinaryOperationExpression predicate = new BinaryOperationExpression(0, 0, left, right, "=", "order_id = ?");
-        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, new LinkedList<>(), mock(TimestampServiceRule.class));
+        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, new LinkedList<>(), mock(TimeServiceRule.class));
         assertFalse(actual.isPresent());
     }
 }

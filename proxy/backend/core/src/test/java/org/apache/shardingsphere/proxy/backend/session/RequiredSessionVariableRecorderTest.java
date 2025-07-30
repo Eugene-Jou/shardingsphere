@@ -28,10 +28,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class RequiredSessionVariableRecorderTest {
+public final class RequiredSessionVariableRecorderTest {
     
     @Test
-    void assertRecordMySQLVariables() {
+    public void assertRecordMySQLVariables() {
         RequiredSessionVariableRecorder recorder = new RequiredSessionVariableRecorder();
         assertTrue(recorder.isEmpty());
         String databaseType = "MySQL";
@@ -39,19 +39,16 @@ class RequiredSessionVariableRecorderTest {
         assertTrue(recorder.toResetSQLs(databaseType).isEmpty());
         recorder.setVariable("sql_mode", "default");
         recorder.setVariable("max_sort_length", "1024");
-        recorder.setVariable("@variable_name", "'variable_value'");
         assertFalse(recorder.isEmpty());
-        assertThat(recorder.toSetSQLs(databaseType), is(Collections.singletonList("SET sql_mode=default,@variable_name='variable_value',max_sort_length=1024")));
-        assertThat(recorder.toResetSQLs(databaseType), is(Collections.singletonList("SET sql_mode=DEFAULT,@variable_name=NULL,max_sort_length=DEFAULT")));
-        assertThat(recorder.toResetSQLs(databaseType), is(Collections.singletonList("SET sql_mode=DEFAULT,@variable_name=NULL,max_sort_length=DEFAULT")));
+        assertThat(recorder.toSetSQLs(databaseType), is(Collections.singletonList("SET sql_mode=default,max_sort_length=1024")));
+        assertThat(recorder.toResetSQLs(databaseType), is(Collections.singletonList("SET sql_mode=DEFAULT,max_sort_length=DEFAULT")));
         recorder.removeVariablesWithDefaultValue();
-        assertThat(recorder.toSetSQLs(databaseType), is(Collections.singletonList("SET @variable_name='variable_value',max_sort_length=1024")));
-        assertThat(recorder.toResetSQLs(databaseType), is(Collections.singletonList("SET @variable_name=NULL,max_sort_length=DEFAULT")));
-        assertThat(recorder.toResetSQLs(databaseType), is(Collections.singletonList("SET @variable_name=NULL,max_sort_length=DEFAULT")));
+        assertThat(recorder.toSetSQLs(databaseType), is(Collections.singletonList("SET max_sort_length=1024")));
+        assertThat(recorder.toResetSQLs(databaseType), is(Collections.singletonList("SET max_sort_length=DEFAULT")));
     }
     
     @Test
-    void assertRecordPostgreSQLVariables() {
+    public void assertRecordPostgreSQLVariables() {
         RequiredSessionVariableRecorder recorder = new RequiredSessionVariableRecorder();
         assertTrue(recorder.isEmpty());
         String databaseType = "PostgreSQL";
@@ -68,7 +65,7 @@ class RequiredSessionVariableRecorderTest {
     }
     
     @Test
-    void assertRecordUnsupportedDatabaseType() {
+    public void assertRecordUnsupportedDatabaseType() {
         RequiredSessionVariableRecorder recorder = new RequiredSessionVariableRecorder();
         assertTrue(recorder.isEmpty());
         recorder.setVariable("key", "value");

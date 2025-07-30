@@ -28,13 +28,13 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PrometheusMetricsGaugeMetricFamilyCollectorTest {
+public final class PrometheusMetricsGaugeMetricFamilyCollectorTest {
     
     @Test
-    void assertCreate() throws ReflectiveOperationException {
+    public void assertCreate() throws ReflectiveOperationException {
         PrometheusMetricsGaugeMetricFamilyCollector collector = new PrometheusMetricsGaugeMetricFamilyCollector(new MetricConfiguration("foo_gauge_metric_family",
                 MetricCollectorType.GAUGE_METRIC_FAMILY, "foo_help", Collections.emptyList(), Collections.emptyMap()));
-        collector.addMetric(Collections.emptyList(), 1D);
+        collector.addMetric(Collections.emptyList(), 1d);
         assertThat(Plugins.getMemberAccessor().get(PrometheusMetricsGaugeMetricFamilyCollector.class.getDeclaredField("gaugeMetricFamily"), collector), instanceOf(GaugeMetricFamily.class));
     }
 }

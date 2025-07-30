@@ -31,12 +31,12 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class NoneShardingStrategyTest {
+public final class NoneShardingStrategyTest {
     
     private final NoneShardingStrategy noneShardingStrategy = new NoneShardingStrategy();
     
     @Test
-    void assertGetShardingAlgorithm() {
+    public void assertGetShardingAlgorithm() {
         Collection<String> targets = new HashSet<>(Arrays.asList("1", "2", "3"));
         DataNodeInfo dataNodeInfo = new DataNodeInfo("logicTable_", 1, '0');
         Collection<String> actualSharding = noneShardingStrategy.doSharding(targets, Collections.emptySet(), dataNodeInfo, new ConfigurationProperties(new Properties()));
@@ -45,7 +45,7 @@ class NoneShardingStrategyTest {
     }
     
     @Test
-    void assertDoSharding() {
+    public void assertDoSharding() {
         assertNull(noneShardingStrategy.getShardingAlgorithm());
     }
 }

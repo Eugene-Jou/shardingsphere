@@ -19,23 +19,27 @@ package org.apache.shardingsphere.proxy.backend.distsql;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.distsql.statement.DistSQLStatement;
-import org.apache.shardingsphere.infra.binder.context.segment.table.TablesContext;
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
-
-import java.util.Collections;
+import org.apache.shardingsphere.distsql.parser.statement.DistSQLStatement;
+import org.apache.shardingsphere.infra.binder.segment.table.TablesContext;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 
 /**
  * SQL statement context for DistSQL.
  */
 @RequiredArgsConstructor
 @Getter
-public final class DistSQLStatementContext implements SQLStatementContext {
+public final class DistSQLStatementContext implements SQLStatementContext<DistSQLStatement> {
     
     private final DistSQLStatement sqlStatement;
     
     @Override
     public TablesContext getTablesContext() {
-        return new TablesContext(Collections.emptyList());
+        throw new UnsupportedOperationException("Cannot get tables context of DistSQLStatementContext");
+    }
+    
+    @Override
+    public DatabaseType getDatabaseType() {
+        throw new UnsupportedOperationException("Cannot get database type of DistSQLStatementContext");
     }
 }

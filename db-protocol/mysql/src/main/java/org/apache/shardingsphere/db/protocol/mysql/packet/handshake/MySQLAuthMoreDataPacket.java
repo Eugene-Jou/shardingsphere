@@ -22,16 +22,16 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.db.protocol.mysql.packet.MySQLPacket;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.infra.exception.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.type.generic.UnsupportedSQLOperationException;
 
 /**
- * MySQL authentication more data packet.
+ * MySQL authentication switch request packet.
  *
- * @see <a href="https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_connection_phase_packets_protocol_auth_more_data.html">AuthMoreData</a>
+ * @see <a href="https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::AuthMoreData">AuthMoreData</a>
  */
 @RequiredArgsConstructor
 @Getter
-public final class MySQLAuthMoreDataPacket extends MySQLPacket {
+public final class MySQLAuthMoreDataPacket implements MySQLPacket {
     
     /**
      * Header of MySQL auth more data packet.
@@ -46,7 +46,7 @@ public final class MySQLAuthMoreDataPacket extends MySQLPacket {
     }
     
     @Override
-    protected void write(final MySQLPacketPayload payload) {
+    public void write(final MySQLPacketPayload payload) {
         throw new UnsupportedSQLOperationException("MySQLAuthMoreDataPacket.write()");
     }
 }

@@ -27,16 +27,16 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class QueryResponseRowTest {
+public final class QueryResponseRowTest {
     
     @Test
-    void assertGetDataWhenQueryResponseCellsOfEmptyList() {
+    public void assertGetDataWhenQueryResponseCellsOfEmptyList() {
         QueryResponseRow queryResponseRow = new QueryResponseRow(Collections.emptyList());
         assertThat(queryResponseRow.getData(), is(Collections.emptyList()));
     }
     
     @Test
-    void assertGetDataWhenQueryResponseCellsPresent() {
+    public void assertGetDataWhenQueryResponseCellsPresent() {
         QueryResponseCell queryResponseCell1 = new QueryResponseCell(Types.INTEGER, 1);
         QueryResponseCell queryResponseCell2 = new QueryResponseCell(Types.VARCHAR, "column");
         QueryResponseRow queryResponseRow = new QueryResponseRow(Arrays.asList(queryResponseCell1, queryResponseCell2));

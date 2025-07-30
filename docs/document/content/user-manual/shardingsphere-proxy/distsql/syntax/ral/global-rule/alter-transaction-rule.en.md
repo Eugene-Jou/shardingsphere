@@ -1,6 +1,6 @@
 +++
 title = "ALTER TRANSACTION RULE"
-weight = 3
+weight = 5
 +++
 
 ### Description
@@ -40,7 +40,7 @@ value ::=
 
 - `defaultTransactionType` support `LOCAL`, `XA`, `BASE`
 
-- `transactionManager` support  `Atomikos` and `Narayana`
+- `transactionManager` support  `Atomikos`, `Narayana` and `Bitronix`
 
 ### Example
 
@@ -48,7 +48,7 @@ value ::=
 
 ```sql
 ALTER TRANSACTION RULE(
-  DEFAULT="XA", TYPE(NAME="Narayana")
+  DEFAULT="XA", TYPE(NAME="Narayana", PROPERTIES("databaseName"="jbossts", "host"="127.0.0.1"))
 );
 ```
 

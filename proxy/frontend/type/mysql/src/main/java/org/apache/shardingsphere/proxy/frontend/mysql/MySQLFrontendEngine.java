@@ -21,14 +21,21 @@ import io.netty.channel.Channel;
 import lombok.Getter;
 import org.apache.shardingsphere.db.protocol.codec.DatabasePacketCodecEngine;
 import org.apache.shardingsphere.db.protocol.mysql.codec.MySQLPacketCodecEngine;
-import org.apache.shardingsphere.db.protocol.mysql.netty.MySQLSequenceIdInboundHandler;
+import org.apache.shardingsphere.db.protocol.mysql.constant.MySQLConstants;
+import org.apache.shardingsphere.db.protocol.mysql.constant.MySQLServerInfo;
+import org.apache.shardingsphere.db.protocol.mysql.packet.MySQLPacket;
+import org.apache.shardingsphere.infra.config.props.ConfigurationPropertyKey;
+import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.proxy.frontend.authentication.AuthenticationEngine;
+import org.apache.shardingsphere.proxy.frontend.command.CommandExecuteEngine;
+import org.apache.shardingsphere.proxy.frontend.context.FrontendContext;
 import org.apache.shardingsphere.proxy.frontend.mysql.authentication.MySQLAuthenticationEngine;
 import org.apache.shardingsphere.proxy.frontend.mysql.command.MySQLCommandExecuteEngine;
-import org.apache.shardingsphere.proxy.frontend.mysql.command.query.binary.MySQLStatementIdGenerator;
-import org.apache.shardingsphere.proxy.frontend.netty.FrontendChannelInboundHandler;
+import org.apache.shardingsphere.proxy.frontend.mysql.command.query.binary.MySQLStatementIDGenerator;
 import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngine;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Frontend engine for MySQL.
@@ -36,20 +43,32 @@ import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngi
 @Getter
 public final class MySQLFrontendEngine implements DatabaseProtocolFrontendEngine {
     
+    private final FrontendContext frontendContext = new MySQLFrontendContext();
+    
     private final AuthenticationEngine authenticationEngine = new MySQLAuthenticationEngine();
     
-    private final MySQLCommandExecuteEngine commandExecuteEngine = new MySQLCommandExecuteEngine();
+    private final CommandExecuteEngine commandExecuteEngine = new MySQLCommandExecuteEngine();
     
-    private final DatabasePacketCodecEngine codecEngine = new MySQLPacketCodecEngine();
+    private final DatabasePacketCodecEngine<MySQLPacket> codecEngine = new MySQLPacketCodecEngine();
+    
+    public MySQLFrontendEngine() {
+        MySQLServerInfo.setDefaultMysqlVersion(ProxyContext.getInstance()
+                .getContextManager().getMetaDataContexts().getMetaData().getProps().getValue(ConfigurationPropertyKey.PROXY_MYSQL_DEFAULT_VERSION));
+    }
     
     @Override
     public void initChannel(final Channel channel) {
-        channel.pipeline().addBefore(FrontendChannelInboundHandler.class.getSimpleName(), MySQLSequenceIdInboundHandler.class.getSimpleName(), new MySQLSequenceIdInboundHandler(channel));
+        channel.attr(MySQLConstants.MYSQL_SEQUENCE_ID).set(new AtomicInteger());
+    }
+    
+    @Override
+    public void setDatabaseVersion(final String databaseName, final String databaseVersion) {
+        MySQLServerInfo.setServerVersion(databaseName, databaseVersion);
     }
     
     @Override
     public void release(final ConnectionSession connectionSession) {
-        MySQLStatementIdGenerator.getInstance().unregisterConnection(connectionSession.getConnectionId());
+        MySQLStatementIDGenerator.getInstance().unregisterConnection(connectionSession.getConnectionId());
     }
     
     @Override
@@ -57,7 +76,7 @@ public final class MySQLFrontendEngine implements DatabaseProtocolFrontendEngine
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "MySQL";
     }
 }

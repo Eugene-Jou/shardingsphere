@@ -126,7 +126,7 @@ DEFAULT
 IF  
     : I F
     ;
-
+    
 EXISTS
     : E X I S T S
     ;
@@ -149,8 +149,4 @@ SQL_HINT
 
 NOT
     : N O T
-    ;
-
-PLUGINS
-    : P L U G I N S
     ;

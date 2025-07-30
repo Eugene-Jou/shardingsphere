@@ -17,22 +17,18 @@
 
 package org.apache.shardingsphere.sharding.decider;
 
-import org.apache.shardingsphere.infra.annotation.HighFrequencyInvocation;
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
-import org.apache.shardingsphere.infra.binder.context.statement.type.dal.ExplainStatementContext;
-import org.apache.shardingsphere.infra.binder.context.statement.type.dml.SelectStatementContext;
-import org.apache.shardingsphere.infra.datanode.DataNode;
-import org.apache.shardingsphere.infra.datanode.DataNodes;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
-import org.apache.shardingsphere.infra.exception.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.infra.binder.QueryContext;
+import org.apache.shardingsphere.infra.binder.decider.SQLFederationDecider;
+import org.apache.shardingsphere.infra.binder.decider.context.SQLFederationDeciderContext;
+import org.apache.shardingsphere.infra.binder.statement.dml.SelectStatementContext;
+import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.sharding.constant.ShardingOrder;
 import org.apache.shardingsphere.sharding.route.engine.condition.ShardingCondition;
 import org.apache.shardingsphere.sharding.route.engine.condition.ShardingConditions;
 import org.apache.shardingsphere.sharding.route.engine.condition.engine.ShardingConditionEngine;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
-import org.apache.shardingsphere.sqlfederation.spi.SQLFederationDecider;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,82 +36,47 @@ import java.util.List;
 /**
  * Sharding SQL federation decider.
  */
-@HighFrequencyInvocation
 public final class ShardingSQLFederationDecider implements SQLFederationDecider<ShardingRule> {
     
     @Override
-    public boolean decide(final SQLStatementContext sqlStatementContext, final List<Object> parameters,
-                          final RuleMetaData globalRuleMetaData, final ShardingSphereDatabase database, final ShardingRule rule, final Collection<DataNode> includedDataNodes) {
-        if (sqlStatementContext instanceof SelectStatementContext) {
-            return decide0((SelectStatementContext) sqlStatementContext, parameters, globalRuleMetaData, database, rule, includedDataNodes);
-        } else if (sqlStatementContext instanceof ExplainStatementContext) {
-            ExplainStatementContext explainStatementContext = (ExplainStatementContext) sqlStatementContext;
-            ShardingSpherePreconditions.checkState(explainStatementContext.getExplainableSQLStatementContext() instanceof SelectStatementContext,
-                    () -> new UnsupportedSQLOperationException(
-                            String.format("unsupported Explain %s statement in sql federation", explainStatementContext.getSqlStatement().getExplainableSQLStatement())));
-            return decide0((SelectStatementContext) explainStatementContext.getExplainableSQLStatementContext(), parameters, globalRuleMetaData, database, rule, includedDataNodes);
-        }
-        throw new UnsupportedSQLOperationException(String.format("unsupported SQL statement %s in sql federation", sqlStatementContext.getSqlStatement()));
-    }
-    
-    private boolean decide0(final SelectStatementContext selectStatementContext, final List<Object> parameters, final RuleMetaData globalRuleMetaData, final ShardingSphereDatabase database,
-                            final ShardingRule rule, final Collection<DataNode> includedDataNodes) {
-        Collection<String> tableNames = rule.getShardingLogicTableNames(selectStatementContext.getTablesContext().getTableNames());
+    public void decide(final SQLFederationDeciderContext deciderContext, final QueryContext queryContext,
+                       final ShardingSphereRuleMetaData globalRuleMetaData, final ShardingSphereDatabase database, final ShardingRule rule, final ConfigurationProperties props) {
+        SelectStatementContext select = (SelectStatementContext) queryContext.getSqlStatementContext();
+        Collection<String> tableNames = rule.getShardingLogicTableNames(select.getTablesContext().getTableNames());
         if (tableNames.isEmpty()) {
-            return false;
+            return;
         }
-        appendTableDataNodes(rule, database, tableNames, includedDataNodes);
-        if (isAllShardingTables(selectStatementContext, tableNames) && isSubqueryAllSameShardingConditions(selectStatementContext, parameters, globalRuleMetaData, database, rule)) {
-            return false;
+        addTableDataNodes(deciderContext, rule, tableNames);
+        ShardingConditions shardingConditions = getMergedShardingConditions(queryContext, globalRuleMetaData, database, rule);
+        if (shardingConditions.isNeedMerge() && shardingConditions.isSameShardingCondition()) {
+            return;
         }
-        if (selectStatementContext.isContainsSubquery() || selectStatementContext.isContainsHaving()
-                || selectStatementContext.isContainsCombine() || selectStatementContext.isContainsPartialDistinctAggregation()) {
-            return true;
+        if (select.isContainsSubquery() || select.isContainsHaving() || select.isContainsCombine() || select.isContainsPartialDistinctAggregation()) {
+            deciderContext.setUseSQLFederation(true);
+            return;
         }
-        if (!selectStatementContext.isContainsJoinQuery() || rule.isAllTablesInSameDataSource(tableNames)) {
-            return false;
+        if (!select.isContainsJoinQuery() || rule.isAllTablesInSameDataSource(tableNames)) {
+            return;
         }
-        if (isSelfJoinWithoutShardingColumn(selectStatementContext, rule, tableNames)) {
-            return true;
-        }
-        return tableNames.size() > 1 && !rule.isBindingTablesUseShardingColumnsJoin(selectStatementContext, tableNames);
+        boolean allBindingTables = tableNames.size() > 1 && rule.isAllBindingTables(database, select, tableNames);
+        deciderContext.setUseSQLFederation(tableNames.size() > 1 && !allBindingTables);
     }
     
-    private boolean isSubqueryAllSameShardingConditions(final SelectStatementContext selectStatementContext, final List<Object> parameters, final RuleMetaData globalRuleMetaData,
-                                                        final ShardingSphereDatabase database, final ShardingRule rule) {
-        if (!selectStatementContext.isContainsSubquery()) {
-            return false;
+    private static void addTableDataNodes(final SQLFederationDeciderContext deciderContext, final ShardingRule rule, final Collection<String> tableNames) {
+        for (String each : tableNames) {
+            rule.findTableRule(each).ifPresent(optional -> deciderContext.getDataNodes().addAll(optional.getActualDataNodes()));
         }
-        if (selectStatementContext.isContainsCombine()) {
-            return false;
-        }
-        ShardingConditions shardingConditions = createShardingConditions(selectStatementContext, parameters, globalRuleMetaData, database, rule);
-        return shardingConditions.isSameShardingCondition();
     }
     
-    private boolean isAllShardingTables(final SelectStatementContext selectStatementContext, final Collection<String> tableNames) {
-        return tableNames.size() == selectStatementContext.getTablesContext().getTableNames().size();
-    }
-    
-    private ShardingConditions createShardingConditions(final SelectStatementContext selectStatementContext, final List<Object> parameters, final RuleMetaData globalRuleMetaData,
-                                                        final ShardingSphereDatabase database, final ShardingRule rule) {
-        List<ShardingCondition> shardingConditions = new ShardingConditionEngine(globalRuleMetaData, database, rule).createShardingConditions(selectStatementContext, parameters);
-        ShardingConditions result = new ShardingConditions(shardingConditions, selectStatementContext, rule);
+    private static ShardingConditions getMergedShardingConditions(final QueryContext queryContext,
+                                                                  final ShardingSphereRuleMetaData globalRuleMetaData, final ShardingSphereDatabase database, final ShardingRule rule) {
+        List<ShardingCondition> shardingConditions = new ShardingConditionEngine(
+                globalRuleMetaData, database, rule).createShardingConditions(queryContext.getSqlStatementContext(), queryContext.getParameters());
+        ShardingConditions result = new ShardingConditions(shardingConditions, queryContext.getSqlStatementContext(), rule);
         if (result.isNeedMerge()) {
             result.merge();
         }
         return result;
-    }
-    
-    private boolean isSelfJoinWithoutShardingColumn(final SelectStatementContext selectStatementContext, final ShardingRule rule, final Collection<String> tableNames) {
-        return 1 == tableNames.size() && selectStatementContext.isContainsJoinQuery() && !rule.isBindingTablesUseShardingColumnsJoin(selectStatementContext, tableNames);
-    }
-    
-    private void appendTableDataNodes(final ShardingRule rule, final ShardingSphereDatabase database, final Collection<String> tableNames, final Collection<DataNode> includedDataNodes) {
-        DataNodes dataNodes = new DataNodes(database.getRuleMetaData().getRules());
-        for (String each : tableNames) {
-            rule.findShardingTable(each).ifPresent(optional -> includedDataNodes.addAll(dataNodes.getDataNodes(each)));
-        }
     }
     
     @Override

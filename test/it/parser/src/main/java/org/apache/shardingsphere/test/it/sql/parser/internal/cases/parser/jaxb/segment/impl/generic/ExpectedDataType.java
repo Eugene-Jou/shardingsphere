@@ -22,7 +22,6 @@ import lombok.Setter;
 import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.segment.impl.expr.simple.ExpectedBaseSimpleExpression;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Expected data type.
@@ -33,7 +32,4 @@ public final class ExpectedDataType extends ExpectedBaseSimpleExpression {
     
     @XmlAttribute
     private String value;
-    
-    @XmlElement
-    private ExpectedDataTypeLength dataLength;
 }

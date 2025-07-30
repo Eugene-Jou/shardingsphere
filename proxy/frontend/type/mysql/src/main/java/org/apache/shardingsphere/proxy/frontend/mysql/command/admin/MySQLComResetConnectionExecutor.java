@@ -38,12 +38,12 @@ public final class MySQLComResetConnectionExecutor implements CommandExecutor {
     private final ConnectionSession connectionSession;
     
     @Override
-    public Collection<DatabasePacket> execute() throws SQLException {
-        new BackendTransactionManager(connectionSession.getDatabaseConnectionManager()).rollback();
+    public Collection<DatabasePacket<?>> execute() throws SQLException {
+        new BackendTransactionManager(connectionSession.getBackendConnection()).rollback();
         connectionSession.setAutoCommit(true);
         connectionSession.setDefaultIsolationLevel(null);
         connectionSession.setIsolationLevel(null);
         connectionSession.getServerPreparedStatementRegistry().clear();
-        return Collections.singleton(new MySQLOKPacket(ServerStatusFlagCalculator.calculateFor(connectionSession, true)));
+        return Collections.singletonList(new MySQLOKPacket(ServerStatusFlagCalculator.calculateFor(connectionSession)));
     }
 }

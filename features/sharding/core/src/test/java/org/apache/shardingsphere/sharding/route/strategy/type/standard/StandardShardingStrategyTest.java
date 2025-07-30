@@ -35,7 +35,7 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class StandardShardingStrategyTest {
+public final class StandardShardingStrategyTest {
     
     private final Collection<String> targets = new HashSet<>(Arrays.asList("1", "2", "3"));
     
@@ -44,13 +44,13 @@ class StandardShardingStrategyTest {
     private DataNodeInfo dataNodeSegment;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         standardShardingStrategy = new StandardShardingStrategy("column", new CoreStandardShardingAlgorithmFixture());
         dataNodeSegment = new DataNodeInfo("logicTable_", 1, '0');
     }
     
     @Test
-    void assertDoShardingForRangeSharding() {
+    public void assertDoShardingForRangeSharding() {
         Collection<String> actualRangeSharding = standardShardingStrategy.doSharding(targets, Collections.singletonList(
                 new RangeShardingConditionValue<>("column", "logicTable", Range.open(1, 3))), dataNodeSegment, new ConfigurationProperties(new Properties()));
         assertThat(actualRangeSharding.size(), is(1));
@@ -58,7 +58,7 @@ class StandardShardingStrategyTest {
     }
     
     @Test
-    void assertDoShardingForListSharding() {
+    public void assertDoShardingForListSharding() {
         Collection<String> actualListSharding = standardShardingStrategy.doSharding(targets, Collections.singletonList(
                 new ListShardingConditionValue<>("column", "logicTable", Collections.singletonList(1))), dataNodeSegment, new ConfigurationProperties(new Properties()));
         assertThat(actualListSharding.size(), is(1));
@@ -66,7 +66,7 @@ class StandardShardingStrategyTest {
     }
     
     @Test
-    void assertGetShardingColumns() {
+    public void assertGetShardingColumns() {
         Collection<String> actualShardingColumns = standardShardingStrategy.getShardingColumns();
         assertThat(actualShardingColumns.size(), is(1));
         assertThat(actualShardingColumns.iterator().next(), is("column"));

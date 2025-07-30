@@ -29,7 +29,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLYearBinlogProtocolValueTest {
+public final class MySQLYearBinlogProtocolValueTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -38,14 +38,14 @@ class MySQLYearBinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @Test
-    void assertRead() {
+    public void assertRead() {
         when(payload.readInt1()).thenReturn(1);
         assertThat(new MySQLYearBinlogProtocolValue().read(columnDef, payload), is("1901"));
     }
     
     @Test
-    void assertReadNullYear() {
+    public void assertReadNullYear() {
         when(payload.readInt1()).thenReturn(0);
-        assertThat(new MySQLYearBinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtils.YEAR_OF_ZERO));
+        assertThat(new MySQLYearBinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtil.YEAR_OF_ZERO));
     }
 }

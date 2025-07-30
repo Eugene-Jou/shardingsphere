@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class OpenGaussAuthenticationHexDataTest {
+public final class OpenGaussAuthenticationHexDataTest {
     
     @Test
-    void assertNew() {
+    public void assertNew() {
         OpenGaussAuthenticationHexData actual = new OpenGaussAuthenticationHexData();
         assertThat(actual.getSalt().length(), is(64));
         assertThat(actual.getNonce().length(), is(8));

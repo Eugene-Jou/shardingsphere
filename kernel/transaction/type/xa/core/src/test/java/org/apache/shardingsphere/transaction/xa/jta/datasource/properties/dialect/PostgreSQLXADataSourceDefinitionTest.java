@@ -24,10 +24,10 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLXADataSourceDefinitionTest {
+public final class PostgreSQLXADataSourceDefinitionTest {
     
     @Test
-    void assertGetXADriverClassName() {
+    public void assertGetXADriverClassName() {
         assertThat(new PostgreSQLXADataSourceDefinition().getXADriverClassNames(), is(Collections.singletonList("org.postgresql.xa.PGXADataSource")));
     }
 }

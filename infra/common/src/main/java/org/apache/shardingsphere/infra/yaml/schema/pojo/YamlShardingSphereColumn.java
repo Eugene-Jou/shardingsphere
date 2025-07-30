@@ -41,6 +41,4 @@ public final class YamlShardingSphereColumn implements YamlConfiguration {
     private boolean visible;
     
     private boolean unsigned;
-    
-    private boolean nullable;
 }

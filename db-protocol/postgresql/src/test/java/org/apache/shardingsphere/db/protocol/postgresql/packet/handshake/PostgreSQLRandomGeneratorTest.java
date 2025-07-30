@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLRandomGeneratorTest {
+public final class PostgreSQLRandomGeneratorTest {
     
     @Test
-    void assertGenerateRandomBytes() {
+    public void assertGenerateRandomBytes() {
         PostgreSQLRandomGenerator generator = PostgreSQLRandomGenerator.getInstance();
         for (int i = 1; i < 13; i++) {
             assertThat(generator.generateRandomBytes(i).length, is(i));

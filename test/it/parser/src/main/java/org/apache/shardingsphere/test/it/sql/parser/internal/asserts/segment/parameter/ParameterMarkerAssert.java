@@ -33,13 +33,13 @@ public final class ParameterMarkerAssert {
     
     /**
      * Assert parameter markers count.
-     *
+     * 
      * @param assertContext assert context
      * @param actual actual parameter markers count
      * @param expected expected parameter markers count
      */
     public static void assertCount(final SQLCaseAssertContext assertContext, final int actual, final int expected) {
-        if (SQLCaseType.PLACEHOLDER == assertContext.getCaseType()) {
+        if (SQLCaseType.Placeholder == assertContext.getCaseType()) {
             assertThat(assertContext.getText("Parameter markers count assertion error: "), actual, is(expected));
         } else {
             assertThat(assertContext.getText("Parameter markers count assertion error: "), actual, is(0));

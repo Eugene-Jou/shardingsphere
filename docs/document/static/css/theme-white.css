@@ -195,8 +195,6 @@ header .select-style select{
 
 #body-inner{
     padding-right: 250px;
-    word-wrap:break-word;
-    word-break: break-all;
 }
 
 #chapter img{
@@ -371,7 +369,7 @@ table{
 }
 
 table td,p,code{
-    word-break:break-word;
+    word-break:break-all;
     white-space: inherit;
 }
 

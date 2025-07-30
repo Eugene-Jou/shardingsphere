@@ -17,16 +17,17 @@
 
 package org.apache.shardingsphere.data.pipeline.core.exception.job;
 
-import org.apache.shardingsphere.infra.exception.core.external.sql.sqlstate.XOpenSQLState;
+import org.apache.shardingsphere.data.pipeline.core.exception.PipelineSQLException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.sqlstate.XOpenSQLState;
 
 /**
  * Missing required target database exception.
  */
-public final class MissingRequiredTargetDatabaseException extends PipelineJobException {
+public final class MissingRequiredTargetDatabaseException extends PipelineSQLException {
     
     private static final long serialVersionUID = -1557471818392592482L;
     
-    public MissingRequiredTargetDatabaseException(final String databaseName) {
-        super(XOpenSQLState.NOT_FOUND, 0, String.format("Target database '%s' does not exist.", databaseName));
+    public MissingRequiredTargetDatabaseException() {
+        super(XOpenSQLState.CHECK_OPTION_VIOLATION, 4, "Target database name is null. You could define it in DistSQL or select a database.");
     }
 }

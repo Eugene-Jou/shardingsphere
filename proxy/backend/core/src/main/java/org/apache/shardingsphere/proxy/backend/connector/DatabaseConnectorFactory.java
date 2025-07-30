@@ -19,8 +19,10 @@ package org.apache.shardingsphere.proxy.backend.connector;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.shardingsphere.infra.binder.QueryContext;
 import org.apache.shardingsphere.infra.executor.sql.prepare.driver.jdbc.JDBCDriverType;
-import org.apache.shardingsphere.infra.session.query.QueryContext;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
+import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 
 /**
  * Database connector factory.
@@ -43,14 +45,15 @@ public final class DatabaseConnectorFactory {
      * Create new instance of {@link DatabaseConnector}.
      *
      * @param queryContext query context
-     * @param databaseConnectionManager database connection manager
+     * @param backendConnection backend connection
      * @param preferPreparedStatement use prepared statement as possible
      * @return created instance
      */
-    public DatabaseConnector newInstance(final QueryContext queryContext, final ProxyDatabaseConnectionManager databaseConnectionManager, final boolean preferPreparedStatement) {
+    public DatabaseConnector newInstance(final QueryContext queryContext, final BackendConnection backendConnection, final boolean preferPreparedStatement) {
+        ShardingSphereDatabase database = ProxyContext.getInstance().getDatabase(backendConnection.getConnectionSession().getDatabaseName());
         String driverType = preferPreparedStatement || !queryContext.getParameters().isEmpty() ? JDBCDriverType.PREPARED_STATEMENT : JDBCDriverType.STATEMENT;
-        DatabaseConnector result = new StandardDatabaseConnector(driverType, queryContext, databaseConnectionManager);
-        databaseConnectionManager.add(result);
+        DatabaseConnector result = new DatabaseConnector(driverType, database, queryContext, backendConnection);
+        backendConnection.add(result);
         return result;
     }
 }

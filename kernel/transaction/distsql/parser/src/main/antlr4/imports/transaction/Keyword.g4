@@ -75,10 +75,6 @@ NARAYANA
     : N A R A Y A N A
     ;
 
-TRUE
-    : T R U E
-    ;
-
-FALSE
-    : F A L S E
+BITRONIX
+    : B I T R O N I X
     ;

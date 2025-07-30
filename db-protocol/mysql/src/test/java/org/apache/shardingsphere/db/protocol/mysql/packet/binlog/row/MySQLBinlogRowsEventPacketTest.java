@@ -32,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLBinlogRowsEventPacketTest {
+public final class MySQLBinlogRowsEventPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -58,15 +58,20 @@ class MySQLBinlogRowsEventPacketTest {
     private List<MySQLBinlogColumnDef> columnDefs;
     
     @BeforeEach
-    void setUp() {
-        columnDefs = Collections.singletonList(new MySQLBinlogColumnDef(MySQLBinaryColumnType.LONGLONG));
+    public void setUp() {
+        mockColumnDefs();
         when(payload.readInt6()).thenReturn(1L);
         when(payload.readInt2()).thenReturn(2);
         when(payload.readIntLenenc()).thenReturn(1L);
     }
     
+    private void mockColumnDefs() {
+        columnDefs = new ArrayList<>();
+        columnDefs.add(new MySQLBinlogColumnDef(MySQLBinaryColumnType.MYSQL_TYPE_LONGLONG));
+    }
+    
     @Test
-    void assertReadWriteRowV1WithoutNullValue() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public void assertReadWriteRowV1WithoutNullValue() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         MySQLBinlogRowsEventPacket actual = new MySQLBinlogRowsEventPacket(binlogEventHeader, payload);
         assertBinlogRowsEventV1BeforeRows(actual);
         assertFalse(actual.getColumnsPresentBitmap().isNullParameter(0));

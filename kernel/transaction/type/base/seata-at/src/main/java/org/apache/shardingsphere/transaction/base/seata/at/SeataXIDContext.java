@@ -19,12 +19,12 @@ package org.apache.shardingsphere.transaction.base.seata.at;
 
 import com.alibaba.ttl.TransmittableThreadLocal;
 import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Seata xid context.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class SeataXIDContext {
     
     private static final TransmittableThreadLocal<String> XID = new TransmittableThreadLocal<>();
@@ -40,7 +40,7 @@ public final class SeataXIDContext {
     
     /**
      * Get xid.
-     *
+     * 
      * @return xid
      */
     public static String get() {
@@ -49,7 +49,7 @@ public final class SeataXIDContext {
     
     /**
      * Set xid.
-     *
+     * 
      * @param xid xid
      */
     public static void set(final String xid) {

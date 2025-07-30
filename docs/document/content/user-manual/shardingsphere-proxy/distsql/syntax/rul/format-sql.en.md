@@ -5,14 +5,14 @@ weight = 2
 
 ### Description
 
-The `FORMAT SQL` syntax is used to parse `SQL` and output formatted `SQL` statement.
+The `FORMAT SQL` syntax is used to parse `SQL` and output formated `SQL` statement.
 
 ### Syntax
 
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-FormatSql ::=
+ParseSql ::=
   'FORMAT' sqlStatement  
 ```
 {{% /tab %}}
@@ -23,13 +23,13 @@ FormatSql ::=
 
 ### Return Value Description
 
-| Column           | Description             |
-|------------------|-------------------------|
-| formatted_result | formatted SQL statement |
+| Column                   | Description               |
+|--------------------------|---------------------------|
+| formatted_result         | formated SQL statement    |
 
 ### Example
 
-- Parse `SQL` and output formatted `SQL` statement
+- Parse `SQL` and output formated `SQL` statement
 
 ```sql
 FORMAT SELECT * FROM t_order;

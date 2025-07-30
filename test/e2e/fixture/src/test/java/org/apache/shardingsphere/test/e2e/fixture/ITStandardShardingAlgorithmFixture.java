@@ -39,12 +39,12 @@ public final class ITStandardShardingAlgorithmFixture implements StandardShardin
     
     @Override
     public Collection<String> doSharding(final Collection<String> availableTargetNames, final RangeShardingValue<Integer> shardingValue) {
-        Collection<String> result = new LinkedHashSet<>(availableTargetNames.size(), 1F);
+        Collection<String> result = new LinkedHashSet<>(availableTargetNames.size());
         int minValue = shardingValue.getValueRange().hasLowerBound() ? shardingValue.getValueRange().lowerEndpoint() : Integer.MIN_VALUE;
         int maxValue = shardingValue.getValueRange().hasUpperBound() ? shardingValue.getValueRange().upperEndpoint() : Integer.MAX_VALUE;
         long range = BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue)).longValue();
         int begin = Math.abs(minValue) % 10;
-        if (range > 9L) {
+        if (range > 9) {
             return availableTargetNames;
         }
         for (int i = begin; i <= range; i += 1) {

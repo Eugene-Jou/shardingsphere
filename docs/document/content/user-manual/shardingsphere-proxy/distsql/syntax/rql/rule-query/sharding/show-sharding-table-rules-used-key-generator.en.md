@@ -1,12 +1,12 @@
 +++
 title = "SHOW SHARDING TABLE RULES USED KEY GENERATOR"
-weight = 11
+weight = 12
 
 +++
 
 ### Description
 
-`SHOW SHARDING TABLE RULES USED KEY GENERATOR` syntax is used to query sharding rules used specified sharding key generator in specified logical database
+`SHOW SHARDING TABLE RULES USED ALGORITHM` syntax is used to query sharding rules used specified sharding key generator in specified logical database
 
 ### Syntax
 
@@ -34,10 +34,10 @@ databaseName ::=
 
 ### Return value description
 
-| Columns | Descriptions       |
-|---------|--------------------|
-| type    | Sharding rule type |
-| name    | Sharding rule name |
+| Columns     | Descriptions       |
+| ------------| -------------------|
+| type        | Sharding rule type |
+| name        | Sharding rule name |
 
 ### Example
 

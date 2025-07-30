@@ -18,7 +18,6 @@
 package org.apache.shardingsphere.encrypt.rewrite.token.pojo;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.metadata.database.enums.QuoteCharacter;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -31,8 +30,8 @@ public final class EncryptLiteralAssignmentToken extends EncryptAssignmentToken 
     
     private final Collection<LiteralAssignment> assignments = new LinkedList<>();
     
-    public EncryptLiteralAssignmentToken(final int startIndex, final int stopIndex, final QuoteCharacter quoteCharacter) {
-        super(startIndex, stopIndex, quoteCharacter);
+    public EncryptLiteralAssignmentToken(final int startIndex, final int stopIndex) {
+        super(startIndex, stopIndex);
     }
     
     /**
@@ -42,7 +41,7 @@ public final class EncryptLiteralAssignmentToken extends EncryptAssignmentToken 
      * @param value assignment value
      */
     public void addAssignment(final String columnName, final Object value) {
-        assignments.add(new LiteralAssignment(columnName, value, getQuoteCharacter()));
+        assignments.add(new LiteralAssignment(columnName, value));
     }
     
     @Override
@@ -57,11 +56,9 @@ public final class EncryptLiteralAssignmentToken extends EncryptAssignmentToken 
         
         private final Object value;
         
-        private final QuoteCharacter quoteCharacter;
-        
         @Override
         public String toString() {
-            return quoteCharacter.wrap(columnName) + " = " + toString(value);
+            return columnName + " = " + toString(value);
         }
         
         private String toString(final Object value) {

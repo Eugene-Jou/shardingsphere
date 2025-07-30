@@ -19,8 +19,7 @@ package org.apache.shardingsphere.infra.config.props;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.props.TypedPropertyKey;
+import org.apache.shardingsphere.infra.util.props.TypedPropertyKey;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,6 +31,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Getter
 public enum ConfigurationPropertyKey implements TypedPropertyKey {
+    
+    /**
+     * The system log level.
+     */
+    SYSTEM_LOG_LEVEL("system-log-level", LoggerLevel.INFO.name(), LoggerLevel.class, false),
     
     /**
      * Whether show SQL in log.
@@ -54,24 +58,29 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     MAX_CONNECTIONS_SIZE_PER_QUERY("max-connections-size-per-query", String.valueOf(1), int.class, false),
     
     /**
-     * Whether validate table metadata consistency when application startup or updated.
+     * Whether validate table meta data consistency when application startup or updated.
      */
-    CHECK_TABLE_METADATA_ENABLED("check-table-metadata-enabled", String.valueOf(Boolean.FALSE), boolean.class, false),
+    CHECK_TABLE_META_DATA_ENABLED("check-table-metadata-enabled", String.valueOf(Boolean.FALSE), boolean.class, false),
     
     /**
-     * Load table metadata batch size.
+     * SQL federation type.
      */
-    LOAD_TABLE_METADATA_BATCH_SIZE("load-table-metadata-batch-size", String.valueOf(1000), int.class, false),
+    SQL_FEDERATION_TYPE("sql-federation-type", "NONE", String.class, false),
     
     /**
-     * Frontend database protocol for ShardingSphere-Proxy.
+     * Frontend database protocol type for ShardingSphere-Proxy.
      */
-    PROXY_FRONTEND_DATABASE_PROTOCOL_TYPE("proxy-frontend-database-protocol-type", null, DatabaseType.class, false),
+    PROXY_FRONTEND_DATABASE_PROTOCOL_TYPE("proxy-frontend-database-protocol-type", "", String.class, false),
     
     /**
-     * Flush threshold for every record from databases for ShardingSphere-Proxy.
+     * Flush threshold for every records from databases for ShardingSphere-Proxy.
      */
     PROXY_FRONTEND_FLUSH_THRESHOLD("proxy-frontend-flush-threshold", String.valueOf(128), int.class, false),
+    
+    /**
+     * Whether enable hint for ShardingSphere-Proxy.
+     */
+    PROXY_HINT_ENABLED("proxy-hint-enabled", String.valueOf(Boolean.FALSE), boolean.class, false),
     
     /**
      * Proxy backend query fetch size. A larger value may increase the memory usage of ShardingSphere Proxy.
@@ -85,9 +94,20 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     PROXY_FRONTEND_EXECUTOR_SIZE("proxy-frontend-executor-size", String.valueOf(0), int.class, true),
     
     /**
+     * Available options of proxy backend executor suitable: OLAP(default), OLTP. The OLTP option may reduce time cost of writing packets to client, but it may increase the latency of SQL execution
+     * and block other clients if client connections are more than {@link ConfigurationPropertyKey#PROXY_FRONTEND_EXECUTOR_SIZE}, especially executing slow SQL.
+     */
+    PROXY_BACKEND_EXECUTOR_SUITABLE("proxy-backend-executor-suitable", BackendExecutorType.OLAP.name(), BackendExecutorType.class, false),
+    
+    /**
      * Less than or equal to 0 means no limitation.
      */
     PROXY_FRONTEND_MAX_CONNECTIONS("proxy-frontend-max-connections", "0", int.class, false),
+    
+    /**
+     * Proxy MySQL default version.
+     */
+    PROXY_MYSQL_DEFAULT_VERSION("proxy-mysql-default-version", "5.7.22", String.class, false),
     
     /**
      * Proxy default start port.
@@ -100,34 +120,14 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     PROXY_NETTY_BACKLOG("proxy-netty-backlog", "1024", int.class, false),
     
     /**
+     * Proxy instance type.
+     */
+    PROXY_INSTANCE_TYPE("proxy-instance-type", "Proxy", String.class, true),
+    
+    /**
      * CDC server port.
      */
-    CDC_SERVER_PORT("cdc-server-port", "33071", int.class, true),
-    
-    /**
-     * Proxy frontend SSL enabled.
-     */
-    PROXY_FRONTEND_SSL_ENABLED("proxy-frontend-ssl-enabled", String.valueOf(Boolean.FALSE), boolean.class, true),
-    
-    /**
-     * Proxy frontend SSL protocol version.
-     */
-    PROXY_FRONTEND_SSL_VERSION("proxy-frontend-ssl-version", "TLSv1.2,TLSv1.3", String.class, true),
-    
-    /**
-     * Proxy frontend SSL cipher.
-     */
-    PROXY_FRONTEND_SSL_CIPHER("proxy-frontend-ssl-cipher", "", String.class, true),
-    
-    /**
-     * Agent plugins enabled.
-     */
-    AGENT_PLUGINS_ENABLED("agent-plugins-enabled", String.valueOf(Boolean.TRUE), boolean.class, false),
-    
-    /**
-     * Persist schemas to repository.
-     */
-    PERSIST_SCHEMAS_TO_REPOSITORY_ENABLED("persist-schemas-to-repository-enabled", String.valueOf(Boolean.TRUE), boolean.class, true);
+    CDC_SERVER_PORT("cdc-server-port", "33071", int.class, true);
     
     private final String key;
     

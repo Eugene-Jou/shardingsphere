@@ -1,6 +1,6 @@
 +++
 title = "DROP MASK RULE"
-weight = 3
+weight = 4
 +++
 
 ## Description
@@ -12,13 +12,13 @@ The `DROP MASK RULE` syntax is used to drop existing mask rule.
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-DropMaskRule ::=
-  'DROP' 'MASK' 'RULE' ifExists? ruleName (',' ruleName)*
+DropEncryptRule ::=
+  'DROP' 'MASK' 'RULE' ifExists? maskRuleName (',' maskRuleName)*
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+maskRuleName ::=
   identifier
 ```
 {{% /tab %}}

@@ -25,10 +25,10 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class BitXorAggregationUnitTest {
+public final class BitXorAggregationUnitTest {
     
     @Test
-    void assertBitXorAggregation() {
+    public void assertBitXorAggregation() {
         BitXorAggregationUnit bitXorAggregationUnit = new BitXorAggregationUnit();
         bitXorAggregationUnit.merge(null);
         bitXorAggregationUnit.merge(Collections.singletonList(null));

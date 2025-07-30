@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLDecimalBinlogProtocolValueTest {
+public final class MySQLDecimalBinlogProtocolValueTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -42,13 +42,13 @@ class MySQLDecimalBinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @BeforeEach
-    void setUp() {
-        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.NEWDECIMAL);
+    public void setUp() {
+        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.MYSQL_TYPE_NEWDECIMAL);
         columnDef.setColumnMeta((14 << 8) + 4);
     }
     
     @Test
-    void assertDecodePositiveNewDecimal() {
+    public void assertDecodePositiveNewDecimal() {
         byte[] newDecimalBytes = ByteBufUtil.decodeHexDump("810DFB38D204D2");
         when(payload.readStringFixByBytes(newDecimalBytes.length)).thenReturn(newDecimalBytes);
         BigDecimal actual = (BigDecimal) new MySQLDecimalBinlogProtocolValue().read(columnDef, payload);
@@ -56,7 +56,7 @@ class MySQLDecimalBinlogProtocolValueTest {
     }
     
     @Test
-    void assertDecodeNegativeNewDecimal() {
+    public void assertDecodeNegativeNewDecimal() {
         byte[] newDecimalBytes = ByteBufUtil.decodeHexDump("7EF204C72DFB2D");
         when(payload.readStringFixByBytes(newDecimalBytes.length)).thenReturn(newDecimalBytes);
         BigDecimal actual = (BigDecimal) new MySQLDecimalBinlogProtocolValue().read(columnDef, payload);
@@ -64,8 +64,8 @@ class MySQLDecimalBinlogProtocolValueTest {
     }
     
     @Test
-    void assertDecodeNegativeNewDecimalWithLargeNumber() {
-        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.NEWDECIMAL);
+    public void assertDecodeNegativeNewDecimalWithLargeNumber() {
+        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.MYSQL_TYPE_NEWDECIMAL);
         columnDef.setColumnMeta(32 << 8 | 6);
         byte[] newDecimalBytes = ByteBufUtil.decodeHexDump("7DFEFDB5CC2741EFDEBE4154FD52E7");
         when(payload.readStringFixByBytes(newDecimalBytes.length)).thenReturn(newDecimalBytes);

@@ -17,14 +17,11 @@
 
 package org.apache.shardingsphere.proxy.backend.mysql.handler.admin;
 
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
-import org.apache.shardingsphere.infra.binder.context.statement.type.dml.SelectStatementContext;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminExecutor;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminExecutorCreator;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.KillProcessExecutor;
-import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.MySQLSetVariableAdminExecutor;
-import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.MySQLSystemVariableQueryExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.NoResourceShowExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.ShowConnectionIdExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.ShowCreateDatabaseExecutor;
@@ -35,26 +32,28 @@ import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.Show
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.ShowProcedureStatusExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.ShowProcessListExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.ShowTablesExecutor;
+import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.ShowTransactionExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.ShowVersionExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.UnicastResourceShowExecutor;
 import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor.UseDatabaseExecutor;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ExpressionProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dal.SetStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.MySQLKillStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.MySQLUseStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.database.MySQLShowCreateDatabaseStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.database.MySQLShowDatabasesStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.function.MySQLShowFunctionStatusStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.procedure.MySQLShowProcedureStatusStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.process.MySQLShowProcessListStatement;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.table.MySQLShowTablesStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ExpressionProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.TableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dal.SetStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dal.UseStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.SelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLKillStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowCreateDatabaseStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowDatabasesStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowFunctionStatusStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowProcedureStatusStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowProcessListStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowTablesStatement;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -64,76 +63,58 @@ public final class MySQLAdminExecutorCreator implements DatabaseAdminExecutorCre
     
     private static final String INFORMATION_SCHEMA = "information_schema";
     
-    private static final String MYSQL_SCHEMA = "mysql";
-    
     private static final String PERFORMANCE_SCHEMA = "performance_schema";
     
-    private static final String SYS_SCHEMA = "sys";
-    
     @Override
-    public Optional<DatabaseAdminExecutor> create(final SQLStatementContext sqlStatementContext) {
-        return Optional.empty();
-    }
-    
-    @Override
-    public Optional<DatabaseAdminExecutor> create(final SQLStatementContext sqlStatementContext, final String sql, final String databaseName, final List<Object> parameters) {
-        if (sqlStatementContext instanceof SelectStatementContext) {
-            return createExecutorForSelectStatement((SelectStatementContext) sqlStatementContext, sql, databaseName, parameters);
-        }
+    public Optional<DatabaseAdminExecutor> create(final SQLStatementContext<?> sqlStatementContext) {
         SQLStatement sqlStatement = sqlStatementContext.getSqlStatement();
-        if (sqlStatement instanceof MySQLUseStatement) {
-            return Optional.of(new UseDatabaseExecutor((MySQLUseStatement) sqlStatement));
-        }
-        if (sqlStatement instanceof MySQLShowDatabasesStatement) {
-            return Optional.of(new ShowDatabasesExecutor((MySQLShowDatabasesStatement) sqlStatement));
-        }
-        if (sqlStatement instanceof MySQLShowTablesStatement) {
-            return Optional.of(new ShowTablesExecutor((MySQLShowTablesStatement) sqlStatement, sqlStatementContext.getSqlStatement().getDatabaseType()));
-        }
-        if (sqlStatement instanceof MySQLShowCreateDatabaseStatement) {
-            return Optional.of(new ShowCreateDatabaseExecutor((MySQLShowCreateDatabaseStatement) sqlStatement));
-        }
         if (sqlStatement instanceof MySQLShowFunctionStatusStatement) {
             return Optional.of(new ShowFunctionStatusExecutor((MySQLShowFunctionStatusStatement) sqlStatement));
         }
         if (sqlStatement instanceof MySQLShowProcedureStatusStatement) {
             return Optional.of(new ShowProcedureStatusExecutor((MySQLShowProcedureStatusStatement) sqlStatement));
         }
-        if (sqlStatement instanceof SetStatement) {
-            return Optional.of(new MySQLSetVariableAdminExecutor((SetStatement) sqlStatement));
+        if (sqlStatement instanceof MySQLShowTablesStatement) {
+            return Optional.of(new ShowTablesExecutor((MySQLShowTablesStatement) sqlStatement, sqlStatementContext.getDatabaseType()));
+        }
+        return Optional.empty();
+    }
+    
+    @Override
+    public Optional<DatabaseAdminExecutor> create(final SQLStatementContext<?> sqlStatementContext, final String sql, final String databaseName) {
+        SQLStatement sqlStatement = sqlStatementContext.getSqlStatement();
+        if (sqlStatement instanceof UseStatement) {
+            return Optional.of(new UseDatabaseExecutor((UseStatement) sqlStatement));
+        }
+        if (sqlStatement instanceof MySQLShowDatabasesStatement) {
+            return Optional.of(new ShowDatabasesExecutor((MySQLShowDatabasesStatement) sqlStatement));
         }
         if (sqlStatement instanceof MySQLShowProcessListStatement) {
-            return Optional.of(new ShowProcessListExecutor(((MySQLShowProcessListStatement) sqlStatement).isFull()));
+            return Optional.of(new ShowProcessListExecutor());
         }
         if (sqlStatement instanceof MySQLKillStatement) {
             return Optional.of(new KillProcessExecutor((MySQLKillStatement) sqlStatement));
         }
+        if (sqlStatement instanceof MySQLShowCreateDatabaseStatement) {
+            return Optional.of(new ShowCreateDatabaseExecutor((MySQLShowCreateDatabaseStatement) sqlStatement));
+        }
+        if (sqlStatement instanceof SetStatement) {
+            return Optional.of(new MySQLSetVariableAdminExecutor((SetStatement) sqlStatement));
+        }
+        if (sqlStatement instanceof SelectStatement) {
+            SelectStatement selectStatement = (SelectStatement) sqlStatement;
+            if (null == selectStatement.getFrom()) {
+                return getSelectFunctionOrVariableExecutor(selectStatement, sql, databaseName);
+            }
+            if (isQueryInformationSchema(selectStatement)) {
+                return MySQLInformationSchemaExecutorFactory.newInstance(selectStatement, sql);
+            }
+            if (isQueryPerformanceSchema(selectStatement)) {
+                // TODO
+                return Optional.empty();
+            }
+        }
         return Optional.empty();
-    }
-    
-    private Optional<DatabaseAdminExecutor> createExecutorForSelectStatement(final SelectStatementContext selectStatementContext, final String sql,
-                                                                             final String databaseName, final List<Object> parameters) {
-        if (!selectStatementContext.getSqlStatement().getFrom().isPresent()) {
-            return findAdminExecutorForSelectWithoutFrom(selectStatementContext.getSqlStatement(), sql, databaseName);
-        }
-        if (INFORMATION_SCHEMA.equalsIgnoreCase(databaseName) && !ProxyContext.getInstance().getContextManager().getDatabase(databaseName).isComplete()) {
-            return MySQLInformationSchemaExecutorFactory.newInstance(selectStatementContext, sql, parameters);
-        }
-        if (PERFORMANCE_SCHEMA.equalsIgnoreCase(databaseName) && !ProxyContext.getInstance().getContextManager().getDatabase(databaseName).isComplete()) {
-            return MySQLPerformanceSchemaExecutorFactory.newInstance(selectStatementContext, sql, parameters);
-        }
-        if (MYSQL_SCHEMA.equalsIgnoreCase(databaseName) && !ProxyContext.getInstance().getContextManager().getDatabase(databaseName).isComplete()) {
-            return MySQLMySQLSchemaExecutorFactory.newInstance(selectStatementContext, sql, parameters);
-        }
-        if (SYS_SCHEMA.equalsIgnoreCase(databaseName) && !ProxyContext.getInstance().getContextManager().getDatabase(databaseName).isComplete()) {
-            return MySQLSysSchemaExecutorFactory.newInstance(selectStatementContext, sql, parameters);
-        }
-        return Optional.empty();
-    }
-    
-    private Optional<DatabaseAdminExecutor> findAdminExecutorForSelectWithoutFrom(final SelectStatement selectStatement, final String sql, final String databaseName) {
-        Optional<DatabaseAdminExecutor> result = MySQLSystemVariableQueryExecutor.tryGetSystemVariableQueryExecutor(selectStatement);
-        return result.isPresent() ? result : getSelectFunctionOrVariableExecutor(selectStatement, sql, databaseName);
     }
     
     private Optional<DatabaseAdminExecutor> getSelectFunctionOrVariableExecutor(final SelectStatement selectStatement, final String sql, final String databaseName) {
@@ -143,8 +124,16 @@ public final class MySQLAdminExecutorCreator implements DatabaseAdminExecutorCre
         if (isShowSpecialFunction(selectStatement, ShowVersionExecutor.FUNCTION_NAME)) {
             return Optional.of(new ShowVersionExecutor(selectStatement));
         }
-        if (isShowSpecialFunction(selectStatement, ShowCurrentUserExecutor.FUNCTION_NAME) || isShowSpecialFunction(selectStatement, ShowCurrentUserExecutor.FUNCTION_NAME_ALIAS)) {
+        if (isShowSpecialFunction(selectStatement, ShowCurrentUserExecutor.FUNCTION_NAME)
+                || isShowSpecialFunction(selectStatement, ShowCurrentUserExecutor.FUNCTION_NAME_ALIAS)) {
             return Optional.of(new ShowCurrentUserExecutor());
+        }
+        boolean hasNoResource = hasNoResource();
+        if (hasNoResource && isShowSpecialFunction(selectStatement, ShowTransactionExecutor.TRANSACTION_READ_ONLY)) {
+            return Optional.of(new ShowTransactionExecutor(ShowTransactionExecutor.TRANSACTION_READ_ONLY));
+        }
+        if (hasNoResource && isShowSpecialFunction(selectStatement, ShowTransactionExecutor.TRANSACTION_ISOLATION)) {
+            return Optional.of(new ShowTransactionExecutor(ShowTransactionExecutor.TRANSACTION_ISOLATION));
         }
         if (isShowSpecialFunction(selectStatement, ShowCurrentDatabaseExecutor.FUNCTION_NAME)) {
             return Optional.of(new ShowCurrentDatabaseExecutor());
@@ -155,15 +144,32 @@ public final class MySQLAdminExecutorCreator implements DatabaseAdminExecutorCre
     private boolean isShowSpecialFunction(final SelectStatement sqlStatement, final String functionName) {
         Iterator<ProjectionSegment> segmentIterator = sqlStatement.getProjections().getProjections().iterator();
         ProjectionSegment firstProjection = segmentIterator.next();
-        return !segmentIterator.hasNext() && firstProjection instanceof ExpressionProjectionSegment && functionName.equalsIgnoreCase(((ExpressionProjectionSegment) firstProjection).getText());
+        return !segmentIterator.hasNext() && firstProjection instanceof ExpressionProjectionSegment
+                && functionName.equalsIgnoreCase(((ExpressionProjectionSegment) firstProjection).getText());
+    }
+    
+    private boolean isQueryInformationSchema(final SelectStatement sqlStatement) {
+        return isQuerySpecialSchema(sqlStatement, INFORMATION_SCHEMA);
+    }
+    
+    private boolean isQueryPerformanceSchema(final SelectStatement sqlStatement) {
+        return isQuerySpecialSchema(sqlStatement, PERFORMANCE_SCHEMA);
+    }
+    
+    private boolean isQuerySpecialSchema(final SelectStatement sqlStatement, final String specialSchemaName) {
+        TableSegment tableSegment = sqlStatement.getFrom();
+        if (!(tableSegment instanceof SimpleTableSegment)) {
+            return false;
+        }
+        return ((SimpleTableSegment) tableSegment).getOwner().isPresent() && specialSchemaName.equalsIgnoreCase(((SimpleTableSegment) tableSegment).getOwner().get().getIdentifier().getValue());
     }
     
     private Optional<DatabaseAdminExecutor> mockExecutor(final String databaseName, final SelectStatement sqlStatement, final String sql) {
+        boolean isNotUseSchema = null == databaseName && null == sqlStatement.getFrom();
         if (hasNoResource()) {
             return Optional.of(new NoResourceShowExecutor(sqlStatement));
         }
-        boolean isUseSchema = null != databaseName || sqlStatement.getFrom().isPresent();
-        return isUseSchema ? Optional.empty() : Optional.of(new UnicastResourceShowExecutor(sqlStatement, sql));
+        return isNotUseSchema ? Optional.of(new UnicastResourceShowExecutor(sqlStatement, sql)) : Optional.empty();
     }
     
     private boolean hasNoResource() {
@@ -172,7 +178,7 @@ public final class MySQLAdminExecutorCreator implements DatabaseAdminExecutorCre
             return true;
         }
         for (String each : databaseNames) {
-            if (ProxyContext.getInstance().getContextManager().getDatabase(each).containsDataSource()) {
+            if (ProxyContext.getInstance().getDatabase(each).containsDataSource()) {
                 return false;
             }
         }
@@ -180,7 +186,7 @@ public final class MySQLAdminExecutorCreator implements DatabaseAdminExecutorCre
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "MySQL";
     }
 }

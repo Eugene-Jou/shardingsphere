@@ -1,11 +1,11 @@
 +++
 title = "SET DIST VARIABLE"
-weight = 7
+weight = 4
 +++
 
 ### 描述
 
-`SET DIST VARIABLE` 语法用于设置系统变量。
+`SET DIST VARIABLE` 语法用于设置系统变量
 
 ### 语法
 
@@ -13,7 +13,7 @@ weight = 7
 {{% tab name="语法" %}}
 ```sql
 SetDistVariable ::=
-  'SET' 'DIST' 'VARIABLE' (proxyPropertyName '=' proxyPropertyValue | 'agent_plugins_enabled' '=' agentPluginsEnabled)
+  'SET' 'DIST' 'VARIABLE' (proxyPropertyName '=' proxyPropertyValue | 'transaction_type' '=' transactionType | 'agent_plugins_enable' '=' agentPluginsEnable)
 
 proxyPropertyName ::= 
   identifier
@@ -21,7 +21,10 @@ proxyPropertyName ::=
 proxyPropertyValue ::=
   literal
 
-agentPluginsEnabled ::=
+transactionType ::=
+  string
+
+agentPluginsEnable ::=
   boolean
 ```
 {{% /tab %}}
@@ -34,7 +37,11 @@ agentPluginsEnabled ::=
 
 - `proxy_property_name` 为 `PROXY` 的[属性配置](/cn/user-manual/shardingsphere-proxy/yaml-config/props/)，需使用下划线命名
 
-- `agent_plugins_enabled` 为 `agent` 插件的启用状态，默认值 `FALSE`
+- `transaction_type` 为当前连接的事务类型, 支持 `LOCAL`、`XA`、`BASE`
+
+- `agent_plugins_enable` 为 `agent` 插件的启用状态，默认值 `FALSE`
+
+- `system_log_level` 为 系统日志等级，仅影响 `PROXY` 的日志打印，默认值 `INFO`
 
 ### 示例
 
@@ -42,6 +49,12 @@ agentPluginsEnabled ::=
 
 ```sql
 SET DIST VARIABLE sql_show = true;
+```
+
+- 设置当前连接的事务类型
+
+```sql
+SET DIST VARIABLE transaction_type = “XA”;
 ```
 
 - 设置 `agent` 插件启用状态

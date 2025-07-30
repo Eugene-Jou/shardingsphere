@@ -31,14 +31,14 @@ import java.util.Arrays;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLBinaryResultSetRowPacketTest {
+public final class MySQLBinaryResultSetRowPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
     
     @Test
-    void assertWrite() {
-        BinaryRow row = new BinaryRow(Arrays.asList(new BinaryCell(MySQLBinaryColumnType.STRING, "value"), new BinaryCell(MySQLBinaryColumnType.STRING, null)));
+    public void assertWrite() {
+        BinaryRow row = new BinaryRow(Arrays.asList(new BinaryCell(MySQLBinaryColumnType.MYSQL_TYPE_STRING, "value"), new BinaryCell(MySQLBinaryColumnType.MYSQL_TYPE_STRING, null)));
         MySQLBinaryResultSetRowPacket actual = new MySQLBinaryResultSetRowPacket(row);
         actual.write(payload);
         verify(payload).writeInt1(0x00);

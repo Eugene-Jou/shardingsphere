@@ -17,74 +17,90 @@
 
 package org.apache.shardingsphere.encrypt.distsql.handler.query;
 
-import lombok.Setter;
-import org.apache.shardingsphere.distsql.handler.aware.DistSQLExecutorRuleAware;
-import org.apache.shardingsphere.distsql.handler.engine.query.DistSQLQueryExecutor;
-import org.apache.shardingsphere.encrypt.config.rule.EncryptColumnItemRuleConfiguration;
-import org.apache.shardingsphere.encrypt.config.rule.EncryptColumnRuleConfiguration;
-import org.apache.shardingsphere.encrypt.config.rule.EncryptTableRuleConfiguration;
-import org.apache.shardingsphere.encrypt.distsql.statement.ShowEncryptRulesStatement;
+import org.apache.shardingsphere.distsql.handler.query.RQLExecutor;
+import org.apache.shardingsphere.encrypt.api.config.EncryptRuleConfiguration;
+import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnRuleConfiguration;
+import org.apache.shardingsphere.encrypt.api.config.rule.EncryptTableRuleConfiguration;
+import org.apache.shardingsphere.encrypt.distsql.parser.statement.ShowEncryptRulesStatement;
 import org.apache.shardingsphere.encrypt.rule.EncryptRule;
-import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.merge.result.impl.local.LocalDataQueryResultRow;
-import org.apache.shardingsphere.mode.manager.ContextManager;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
+import org.apache.shardingsphere.infra.util.props.PropertiesConverter;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * Show encrypt rule executor.
  */
-@Setter
-public final class ShowEncryptRuleExecutor implements DistSQLQueryExecutor<ShowEncryptRulesStatement>, DistSQLExecutorRuleAware<EncryptRule> {
-    
-    private EncryptRule rule;
+public final class ShowEncryptRuleExecutor implements RQLExecutor<ShowEncryptRulesStatement> {
     
     @Override
-    public Collection<String> getColumnNames(final ShowEncryptRulesStatement sqlStatement) {
-        return Arrays.asList("table", "logic_column", "cipher_column",
-                "assisted_query_column", "like_query_column", "encryptor_type", "encryptor_props", "assisted_query_type", "assisted_query_props", "like_query_type", "like_query_props");
-    }
-    
-    @Override
-    public Collection<LocalDataQueryResultRow> getRows(final ShowEncryptRulesStatement sqlStatement, final ContextManager contextManager) {
-        return rule.getConfiguration().getTables().stream().filter(each -> null == sqlStatement.getTableName() || each.getName().equalsIgnoreCase(sqlStatement.getTableName()))
-                .map(each -> buildColumnData(each, rule.getConfiguration().getEncryptors())).flatMap(Collection::stream).collect(Collectors.toList());
-    }
-    
-    private Collection<LocalDataQueryResultRow> buildColumnData(final EncryptTableRuleConfiguration tableRuleConfig, final Map<String, AlgorithmConfiguration> encryptors) {
+    public Collection<LocalDataQueryResultRow> getRows(final ShardingSphereDatabase database, final ShowEncryptRulesStatement sqlStatement) {
+        Optional<EncryptRule> rule = database.getRuleMetaData().findSingleRule(EncryptRule.class);
         Collection<LocalDataQueryResultRow> result = new LinkedList<>();
-        for (EncryptColumnRuleConfiguration each : tableRuleConfig.getColumns()) {
-            AlgorithmConfiguration encryptorAlgorithmConfig = encryptors.get(each.getCipher().getEncryptorName());
-            Optional<AlgorithmConfiguration> assistedQueryEncryptorAlgorithmConfig = each.getAssistedQuery().map(optional -> encryptors.get(optional.getEncryptorName()));
-            Optional<AlgorithmConfiguration> likeQueryEncryptorAlgorithmConfig = each.getLikeQuery().map(optional -> encryptors.get(optional.getEncryptorName()));
-            result.add(new LocalDataQueryResultRow(
-                    tableRuleConfig.getName(),
-                    each.getName(),
-                    each.getCipher().getName(),
-                    each.getAssistedQuery().map(EncryptColumnItemRuleConfiguration::getName),
-                    each.getLikeQuery().map(EncryptColumnItemRuleConfiguration::getName),
-                    encryptorAlgorithmConfig.getType(),
-                    encryptorAlgorithmConfig.getProps(),
-                    assistedQueryEncryptorAlgorithmConfig.map(AlgorithmConfiguration::getType),
-                    assistedQueryEncryptorAlgorithmConfig.map(AlgorithmConfiguration::getProps),
-                    likeQueryEncryptorAlgorithmConfig.map(AlgorithmConfiguration::getType),
-                    likeQueryEncryptorAlgorithmConfig.map(AlgorithmConfiguration::getProps)));
+        if (rule.isPresent()) {
+            result = buildData((EncryptRuleConfiguration) rule.get().getConfiguration(), sqlStatement);
         }
         return result;
     }
     
-    @Override
-    public Class<EncryptRule> getRuleClass() {
-        return EncryptRule.class;
+    private Collection<LocalDataQueryResultRow> buildData(final EncryptRuleConfiguration ruleConfig, final ShowEncryptRulesStatement sqlStatement) {
+        return ruleConfig.getTables().stream().filter(each -> Objects.isNull(sqlStatement.getTableName()) || each.getName().equals(sqlStatement.getTableName()))
+                .map(each -> buildColumnData(each, ruleConfig.getEncryptors(), ruleConfig.isQueryWithCipherColumn())).flatMap(Collection::stream).collect(Collectors.toList());
+    }
+    
+    private Collection<LocalDataQueryResultRow> buildColumnData(final EncryptTableRuleConfiguration tableRuleConfig, final Map<String, AlgorithmConfiguration> algorithmMap,
+                                                                final boolean queryWithCipherColumn) {
+        Collection<LocalDataQueryResultRow> result = new LinkedList<>();
+        tableRuleConfig.getColumns().forEach(each -> {
+            AlgorithmConfiguration encryptorAlgorithmConfig = algorithmMap.get(each.getEncryptorName());
+            AlgorithmConfiguration assistedQueryEncryptorAlgorithmConfig = algorithmMap.get(each.getAssistedQueryEncryptorName());
+            AlgorithmConfiguration likeQueryEncryptorAlgorithmConfig = algorithmMap.get(each.getLikeQueryEncryptorName());
+            result.add(new LocalDataQueryResultRow(Arrays.asList(tableRuleConfig.getName(), each.getLogicColumn(),
+                    each.getCipherColumn(),
+                    nullToEmptyString(each.getPlainColumn()),
+                    nullToEmptyString(each.getAssistedQueryColumn()),
+                    nullToEmptyString(each.getLikeQueryColumn()),
+                    encryptorAlgorithmConfig.getType(), PropertiesConverter.convert(encryptorAlgorithmConfig.getProps()),
+                    Objects.isNull(assistedQueryEncryptorAlgorithmConfig) ? nullToEmptyString(null) : assistedQueryEncryptorAlgorithmConfig.getType(),
+                    Objects.isNull(assistedQueryEncryptorAlgorithmConfig) ? nullToEmptyString(null) : PropertiesConverter.convert(assistedQueryEncryptorAlgorithmConfig.getProps()),
+                    Objects.isNull(likeQueryEncryptorAlgorithmConfig) ? nullToEmptyString(null) : likeQueryEncryptorAlgorithmConfig.getType(),
+                    Objects.isNull(likeQueryEncryptorAlgorithmConfig) ? nullToEmptyString(null) : PropertiesConverter.convert(likeQueryEncryptorAlgorithmConfig.getProps()),
+                    isQueryWithCipherColumn(queryWithCipherColumn, tableRuleConfig, each).toString())));
+        });
+        return result;
+    }
+    
+    private Object nullToEmptyString(final Object obj) {
+        return null == obj ? "" : obj;
+    }
+    
+    private Boolean isQueryWithCipherColumn(final boolean queryWithCipherColumn, final EncryptTableRuleConfiguration tableRuleConfig, final EncryptColumnRuleConfiguration columnRuleConfig) {
+        if (Objects.nonNull(columnRuleConfig.getQueryWithCipherColumn())) {
+            return columnRuleConfig.getQueryWithCipherColumn();
+        }
+        if (Objects.nonNull(tableRuleConfig.getQueryWithCipherColumn())) {
+            return tableRuleConfig.getQueryWithCipherColumn();
+        }
+        return queryWithCipherColumn;
     }
     
     @Override
-    public Class<ShowEncryptRulesStatement> getType() {
-        return ShowEncryptRulesStatement.class;
+    public Collection<String> getColumnNames() {
+        return Arrays.asList("table", "logic_column", "cipher_column", "plain_column",
+                "assisted_query_column", "like_query_column", "encryptor_type", "encryptor_props",
+                "assisted_query_type", "assisted_query_props", "like_query_type", "like_query_props", "query_with_cipher_column");
+    }
+    
+    @Override
+    public String getType() {
+        return ShowEncryptRulesStatement.class.getName();
     }
 }

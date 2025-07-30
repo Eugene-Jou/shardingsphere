@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.shardingsphere</groupId>
         <artifactId>shardingsphere-db-protocol</artifactId>
-        <version>5.5.3-SNAPSHOT</version>
+        <version>5.3.2</version>
     </parent>
     <artifactId>shardingsphere-mysql-protocol</artifactId>
     <name>${project.artifactId}</name>
@@ -36,12 +36,6 @@
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
             <artifactId>shardingsphere-mysql-dialect-exception</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.apache.shardingsphere</groupId>
-            <artifactId>shardingsphere-infra-database-mysql</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -23,15 +23,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class PostgreSQLArrayColumnTypeTest {
+public final class PostgreSQLArrayColumnTypeTest {
     
     @Test
-    void assertGetTypeOidSuccess() {
+    public void assertGetTypeOidSuccess() {
         assertThat(PostgreSQLArrayColumnType.getTypeOid("_int4"), is(1007));
     }
     
     @Test
-    void assertGetTypeOidFailed() {
+    public void assertGetTypeOidFailed() {
         assertThrows(IllegalArgumentException.class, () -> PostgreSQLArrayColumnType.getTypeOid("not_exist_type"));
     }
 }

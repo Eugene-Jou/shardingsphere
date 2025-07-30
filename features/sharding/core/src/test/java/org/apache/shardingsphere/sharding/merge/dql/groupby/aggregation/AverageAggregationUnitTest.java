@@ -25,10 +25,10 @@ import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class AverageAggregationUnitTest {
+public final class AverageAggregationUnitTest {
     
     @Test
-    void assertAvgAggregation() {
+    public void assertAvgAggregation() {
         AverageAggregationUnit avgAggregationUnit = new AverageAggregationUnit();
         avgAggregationUnit.merge(null);
         avgAggregationUnit.merge(Arrays.asList(null, null));
@@ -40,7 +40,7 @@ class AverageAggregationUnitTest {
     }
     
     @Test
-    void assertDivideZero() {
+    public void assertDivideZero() {
         AverageAggregationUnit avgAggregationUnit = new AverageAggregationUnit();
         avgAggregationUnit.merge(Arrays.asList(0, 50));
         avgAggregationUnit.merge(Arrays.asList(0, 20));

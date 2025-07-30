@@ -16,10 +16,11 @@ Class name: org.apache.shardingsphere.sharding.api.config.ShardingRuleConfigurat
 Attributes:
 
 | *Name*                              | *DataType*                                       | *Description*                                    | *Default Value*         |
-|-------------------------------------|--------------------------------------------------|--------------------------------------------------|-------------------------|
+| ----------------------------------- | ------------------------------------------------ | ------------------------------------------------ | ----------------------- |
 | tables (+)                          | Collection\<ShardingTableRuleConfiguration\>     | Sharding table rules                             | -                       |
 | autoTables (+)                      | Collection\<ShardingAutoTableRuleConfiguration\> | Sharding auto table rules                        | -                       |
 | bindingTableGroups (*)              | Collection\<String\>                             | Binding table rules                              | Empty                   |
+| broadcastTables (*)                 | Collection\<String\>                             | Broadcast table rules                            | Empty                   |
 | defaultDatabaseShardingStrategy (?) | ShardingStrategyConfiguration                    | Default database sharding strategy               | Not sharding            |
 | defaultTableShardingStrategy (?)    | ShardingStrategyConfiguration                    | Default table sharding strategy                  | Not sharding            |
 | defaultKeyGenerateStrategy (?)      | KeyGeneratorConfiguration                        | Default key generator                            | Snowflake               |
@@ -36,7 +37,7 @@ Class name: org.apache.shardingsphere.sharding.api.config.ShardingTableRuleConfi
 Attributes:
 
 | *Name*                       | *DataType*                         | *Description*                                                                                                                         | *Default Value*                            |
-|------------------------------|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------|
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | logicTable                   | String                             | Name of sharding logic table                                                                                                          | -                                          |
 | actualDataNodes (?)          | String                             | Describe data source names and actual tables, delimiter as point.<br /> Multiple data nodes split by comma, support inline expression | Broadcast table or databases sharding only |
 | databaseShardingStrategy (?) | ShardingStrategyConfiguration      | Databases sharding strategy                                                                                                           | Use default databases sharding strategy    |
@@ -51,7 +52,7 @@ Class name: org.apache.shardingsphere.sharding.api.config.ShardingAutoTableRuleC
 Attributes:
 
 | *Name*                  | *DataType*                    | *Description*                                               | *Default Value*                 |
-|-------------------------|-------------------------------|-------------------------------------------------------------|---------------------------------|
+| ----------------------- | ----------------------------- | ----------------------------------------------------------- | ------------------------------- |
 | logicTable              | String                        | Name of sharding logic table                                | -                               |
 | actualDataSources (?)   | String                        | Data source names.<br /> Multiple data nodes split by comma | Use all configured data sources |
 | shardingStrategy (?)    | ShardingStrategyConfiguration | Sharding strategy                                           | Use default sharding strategy   |
@@ -66,7 +67,7 @@ Class name: org.apache.shardingsphere.sharding.api.config.strategy.sharding.Stan
 Attributes:
 
 | *Name*                | *DataType* | *Description*           |
-|-----------------------|------------|-------------------------|
+| --------------------- | ---------- | ----------------------- |
 | shardingColumn        | String     | Sharding column name    |
 | shardingAlgorithmName | String     | Sharding algorithm name |
 
@@ -77,7 +78,7 @@ Class name: org.apache.shardingsphere.sharding.api.config.strategy.sharding.Comp
 Attributes:
 
 | *Name*                | *DataType* | *Description*                             |
-|-----------------------|------------|-------------------------------------------|
+| --------------------- | ---------- | ----------------------------------------- |
 | shardingColumns       | String     | Sharding column name, separated by commas |
 | shardingAlgorithmName | String     | Sharding algorithm name                   |
 
@@ -88,7 +89,7 @@ Class name: org.apache.shardingsphere.sharding.api.config.strategy.sharding.Hint
 Attributes:
 
 | *Name*                | *DataType* | *Description*           |
-|-----------------------|------------|-------------------------|
+| --------------------- | ---------- | ----------------------- |
 | shardingAlgorithmName | String     | Sharding algorithm name |
 
 #### None Sharding Strategy Configuration
@@ -106,7 +107,7 @@ Class name: org.apache.shardingsphere.sharding.api.config.strategy.keygen.KeyGen
 Attributes:
 
 | *Name*           | *DataType* | *Description*               |
-|------------------|------------|-----------------------------|
+| ---------------- | ---------- | --------------------------- |
 | column           | String     | Column name of key generate |
 | keyGeneratorName | String     | key generate algorithm name |
 
@@ -118,27 +119,27 @@ Class name：org.apache.shardingsphere.sharding.api.config.strategy.audit.Shardi
 
 Attributes：
 
-| *Name*           | *DataType*           | *Description*                         |
-|------------------|----------------------|---------------------------------------|
-| auditorNames     | Collection\<String\> | Sharding audit algorithm name         |
-| allowHintDisable | Boolean              | Enable or disable sharding audit hint |
+| *Name*           | *DataType*            | *Description*                         |
+| ---------------- | --------------------- | ------------------------------------- |
+| auditorNames     | Collection\<String\>  | Sharding audit algorithm name         |
+| allowHintDisable | Boolean               | Enable or disable sharding audit hint |
 
 Please refer to [Built-in Sharding Audit Algorithm List](/en/user-manual/common-config/builtin-algorithm/audit) for more details about type of algorithm.
 
 ## Procedure
 
 1. Create an authentic data source mapping relationship, with key as the logical name of the data source and value as the DataSource object.
-2. Create the sharding rule object ShardingRuleConfiguration, and initialize the sharding table objects—ShardingTableRuleConfiguration, the set of bound tables, the set of broadcast tables, and parameters like library sharding strategy and the database sharding strategy, on which the data sharding depends.
-3. Using the ShardingSphereDataSource method of calling the ShardingSphereDataSourceFactory subject to create the ShardingSphereDataSource.
+1. Create the sharding rule object ShardingRuleConfiguration, and initialize the sharding table objects—ShardingTableRuleConfiguration, the set of bound tables, the set of broadcast tables, and parameters like library sharding strategy and the database sharding strategy, on which the data sharding depends.
+1. Using the ShardingSphereDataSource method of calling the ShardingSphereDataSourceFactory subject to create the ShardingSphereDataSource.
 
 ## Sample
 
 ```java
-public final class ShardingDatabasesAndTablesConfigurationPrecise {
+public final class ShardingDatabasesAndTablesConfigurationPrecise implements ExampleConfiguration {
     
     @Override
     public DataSource getDataSource() throws SQLException {
-        return ShardingSphereDataSourceFactory.createDataSource(createDataSourceMap(), Arrays.asList(createShardingRuleConfiguration(), createBroadcastRuleConfiguration())), new Properties());
+        return ShardingSphereDataSourceFactory.createDataSource(createDataSourceMap(), Collections.singleton(createShardingRuleConfiguration()), new Properties());
     }
     
     private ShardingRuleConfiguration createShardingRuleConfiguration() {
@@ -146,6 +147,7 @@ public final class ShardingDatabasesAndTablesConfigurationPrecise {
         result.getTables().add(getOrderTableRuleConfiguration());
         result.getTables().add(getOrderItemTableRuleConfiguration());
         result.getBindingTableGroups().add(new ShardingTableReferenceRuleConfiguration("foo", "t_order, t_order_item"));
+        result.getBroadcastTables().add("t_address");
         result.setDefaultDatabaseShardingStrategy(new StandardShardingStrategyConfiguration("user_id", "inline"));
         result.setDefaultTableShardingStrategy(new StandardShardingStrategyConfiguration("order_id", "standard_test_tbl"));
         Properties props = new Properties();
@@ -175,10 +177,6 @@ public final class ShardingDatabasesAndTablesConfigurationPrecise {
         result.put("demo_ds_0", DataSourceUtil.createDataSource("demo_ds_0"));
         result.put("demo_ds_1", DataSourceUtil.createDataSource("demo_ds_1"));
         return result;
-    }
-    
-    private BroadcastRuleConfiguration createBroadcastRuleConfiguration() {
-        return new BroadcastRuleConfiguration(Collections.singletonList("t_address"));;
     }
 }
 ```

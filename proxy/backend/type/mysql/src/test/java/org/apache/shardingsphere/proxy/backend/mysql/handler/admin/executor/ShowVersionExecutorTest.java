@@ -17,16 +17,14 @@
 
 package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 
-import org.apache.shardingsphere.db.protocol.constant.DatabaseProtocolServerInfo;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.db.protocol.mysql.constant.MySQLServerInfo;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResultMetaData;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ExpressionProjectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ProjectionsSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.AliasSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ExpressionProjectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionsSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.AliasSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.SelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,23 +36,23 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ShowVersionExecutorTest {
+public final class ShowVersionExecutorTest {
     
     private String previousVersion;
     
     @BeforeEach
-    void setUp() {
-        previousVersion = DatabaseProtocolServerInfo.getProtocolVersion("foo_db", TypedSPILoader.getService(DatabaseType.class, "MySQL"));
-        DatabaseProtocolServerInfo.setProtocolVersion("foo_db", "8.0.26");
+    public void setUp() {
+        previousVersion = MySQLServerInfo.getServerVersion("foo_db");
+        MySQLServerInfo.setServerVersion("foo_db", "8.0.26");
     }
     
     @AfterEach
-    void tearDown() {
-        DatabaseProtocolServerInfo.setProtocolVersion("foo_db", previousVersion);
+    public void tearDown() {
+        MySQLServerInfo.setServerVersion("foo_db", previousVersion);
     }
     
     @Test
-    void assertExecute() throws SQLException {
+    public void assertExecute() throws SQLException {
         SelectStatement selectStatement = mock(SelectStatement.class);
         when(selectStatement.getProjections()).thenReturn(createProjectionsSegmentWithoutAlias());
         ShowVersionExecutor executor = new ShowVersionExecutor(selectStatement);
@@ -71,12 +69,12 @@ class ShowVersionExecutorTest {
     
     private ConnectionSession mockConnectionSession() {
         ConnectionSession result = mock(ConnectionSession.class);
-        when(result.getUsedDatabaseName()).thenReturn("foo_db");
+        when(result.getDatabaseName()).thenReturn("foo_db");
         return result;
     }
     
     @Test
-    void assertExecuteWithAlias() throws SQLException {
+    public void assertExecuteWithAlias() throws SQLException {
         SelectStatement selectStatement = mock(SelectStatement.class);
         when(selectStatement.getProjections()).thenReturn(createProjectionsSegmentWithAlias());
         ShowVersionExecutor executor = new ShowVersionExecutor(selectStatement);
@@ -98,7 +96,7 @@ class ShowVersionExecutorTest {
         assertThat(actualQueryResultMetaData.getColumnName(1), is(ShowVersionExecutor.FUNCTION_NAME));
         assertThat(actualQueryResultMetaData.getColumnLabel(1), is(expectedColumnLabel));
         while (executor.getMergedResult().next()) {
-            assertThat(executor.getMergedResult().getValue(1, Object.class), is(DatabaseProtocolServerInfo.getProtocolVersion("foo_db", TypedSPILoader.getService(DatabaseType.class, "MySQL"))));
+            assertThat(executor.getMergedResult().getValue(1, Object.class), is(MySQLServerInfo.getServerVersion("foo_db")));
         }
     }
 }

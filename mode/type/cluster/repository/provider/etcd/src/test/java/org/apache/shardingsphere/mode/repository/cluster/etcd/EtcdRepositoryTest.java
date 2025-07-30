@@ -42,6 +42,7 @@ import org.mockito.Mock;
 import org.mockito.internal.configuration.plugins.Plugins;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.plugins.MemberAccessor;
 import org.mockito.quality.Strictness;
 
 import java.nio.charset.StandardCharsets;
@@ -66,7 +67,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class EtcdRepositoryTest {
+public final class EtcdRepositoryTest {
     
     private final EtcdRepository repository = new EtcdRepository();
     
@@ -98,7 +99,7 @@ class EtcdRepositoryTest {
     private CompletableFuture putFuture;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         setClient();
         setProperties();
     }
@@ -106,17 +107,19 @@ class EtcdRepositoryTest {
     @SneakyThrows(ReflectiveOperationException.class)
     private void setClient() {
         mockClient();
-        Plugins.getMemberAccessor().set(EtcdRepository.class.getDeclaredField("client"), repository, client);
+        MemberAccessor accessor = Plugins.getMemberAccessor();
+        accessor.set(repository.getClass().getDeclaredField("client"), repository, client);
     }
     
     @SneakyThrows(ReflectiveOperationException.class)
     private void setProperties() {
-        Plugins.getMemberAccessor().set(EtcdRepository.class.getDeclaredField("etcdProps"), repository, new EtcdProperties(new Properties()));
+        MemberAccessor accessor = Plugins.getMemberAccessor();
+        accessor.set(repository.getClass().getDeclaredField("etcdProps"), repository, new EtcdProperties(new Properties()));
     }
     
     @SuppressWarnings("unchecked")
     @SneakyThrows({InterruptedException.class, ExecutionException.class})
-    private void mockClient() {
+    private Client mockClient() {
         when(client.getKVClient()).thenReturn(kv);
         when(kv.get(any(ByteSequence.class))).thenReturn(getFuture);
         when(kv.get(any(ByteSequence.class), any(GetOption.class))).thenReturn(getFuture);
@@ -128,17 +131,18 @@ class EtcdRepositoryTest {
         when(leaseFuture.get()).thenReturn(leaseGrantResponse);
         when(leaseGrantResponse.getID()).thenReturn(123L);
         when(client.getWatchClient()).thenReturn(watch);
+        return client;
     }
     
     @Test
-    void assertGetKey() {
-        repository.query("key");
+    public void assertGetKey() {
+        repository.getDirectly("key");
         verify(kv).get(ByteSequence.from("key", StandardCharsets.UTF_8));
         verify(getResponse).getKvs();
     }
     
     @Test
-    void assertGetChildrenKeys() {
+    public void assertGetChildrenKeys() {
         io.etcd.jetcd.api.KeyValue keyValue1 = io.etcd.jetcd.api.KeyValue.newBuilder()
                 .setKey(ByteString.copyFromUtf8("/key/key1/key1-1"))
                 .setValue(ByteString.copyFromUtf8("value1")).build();
@@ -157,7 +161,7 @@ class EtcdRepositoryTest {
     
     @Test
     @SuppressWarnings("unchecked")
-    void assertPersistEphemeral() {
+    public void assertPersistEphemeral() {
         repository.persistEphemeral("key1", "value1");
         verify(lease).grant(anyLong());
         verify(lease).keepAlive(anyLong(), any(StreamObserver.class));
@@ -165,7 +169,7 @@ class EtcdRepositoryTest {
     }
     
     @Test
-    void assertWatchUpdate() {
+    public void assertWatchUpdate() {
         doAnswer(invocationOnMock -> {
             Watch.Listener listener = (Watch.Listener) invocationOnMock.getArguments()[2];
             listener.onNext(buildWatchResponse(WatchEvent.EventType.PUT));
@@ -177,7 +181,7 @@ class EtcdRepositoryTest {
     }
     
     @Test
-    void assertWatchDelete() {
+    public void assertWatchDelete() {
         doAnswer(invocationOnMock -> {
             Watch.Listener listener = (Watch.Listener) invocationOnMock.getArguments()[2];
             listener.onNext(buildWatchResponse(WatchEvent.EventType.DELETE));
@@ -189,7 +193,7 @@ class EtcdRepositoryTest {
     }
     
     @Test
-    void assertWatchIgnored() {
+    public void assertWatchIgnored() {
         doAnswer(invocationOnMock -> {
             Watch.Listener listener = (Watch.Listener) invocationOnMock.getArguments()[2];
             listener.onNext(buildWatchResponse(WatchEvent.EventType.UNRECOGNIZED));
@@ -201,28 +205,28 @@ class EtcdRepositoryTest {
     }
     
     @Test
-    void assertDelete() {
+    public void assertDelete() {
         repository.delete("key");
         verify(kv).delete(any(ByteSequence.class), any(DeleteOption.class));
     }
     
     @Test
-    void assertPersist() {
+    public void assertPersist() {
         repository.persist("key1", "value1");
         verify(kv).put(any(ByteSequence.class), any(ByteSequence.class));
     }
     
     @Test
-    void assertClose() {
+    public void assertClose() {
         repository.close();
         verify(client).close();
     }
     
     @Test
-    void assertGetKeyWhenThrowInterruptedException() throws ExecutionException, InterruptedException {
+    public void assertGetKeyWhenThrowInterruptedException() throws ExecutionException, InterruptedException {
         doThrow(InterruptedException.class).when(getFuture).get();
         try {
-            repository.query("key");
+            repository.getDirectly("key");
             // CHECKSTYLE:OFF
         } catch (final Exception ex) {
             // CHECKSTYLE:ON
@@ -231,10 +235,10 @@ class EtcdRepositoryTest {
     }
     
     @Test
-    void assertGetKeyWhenThrowExecutionException() throws ExecutionException, InterruptedException {
+    public void assertGetKeyWhenThrowExecutionException() throws ExecutionException, InterruptedException {
         doThrow(ExecutionException.class).when(getFuture).get();
         try {
-            repository.query("key");
+            repository.getDirectly("key");
             // CHECKSTYLE:OFF
         } catch (final Exception ex) {
             // CHECKSTYLE:ON
@@ -243,7 +247,7 @@ class EtcdRepositoryTest {
     }
     
     @Test
-    void assertGetChildrenKeysWhenThrowInterruptedException() throws ExecutionException, InterruptedException {
+    public void assertGetChildrenKeysWhenThrowInterruptedException() throws ExecutionException, InterruptedException {
         doThrow(InterruptedException.class).when(getFuture).get();
         try {
             repository.getChildrenKeys("/key/key1");
@@ -255,7 +259,7 @@ class EtcdRepositoryTest {
     }
     
     @Test
-    void assertGetChildrenKeysWhenThrowExecutionException() throws ExecutionException, InterruptedException {
+    public void assertGetChildrenKeysWhenThrowExecutionException() throws ExecutionException, InterruptedException {
         doThrow(ExecutionException.class).when(getFuture).get();
         try {
             repository.getChildrenKeys("/key/key1");
@@ -275,7 +279,8 @@ class EtcdRepositoryTest {
                 .setValue(ByteString.copyFromUtf8("value1")).build();
         KeyValue keyValue = new KeyValue(keyValue1, ByteSequence.EMPTY);
         events.add(new WatchEvent(keyValue, mock(KeyValue.class), eventType));
-        Plugins.getMemberAccessor().set(WatchResponse.class.getDeclaredField("events"), result, events);
+        MemberAccessor accessor = Plugins.getMemberAccessor();
+        accessor.set(result.getClass().getDeclaredField("events"), result, events);
         return result;
     }
 }

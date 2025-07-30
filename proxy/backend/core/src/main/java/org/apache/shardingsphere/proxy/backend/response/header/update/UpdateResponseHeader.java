@@ -21,7 +21,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.update.UpdateResult;
 import org.apache.shardingsphere.proxy.backend.response.header.ResponseHeader;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +64,7 @@ public final class UpdateResponseHeader implements ResponseHeader {
     private long getLastInsertId(final Collection<UpdateResult> updateResults, final Collection<Comparable<?>> autoIncrementGeneratedValues) {
         List<Long> lastInsertIds = new ArrayList<>(updateResults.size() + autoIncrementGeneratedValues.size());
         for (UpdateResult each : updateResults) {
-            if (each.getLastInsertId() > 0L) {
+            if (each.getLastInsertId() > 0) {
                 lastInsertIds.add(each.getLastInsertId());
             }
         }
@@ -73,10 +73,10 @@ public final class UpdateResponseHeader implements ResponseHeader {
                 lastInsertIds.add(((Number) each).longValue());
             }
         }
-        return lastInsertIds.isEmpty() ? 0L : getMinLastInsertId(lastInsertIds);
+        return lastInsertIds.isEmpty() ? 0 : getMinLastInsertId(lastInsertIds);
     }
     
-    private long getMinLastInsertId(final List<Long> lastInsertIds) {
+    private static long getMinLastInsertId(final List<Long> lastInsertIds) {
         Collections.sort(lastInsertIds);
         return lastInsertIds.iterator().next();
     }
@@ -85,7 +85,7 @@ public final class UpdateResponseHeader implements ResponseHeader {
      * Merge updated counts.
      */
     public void mergeUpdateCount() {
-        updateCount = 0L;
+        updateCount = 0;
         for (int each : updateCounts) {
             updateCount += each;
         }

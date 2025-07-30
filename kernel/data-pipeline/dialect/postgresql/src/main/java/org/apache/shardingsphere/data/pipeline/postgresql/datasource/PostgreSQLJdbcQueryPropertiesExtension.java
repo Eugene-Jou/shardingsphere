@@ -17,28 +17,25 @@
 
 package org.apache.shardingsphere.data.pipeline.postgresql.datasource;
 
-import org.apache.shardingsphere.data.pipeline.spi.JdbcQueryPropertiesExtension;
+import org.apache.shardingsphere.data.pipeline.spi.datasource.JdbcQueryPropertiesExtension;
 
 import java.util.Properties;
 
 /**
- * JDBC query properties extension of PostgreSQL.
+ * PostgreSQL JDBC query properties extension.
  */
 public final class PostgreSQLJdbcQueryPropertiesExtension implements JdbcQueryPropertiesExtension {
     
     private final Properties queryProps = new Properties();
     
-    public PostgreSQLJdbcQueryPropertiesExtension() {
+    @Override
+    public Properties extendQueryProperties() {
         queryProps.setProperty("stringtype", "unspecified");
+        return queryProps;
     }
     
     @Override
-    public void extendQueryProperties(final Properties props) {
-        props.putAll(queryProps);
-    }
-    
-    @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "PostgreSQL";
     }
 }

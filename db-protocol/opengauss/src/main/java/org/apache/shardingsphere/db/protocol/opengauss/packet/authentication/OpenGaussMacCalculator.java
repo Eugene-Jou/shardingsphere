@@ -23,7 +23,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.apache.shardingsphere.infra.util.string.HexStringUtil;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKeyFactory;
@@ -59,7 +58,7 @@ public final class OpenGaussMacCalculator {
     public static String requestServerMac(final String password, final OpenGaussAuthenticationHexData authHexData, final int serverIteration) {
         byte[] serverKey = getMacResult(generateSecretKey(password, authHexData.getSalt(), serverIteration), MacType.SERVER.data.getBytes(StandardCharsets.UTF_8));
         byte[] result = getMacResult(serverKey, toHexBytes(authHexData.getNonce()));
-        return HexStringUtil.toHexString(result);
+        return toHexString(result);
     }
     
     /**
@@ -76,7 +75,7 @@ public final class OpenGaussMacCalculator {
     
     /**
      * Calculate client MAC.
-     *
+     * 
      * @param h3HexString h3 hex string value
      * @param nonce nonce
      * @param serverStoredKey server stored key
@@ -117,6 +116,18 @@ public final class OpenGaussMacCalculator {
     
     private static byte charToByte(final char c) {
         return (byte) "0123456789ABCDEF".indexOf(c);
+    }
+    
+    private static String toHexString(final byte[] hexBytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte each : hexBytes) {
+            String hex = Integer.toHexString(each & 255);
+            if (hex.length() < 2) {
+                result.append(0);
+            }
+            result.append(hex);
+        }
+        return result.toString();
     }
     
     private static byte[] xor(final byte[] password1, final byte[] password2) {

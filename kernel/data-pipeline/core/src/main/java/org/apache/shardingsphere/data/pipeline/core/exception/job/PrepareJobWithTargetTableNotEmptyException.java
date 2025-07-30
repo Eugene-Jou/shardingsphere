@@ -17,16 +17,17 @@
 
 package org.apache.shardingsphere.data.pipeline.core.exception.job;
 
-import org.apache.shardingsphere.infra.exception.core.external.sql.sqlstate.XOpenSQLState;
+import org.apache.shardingsphere.data.pipeline.core.exception.PipelineSQLException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.sqlstate.XOpenSQLState;
 
 /**
  * Prepare job with target table not empty exception.
  */
-public final class PrepareJobWithTargetTableNotEmptyException extends PipelineJobException {
+public final class PrepareJobWithTargetTableNotEmptyException extends PipelineSQLException {
     
     private static final long serialVersionUID = -8462039913248251254L;
     
     public PrepareJobWithTargetTableNotEmptyException(final String tableName) {
-        super(XOpenSQLState.GENERAL_ERROR, 5, String.format("Target table '%s' is not empty.", tableName));
+        super(XOpenSQLState.GENERAL_ERROR, 85, String.format("Target table `%s` is not empty.", tableName));
     }
 }

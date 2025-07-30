@@ -27,12 +27,12 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLUnsupportedCommandExecutorTest {
+public final class PostgreSQLUnsupportedCommandExecutorTest {
     
     @Test
-    void assertExecute() {
+    public void assertExecute() {
         PostgreSQLUnsupportedCommandExecutor commandExecutor = new PostgreSQLUnsupportedCommandExecutor();
-        Collection<DatabasePacket> actual = commandExecutor.execute();
+        Collection<DatabasePacket<?>> actual = commandExecutor.execute();
         assertThat(actual.size(), is(1));
         assertThat(actual.iterator().next(), instanceOf(PostgreSQLErrorResponsePacket.class));
     }

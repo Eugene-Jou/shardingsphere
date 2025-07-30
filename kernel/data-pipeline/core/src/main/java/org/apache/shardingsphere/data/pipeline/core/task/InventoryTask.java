@@ -18,47 +18,114 @@
 package org.apache.shardingsphere.data.pipeline.core.task;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.apache.shardingsphere.data.pipeline.core.execute.PipelineExecuteEngine;
-import org.apache.shardingsphere.data.pipeline.core.importer.Importer;
-import org.apache.shardingsphere.data.pipeline.core.ingest.dumper.Dumper;
-import org.apache.shardingsphere.data.pipeline.core.ingest.position.IngestPosition;
-import org.apache.shardingsphere.data.pipeline.core.task.progress.InventoryTaskProgress;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.shardingsphere.data.pipeline.api.config.ImporterConfiguration;
+import org.apache.shardingsphere.data.pipeline.api.config.ingest.InventoryDumperConfiguration;
+import org.apache.shardingsphere.data.pipeline.api.importer.Importer;
+import org.apache.shardingsphere.data.pipeline.api.importer.ImporterType;
+import org.apache.shardingsphere.data.pipeline.api.ingest.channel.PipelineChannel;
+import org.apache.shardingsphere.data.pipeline.api.ingest.dumper.Dumper;
+import org.apache.shardingsphere.data.pipeline.api.ingest.position.IngestPosition;
+import org.apache.shardingsphere.data.pipeline.api.ingest.record.Record;
+import org.apache.shardingsphere.data.pipeline.api.job.progress.listener.PipelineJobProgressListener;
+import org.apache.shardingsphere.data.pipeline.api.metadata.loader.PipelineTableMetaDataLoader;
+import org.apache.shardingsphere.data.pipeline.api.task.progress.InventoryTaskProgress;
+import org.apache.shardingsphere.data.pipeline.core.execute.ExecuteCallback;
+import org.apache.shardingsphere.data.pipeline.core.execute.ExecuteEngine;
+import org.apache.shardingsphere.data.pipeline.core.ingest.dumper.InventoryDumper;
+import org.apache.shardingsphere.data.pipeline.core.record.RecordUtil;
+import org.apache.shardingsphere.data.pipeline.spi.importer.ImporterCreator;
+import org.apache.shardingsphere.data.pipeline.spi.importer.connector.ImporterConnector;
+import org.apache.shardingsphere.data.pipeline.spi.ingest.channel.PipelineChannelCreator;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 
+import javax.sql.DataSource;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Inventory task.
  */
-@RequiredArgsConstructor
-@ToString(of = {"taskId", "position"})
-public final class InventoryTask implements PipelineTask {
+@ToString(exclude = {"inventoryDumperExecuteEngine", "inventoryImporterExecuteEngine", "channel", "dumper", "importer"})
+@Slf4j
+public final class InventoryTask implements PipelineTask, AutoCloseable {
     
     @Getter
     private final String taskId;
     
-    private final PipelineExecuteEngine inventoryDumperExecuteEngine;
+    private final ExecuteEngine inventoryDumperExecuteEngine;
     
-    private final PipelineExecuteEngine inventoryImporterExecuteEngine;
+    private final ExecuteEngine inventoryImporterExecuteEngine;
+    
+    private final PipelineChannel channel;
     
     private final Dumper dumper;
     
     private final Importer importer;
     
-    private final AtomicReference<IngestPosition> position;
+    private volatile IngestPosition<?> position;
+    
+    public InventoryTask(final InventoryDumperConfiguration inventoryDumperConfig, final ImporterConfiguration importerConfig,
+                         final PipelineChannelCreator pipelineChannelCreator, final ImporterConnector importerConnector,
+                         final DataSource sourceDataSource, final PipelineTableMetaDataLoader sourceMetaDataLoader,
+                         final ExecuteEngine inventoryDumperExecuteEngine, final ExecuteEngine inventoryImporterExecuteEngine,
+                         final PipelineJobProgressListener jobProgressListener) {
+        taskId = generateTaskId(inventoryDumperConfig);
+        this.inventoryDumperExecuteEngine = inventoryDumperExecuteEngine;
+        this.inventoryImporterExecuteEngine = inventoryImporterExecuteEngine;
+        channel = createChannel(pipelineChannelCreator);
+        dumper = new InventoryDumper(inventoryDumperConfig, channel, sourceDataSource, sourceMetaDataLoader);
+        importer = TypedSPILoader.getService(ImporterCreator.class, importerConnector.getType()).createImporter(importerConfig, importerConnector, channel, jobProgressListener,
+                ImporterType.INVENTORY);
+        position = inventoryDumperConfig.getPosition();
+    }
+    
+    private String generateTaskId(final InventoryDumperConfiguration inventoryDumperConfig) {
+        String result = String.format("%s.%s", inventoryDumperConfig.getDataSourceName(), inventoryDumperConfig.getActualTableName());
+        return null == inventoryDumperConfig.getShardingItem() ? result : result + "#" + inventoryDumperConfig.getShardingItem();
+    }
     
     @Override
     public Collection<CompletableFuture<?>> start() {
         Collection<CompletableFuture<?>> result = new LinkedList<>();
-        synchronized (inventoryDumperExecuteEngine) {
-            result.add(inventoryDumperExecuteEngine.submit(dumper, new TaskExecuteCallback(this)));
-            result.add(inventoryImporterExecuteEngine.submit(importer, new TaskExecuteCallback(this)));
-        }
+        result.add(inventoryDumperExecuteEngine.submit(dumper, new ExecuteCallback() {
+            
+            @Override
+            public void onSuccess() {
+            }
+            
+            @Override
+            public void onFailure(final Throwable throwable) {
+                log.error("dumper onFailure, taskId={}", taskId);
+                stop();
+                close();
+            }
+        }));
+        result.add(inventoryImporterExecuteEngine.submit(importer, new ExecuteCallback() {
+            
+            @Override
+            public void onSuccess() {
+            }
+            
+            @Override
+            public void onFailure(final Throwable throwable) {
+                log.error("importer onFailure, taskId={}", taskId);
+                stop();
+                close();
+            }
+        }));
         return result;
+    }
+    
+    private PipelineChannel createChannel(final PipelineChannelCreator pipelineChannelCreator) {
+        return pipelineChannelCreator.createPipelineChannel(1, records -> {
+            Record lastNormalRecord = RecordUtil.getLastNormalRecord(records);
+            if (null != lastNormalRecord) {
+                position = lastNormalRecord.getPosition();
+            }
+        });
     }
     
     @Override
@@ -69,6 +136,11 @@ public final class InventoryTask implements PipelineTask {
     
     @Override
     public InventoryTaskProgress getTaskProgress() {
-        return new InventoryTaskProgress(position.get());
+        return new InventoryTaskProgress(position);
+    }
+    
+    @Override
+    public void close() {
+        channel.close();
     }
 }

@@ -17,12 +17,9 @@
 
 package org.apache.shardingsphere.mode.repository.cluster;
 
-import org.apache.shardingsphere.infra.instance.ComputeNodeInstanceContext;
+import org.apache.shardingsphere.mode.persist.PersistRepository;
 import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEventListener;
-import org.apache.shardingsphere.mode.repository.cluster.lock.DistributedLock;
-import org.apache.shardingsphere.mode.spi.repository.PersistRepository;
-
-import java.util.Optional;
+import org.apache.shardingsphere.mode.repository.cluster.lock.holder.DistributedLockHolder;
 
 /**
  * Cluster persist repository.
@@ -33,9 +30,8 @@ public interface ClusterPersistRepository extends PersistRepository {
      * Initialize registry center.
      *
      * @param config cluster persist repository configuration
-     * @param computeNodeInstanceContext compute node instance context
      */
-    void init(ClusterPersistRepositoryConfiguration config, ComputeNodeInstanceContext computeNodeInstanceContext);
+    void init(ClusterPersistRepositoryConfiguration config);
     
     /**
      * Persist ephemeral data.
@@ -49,18 +45,16 @@ public interface ClusterPersistRepository extends PersistRepository {
      * Persist exclusive ephemeral data.
      *
      * @param key key of data
-     * @param value value of data
-     * @return persist success or not
+     * @param value is persisted or not
      */
-    boolean persistExclusiveEphemeral(String key, String value);
+    void persistExclusiveEphemeral(String key, String value);
     
     /**
-     * Get distributed lock.
-     *
-     * @param lockKey kock key
-     * @return distributed lock
+     * Get distributed lock holder.
+     * 
+     * @return distributed lock holder
      */
-    Optional<DistributedLock> getDistributedLock(String lockKey);
+    DistributedLockHolder getDistributedLockHolder();
     
     /**
      * Watch key or path of governance server.
@@ -69,11 +63,4 @@ public interface ClusterPersistRepository extends PersistRepository {
      * @param listener data changed event listener
      */
     void watch(String key, DataChangedEventListener listener);
-    
-    /**
-     * Remove listener by key.
-     *
-     * @param key key to be removed
-     */
-    void removeDataListener(String key);
 }

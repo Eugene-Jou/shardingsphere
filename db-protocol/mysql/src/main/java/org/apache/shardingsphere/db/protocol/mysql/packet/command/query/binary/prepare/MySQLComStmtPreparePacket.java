@@ -18,39 +18,29 @@
 package org.apache.shardingsphere.db.protocol.mysql.packet.command.query.binary.prepare;
 
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.shardingsphere.db.protocol.mysql.packet.command.MySQLCommandPacket;
 import org.apache.shardingsphere.db.protocol.mysql.packet.command.MySQLCommandPacketType;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.db.protocol.packet.sql.SQLReceivedPacket;
-import org.apache.shardingsphere.infra.hint.HintValueContext;
-import org.apache.shardingsphere.infra.hint.SQLHintUtils;
 
 /**
  * COM_STMT_PREPARE command packet for MySQL.
  * 
- * @see <a href="https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_com_stmt_prepare.html">COM_STMT_PREPARE</a>
+ * @see <a href="https://dev.mysql.com/doc/internals/en/com-stmt-prepare.html">COM_STMT_PREPARE</a>
  */
-public final class MySQLComStmtPreparePacket extends MySQLCommandPacket implements SQLReceivedPacket {
+@Getter
+@ToString
+public final class MySQLComStmtPreparePacket extends MySQLCommandPacket {
     
     private final String sql;
     
-    @Getter
-    private final HintValueContext hintValueContext;
-    
     public MySQLComStmtPreparePacket(final MySQLPacketPayload payload) {
         super(MySQLCommandPacketType.COM_STMT_PREPARE);
-        String originSQL = payload.readStringEOF();
-        hintValueContext = SQLHintUtils.extractHint(originSQL);
-        sql = SQLHintUtils.removeHint(originSQL);
+        sql = payload.readStringEOF();
     }
     
     @Override
     public void doWrite(final MySQLPacketPayload payload) {
         payload.writeStringEOF(sql);
-    }
-    
-    @Override
-    public String getSQL() {
-        return sql;
     }
 }

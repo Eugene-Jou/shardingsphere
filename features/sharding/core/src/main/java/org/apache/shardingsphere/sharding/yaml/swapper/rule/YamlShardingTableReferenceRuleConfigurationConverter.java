@@ -17,8 +17,6 @@
 
 package org.apache.shardingsphere.sharding.yaml.swapper.rule;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableReferenceRuleConfiguration;
 
 import java.util.UUID;
@@ -27,14 +25,13 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * YAML sharding table reference rule configuration converter.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class YamlShardingTableReferenceRuleConfigurationConverter {
     
     private static final int GENERATE_NAME_LENGTH = 16;
     
     /**
      * Convert to YAML String configuration.
-     *
+     * 
      * @param data to be converted
      * @return String configuration
      */
@@ -44,7 +41,7 @@ public final class YamlShardingTableReferenceRuleConfigurationConverter {
     
     /**
      * Convert from YAML configuration to object.
-     *
+     * 
      * @param referenceConfig reference config
      * @return converted object
      */
@@ -53,8 +50,8 @@ public final class YamlShardingTableReferenceRuleConfigurationConverter {
     }
     
     private static ShardingTableReferenceRuleConfiguration convertYamlConfigurationWithName(final String referenceConfig) {
-        String name = referenceConfig.substring(0, referenceConfig.indexOf(':'));
-        String reference = referenceConfig.substring(referenceConfig.indexOf(':') + 1);
+        String name = referenceConfig.substring(0, referenceConfig.indexOf(":"));
+        String reference = referenceConfig.substring(referenceConfig.indexOf(":") + 1);
         return new ShardingTableReferenceRuleConfiguration(name, reference);
     }
     

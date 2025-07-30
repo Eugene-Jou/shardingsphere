@@ -17,16 +17,23 @@
 
 package org.apache.shardingsphere.agent.plugin.metrics.core.exporter.impl.jdbc;
 
-import org.apache.shardingsphere.agent.plugin.core.context.ShardingSphereDataSourceContext;
-import org.apache.shardingsphere.agent.plugin.core.holder.ShardingSphereDataSourceContextHolder;
+import org.apache.shardingsphere.agent.plugin.core.util.AgentReflectionUtil;
 import org.apache.shardingsphere.agent.plugin.metrics.core.collector.MetricsCollectorRegistry;
 import org.apache.shardingsphere.agent.plugin.metrics.core.collector.type.GaugeMetricFamilyMetricsCollector;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricCollectorType;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricConfiguration;
 import org.apache.shardingsphere.agent.plugin.metrics.core.exporter.MetricsExporter;
+import org.apache.shardingsphere.driver.ShardingSphereDriver;
+import org.apache.shardingsphere.driver.jdbc.core.datasource.ShardingSphereDataSource;
+import org.apache.shardingsphere.driver.jdbc.core.driver.DriverDataSourceCache;
+import org.apache.shardingsphere.mode.manager.ContextManager;
 
-import java.util.Arrays;
-import java.util.Map.Entry;
+import javax.sql.DataSource;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -34,18 +41,34 @@ import java.util.Optional;
  */
 public final class JDBCStateExporter implements MetricsExporter {
     
-    private final MetricConfiguration config = new MetricConfiguration("jdbc_state", MetricCollectorType.GAUGE_METRIC_FAMILY,
-            "State of ShardingSphere-JDBC. 0 is OK; 1 is CIRCUIT BREAK", Arrays.asList("driver_instance", "database"));
+    private final MetricConfiguration config = new MetricConfiguration("jdbc_state", MetricCollectorType.GAUGE_METRIC_FAMILY, "State of ShardingSphere-JDBC. 0 is OK; 1 is CIRCUIT BREAK; 2 is LOCK");
     
     @Override
     public Optional<GaugeMetricFamilyMetricsCollector> export(final String pluginType) {
+        Optional<ShardingSphereDriver> shardingSphereDriverOptional = getShardingSphereDriver();
+        if (!shardingSphereDriverOptional.isPresent()) {
+            return Optional.empty();
+        }
         GaugeMetricFamilyMetricsCollector result = MetricsCollectorRegistry.get(config, pluginType);
         result.cleanMetrics();
-        for (Entry<String, ShardingSphereDataSourceContext> entry : ShardingSphereDataSourceContextHolder.getShardingSphereDataSourceContexts().entrySet()) {
-            Optional.ofNullable(entry.getValue().getContextManager().getDatabase(entry.getValue().getDatabaseName()))
-                    .ifPresent(optional -> result.addMetric(Arrays.asList(entry.getKey(), optional.getName()),
-                            entry.getValue().getContextManager().getComputeNodeInstanceContext().getInstance().getState().getCurrentState().ordinal()));
+        DriverDataSourceCache dataSourceCache = AgentReflectionUtil.getFieldValue(shardingSphereDriverOptional.get(), "dataSourceCache");
+        Map<String, DataSource> dataSourceMap = AgentReflectionUtil.getFieldValue(dataSourceCache, "dataSourceMap");
+        for (Map.Entry<String, DataSource> entry : dataSourceMap.entrySet()) {
+            ShardingSphereDataSource shardingSphereDataSource = (ShardingSphereDataSource) entry.getValue();
+            ContextManager contextManager = AgentReflectionUtil.getFieldValue(shardingSphereDataSource, "contextManager");
+            result.addMetric(Collections.emptyList(), contextManager.getInstanceContext().getInstance().getState().getCurrentState().ordinal());
         }
         return Optional.of(result);
+    }
+    
+    private Optional<ShardingSphereDriver> getShardingSphereDriver() {
+        Enumeration<Driver> driverEnumeration = DriverManager.getDrivers();
+        while (driverEnumeration.hasMoreElements()) {
+            Driver driver = driverEnumeration.nextElement();
+            if (driver instanceof ShardingSphereDriver) {
+                return Optional.of((ShardingSphereDriver) driver);
+            }
+        }
+        return Optional.empty();
     }
 }

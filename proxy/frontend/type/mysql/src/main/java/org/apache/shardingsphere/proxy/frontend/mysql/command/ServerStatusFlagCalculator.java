@@ -17,29 +17,24 @@
 
 package org.apache.shardingsphere.proxy.frontend.mysql.command;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.db.protocol.mysql.constant.MySQLStatusFlag;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 
 /**
  * MySQL server status flag calculator.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ServerStatusFlagCalculator {
     
     /**
      * Calculate server status flag for specified connection.
      *
      * @param connectionSession connection session
-     * @param lastPacket last packet
      * @return server status flag
      */
-    public static int calculateFor(final ConnectionSession connectionSession, final boolean lastPacket) {
+    public static int calculateFor(final ConnectionSession connectionSession) {
         int result = 0;
         result |= connectionSession.isAutoCommit() ? MySQLStatusFlag.SERVER_STATUS_AUTOCOMMIT.getValue() : 0;
         result |= connectionSession.getTransactionStatus().isInTransaction() ? MySQLStatusFlag.SERVER_STATUS_IN_TRANS.getValue() : 0;
-        result |= lastPacket ? 0 : MySQLStatusFlag.SERVER_MORE_RESULTS_EXISTS.getValue();
         return result;
     }
 }

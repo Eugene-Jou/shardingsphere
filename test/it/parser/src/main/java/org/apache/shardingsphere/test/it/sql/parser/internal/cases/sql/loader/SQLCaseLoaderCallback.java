@@ -26,9 +26,9 @@ import org.apache.shardingsphere.test.it.sql.parser.internal.loader.CaseLoaderCa
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -41,16 +41,16 @@ public final class SQLCaseLoaderCallback implements CaseLoaderCallback<SQLCase> 
     public Map<String, SQLCase> loadFromJar(final File jarFile, final String rootDirectory) throws JAXBException {
         Map<String, SQLCase> result = new TreeMap<>();
         for (String each : CaseFileLoader.loadFileNamesFromJar(jarFile, rootDirectory)) {
-            buildCaseMap(result, Thread.currentThread().getContextClassLoader().getResourceAsStream(each));
+            buildCaseMap(result, SQLCaseLoaderCallback.class.getClassLoader().getResourceAsStream(each));
         }
         return result;
     }
     
     @Override
-    public Map<String, SQLCase> loadFromDirectory(final String rootDirectory) throws JAXBException, IOException {
+    public Map<String, SQLCase> loadFromDirectory(final String rootDirectory) throws JAXBException, FileNotFoundException {
         Map<String, SQLCase> result = new TreeMap<>();
         for (File each : CaseFileLoader.loadFilesFromDirectory(rootDirectory)) {
-            buildCaseMap(result, Files.newInputStream(each.toPath()));
+            buildCaseMap(result, new FileInputStream(each));
         }
         return result;
     }

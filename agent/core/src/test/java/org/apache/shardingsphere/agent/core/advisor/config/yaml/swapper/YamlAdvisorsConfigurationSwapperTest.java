@@ -20,10 +20,11 @@ package org.apache.shardingsphere.agent.core.advisor.config.yaml.swapper;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.apache.shardingsphere.agent.core.advisor.config.AdvisorConfiguration;
 import org.apache.shardingsphere.agent.core.advisor.config.MethodAdvisorConfiguration;
+import org.apache.shardingsphere.agent.core.advisor.config.yaml.entity.YamlAdvisorsConfiguration;
 import org.apache.shardingsphere.agent.core.advisor.config.yaml.fixture.YamlAdviceFixture;
 import org.apache.shardingsphere.agent.core.advisor.config.yaml.fixture.YamlTargetObjectFixture;
-import org.apache.shardingsphere.agent.core.yaml.AgentYamlEngine;
 import org.junit.jupiter.api.Test;
+import org.yaml.snakeyaml.Yaml;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,12 +33,12 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class YamlAdvisorsConfigurationSwapperTest {
+public final class YamlAdvisorsConfigurationSwapperTest {
     
     @Test
-    void assertSwapToObject() {
+    public void assertSwapToObject() {
         Collection<AdvisorConfiguration> actual = YamlAdvisorsConfigurationSwapper.swap(
-                AgentYamlEngine.unmarshalYamlAdvisorsConfiguration(getClass().getResourceAsStream("/META-INF/conf/advisors.yaml")), "FIXTURE");
+                new Yaml().loadAs(getClass().getResourceAsStream("/META-INF/conf/advisors.yaml"), YamlAdvisorsConfiguration.class), "FIXTURE");
         assertThat(actual.size(), is(1));
         assertAdvisorConfiguration(actual.iterator().next());
     }
@@ -52,19 +53,13 @@ class YamlAdvisorsConfigurationSwapperTest {
         assertThat(actualAdvisorConfigs.get(0).getPointcut(), is(ElementMatchers.isConstructor()));
         assertThat(actualAdvisorConfigs.get(1).getPointcut(), is(ElementMatchers.isConstructor().and(ElementMatchers.takesArgument(0, ElementMatchers.named("java.lang.String")))));
         assertThat(actualAdvisorConfigs.get(2).getPointcut(), is(ElementMatchers.named("call")));
-        assertThat(actualAdvisorConfigs.get(3).getPointcut(), is(ElementMatchers.named("call")
-                .and(ElementMatchers.isPublic())
-                .and(ElementMatchers.isStatic())
-                .and(ElementMatchers.takesArgument(0, ElementMatchers.named("java.lang.String")))
-                .and(ElementMatchers.returns(ElementMatchers.named("java.lang.String")))));
+        assertThat(actualAdvisorConfigs.get(3).getPointcut(), is(ElementMatchers.named("call").and(ElementMatchers.takesArgument(0, ElementMatchers.named("java.lang.String")))));
         assertThat(actualAdvisorConfigs.get(4).getPointcut(), is(ElementMatchers.named("call")
                 .and(ElementMatchers.takesArgument(0, ElementMatchers.named("java.lang.String"))).and(ElementMatchers.takesArgument(1, ElementMatchers.named("java.lang.String")))));
         assertThat(actualAdvisorConfigs.get(5).getPointcut(), is(ElementMatchers.named("staticCall")));
         assertThat(actualAdvisorConfigs.get(6).getPointcut(), is(ElementMatchers.named("staticCall").and(ElementMatchers.takesArgument(0, ElementMatchers.named("java.lang.String")))));
         assertThat(actualAdvisorConfigs.get(7).getPointcut(), is(ElementMatchers.named("staticCall")
-                .and(ElementMatchers.takesArguments(2))
-                .and(ElementMatchers.takesArgument(0, ElementMatchers.named("java.lang.String")))
-                .and(ElementMatchers.takesArgument(1, ElementMatchers.named("java.lang.String")))));
+                .and(ElementMatchers.takesArgument(0, ElementMatchers.named("java.lang.String"))).and(ElementMatchers.takesArgument(1, ElementMatchers.named("java.lang.String")))));
         actualAdvisorConfigs.forEach(each -> assertThat(each.getPluginType(), is("FIXTURE")));
     }
 }

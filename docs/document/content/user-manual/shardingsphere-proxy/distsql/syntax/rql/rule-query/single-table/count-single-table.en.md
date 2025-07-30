@@ -1,6 +1,6 @@
 +++
 title = "COUNT SINGLE_TABLE RULE"
-weight = 3
+weight = 4
 +++
 
 ### Description

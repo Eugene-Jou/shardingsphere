@@ -1,6 +1,6 @@
 +++
 title = "SHOW MIGRATION CHECK ALGORITHM"
-weight = 9
+weight = 10
 +++
 
 ### Description

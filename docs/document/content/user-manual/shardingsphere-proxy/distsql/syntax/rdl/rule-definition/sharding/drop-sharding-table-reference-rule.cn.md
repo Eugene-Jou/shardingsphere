@@ -1,11 +1,11 @@
 +++
 title = "DROP SHARDING TABLE REFERENCE RULE"
-weight = 14
+weight = 15
 +++
 
 ## 描述
 
-`DROP SHARDING TABLE REFERENCE RULE` 语法用删除指定的关联规则。
+`DROP SHARDING TABLE REFERENCE RULE` 语法用删除指定的关联规则
 
 ### 语法定义
 
@@ -13,12 +13,12 @@ weight = 14
 {{% tab name="语法" %}}
 ```sql
 DropShardingTableReferenceRule ::=
-  'DROP' 'SHARDING' 'TABLE' 'REFERENCE' 'RULE' ifExists? ruleName (',' ruleName)*
+  'DROP' 'SHARDING' 'TABLE' 'REFERENCE' 'RULE' ifExists? shardingReferenceRuleName (',' shardingReferenceRuleName)*
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+shardingReferenceRuleName ::=
   identifier
 ```
 {{% /tab %}}

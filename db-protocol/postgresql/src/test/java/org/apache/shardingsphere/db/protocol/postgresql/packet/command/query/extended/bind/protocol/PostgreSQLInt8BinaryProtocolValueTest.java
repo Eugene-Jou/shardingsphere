@@ -30,15 +30,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLInt8BinaryProtocolValueTest {
+public final class PostgreSQLInt8BinaryProtocolValueTest {
     
     @Test
-    void assertGetColumnLength() {
-        assertThat(new PostgreSQLInt8BinaryProtocolValue().getColumnLength(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), 1L), is(8));
+    public void assertGetColumnLength() {
+        assertThat(new PostgreSQLInt8BinaryProtocolValue().getColumnLength(1L), is(8));
     }
     
     @Test
-    void assertRead() {
+    public void assertRead() {
         byte[] input = new byte[]{
                 (byte) 0x80, 0, 0, 0, 0, 0, 0, 0,
                 (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
@@ -52,7 +52,7 @@ class PostgreSQLInt8BinaryProtocolValueTest {
     }
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         byte[] actual = new byte[24];
         PostgreSQLPacketPayload payload = new PostgreSQLPacketPayload(Unpooled.wrappedBuffer(actual).writerIndex(0), StandardCharsets.UTF_8);
         new PostgreSQLInt8BinaryProtocolValue().write(payload, -1);

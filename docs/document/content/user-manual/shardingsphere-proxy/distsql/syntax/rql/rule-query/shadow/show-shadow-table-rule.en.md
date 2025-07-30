@@ -1,18 +1,18 @@
 +++
-title = "SHOW SHADOW TABLE RULES"
-weight = 2
+title = "SHOW SHADOW TABLE RULE"
+weight = 3
 +++
 
 ### Description
 
-The `SHOW SHADOW TABLE RULES` syntax is used to query shadow table rules for specified database.
+The `SHOW SHADOW TABLE RULE` syntax is used to query shadow table rules for specified database.
 
 ### Syntax
 
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-ShowShadowTableRule::=
+ShowEncryptRule::=
   'SHOW' 'SHADOW' 'TABLE' 'RULES' ('FROM' databaseName)?
 
 databaseName ::=
@@ -31,7 +31,7 @@ databaseName ::=
 ### Return value description
 
 | Column                | Description           |
-|-----------------------|-----------------------|
+| --------------------- | --------------------- |
 | shadow_table          | Shadow table          |
 | shadow_algorithm_name | Shadow algorithm name |
 

@@ -27,9 +27,9 @@ import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacket
  * Bind complete packet for PostgreSQL.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PostgreSQLBindCompletePacket extends PostgreSQLPacket {
+public final class PostgreSQLBindCompletePacket implements PostgreSQLPacket {
     
-    private static final byte[] VALUE = {(byte) PostgreSQLMessagePacketType.BIND_COMPLETE.getValue(), 0, 0, 0, 4};
+    private static final byte[] VALUE = new byte[]{(byte) PostgreSQLMessagePacketType.BIND_COMPLETE.getValue(), 0, 0, 0, 4};
     
     private static final PostgreSQLBindCompletePacket INSTANCE = new PostgreSQLBindCompletePacket();
     
@@ -43,7 +43,7 @@ public final class PostgreSQLBindCompletePacket extends PostgreSQLPacket {
     }
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
         payload.getByteBuf().writeBytes(VALUE);
     }
 }

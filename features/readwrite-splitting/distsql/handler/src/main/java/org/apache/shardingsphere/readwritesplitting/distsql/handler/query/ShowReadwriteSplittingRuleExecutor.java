@@ -18,18 +18,16 @@
 package org.apache.shardingsphere.readwritesplitting.distsql.handler.query;
 
 import com.google.common.base.Joiner;
-import lombok.Setter;
-import org.apache.shardingsphere.distsql.handler.aware.DistSQLExecutorRuleAware;
-import org.apache.shardingsphere.distsql.handler.engine.query.DistSQLQueryExecutor;
-import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
+import org.apache.shardingsphere.distsql.handler.query.RQLExecutor;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.merge.result.impl.local.LocalDataQueryResultRow;
-import org.apache.shardingsphere.infra.rule.attribute.exportable.ExportableRuleAttribute;
-import org.apache.shardingsphere.infra.rule.attribute.exportable.constant.ExportableConstants;
-import org.apache.shardingsphere.infra.rule.attribute.exportable.constant.ExportableItemConstants;
-import org.apache.shardingsphere.mode.manager.ContextManager;
-import org.apache.shardingsphere.readwritesplitting.config.ReadwriteSplittingRuleConfiguration;
-import org.apache.shardingsphere.readwritesplitting.config.rule.ReadwriteSplittingDataSourceGroupRuleConfiguration;
-import org.apache.shardingsphere.readwritesplitting.distsql.statement.ShowReadwriteSplittingRulesStatement;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
+import org.apache.shardingsphere.infra.rule.identifier.type.exportable.constant.ExportableConstants;
+import org.apache.shardingsphere.infra.rule.identifier.type.exportable.constant.ExportableItemConstants;
+import org.apache.shardingsphere.infra.util.props.PropertiesConverter;
+import org.apache.shardingsphere.readwritesplitting.api.ReadwriteSplittingRuleConfiguration;
+import org.apache.shardingsphere.readwritesplitting.api.rule.ReadwriteSplittingDataSourceRuleConfiguration;
+import org.apache.shardingsphere.readwritesplitting.distsql.parser.statement.ShowReadwriteSplittingRulesStatement;
 import org.apache.shardingsphere.readwritesplitting.rule.ReadwriteSplittingRule;
 
 import java.util.Arrays;
@@ -40,25 +38,36 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Show readwrite-splitting rule executor.
+ * Show readwrite splitting rule executor.
  */
-@Setter
-public final class ShowReadwriteSplittingRuleExecutor implements DistSQLQueryExecutor<ShowReadwriteSplittingRulesStatement>, DistSQLExecutorRuleAware<ReadwriteSplittingRule> {
+public final class ShowReadwriteSplittingRuleExecutor implements RQLExecutor<ShowReadwriteSplittingRulesStatement> {
     
-    private ReadwriteSplittingRule rule;
+    private Map<String, Map<String, String>> exportableAutoAwareDataSource = Collections.emptyMap();
+    
+    private Map<String, Map<String, String>> exportableDataSourceMap = Collections.emptyMap();
     
     @Override
-    public Collection<String> getColumnNames(final ShowReadwriteSplittingRulesStatement sqlStatement) {
-        return Arrays.asList("name", "write_storage_unit_name", "read_storage_unit_names", "transactional_read_query_strategy", "load_balancer_type", "load_balancer_props");
+    public Collection<LocalDataQueryResultRow> getRows(final ShardingSphereDatabase database, final ShowReadwriteSplittingRulesStatement sqlStatement) {
+        Optional<ReadwriteSplittingRule> rule = database.getRuleMetaData().findSingleRule(ReadwriteSplittingRule.class);
+        Collection<LocalDataQueryResultRow> result = new LinkedList<>();
+        if (rule.isPresent()) {
+            buildExportableMap(rule.get());
+            result = buildData(rule.get(), sqlStatement);
+        }
+        return result;
     }
     
-    @Override
-    public Collection<LocalDataQueryResultRow> getRows(final ShowReadwriteSplittingRulesStatement sqlStatement, final ContextManager contextManager) {
+    @SuppressWarnings("unchecked")
+    private void buildExportableMap(final ReadwriteSplittingRule rule) {
+        Map<String, Object> exportedData = rule.getExportData();
+        exportableAutoAwareDataSource = (Map<String, Map<String, String>>) exportedData.get(ExportableConstants.EXPORT_DYNAMIC_READWRITE_SPLITTING_RULE);
+        exportableDataSourceMap = (Map<String, Map<String, String>>) exportedData.get(ExportableConstants.EXPORT_STATIC_READWRITE_SPLITTING_RULE);
+    }
+    
+    private Collection<LocalDataQueryResultRow> buildData(final ReadwriteSplittingRule rule, final ShowReadwriteSplittingRulesStatement sqlStatement) {
         Collection<LocalDataQueryResultRow> result = new LinkedList<>();
-        Map<String, Map<String, String>> exportableDataSourceMap = getExportableDataSourceMap(rule);
-        ReadwriteSplittingRuleConfiguration ruleConfig = rule.getConfiguration();
-        ruleConfig.getDataSourceGroups().forEach(each -> {
-            LocalDataQueryResultRow dataItem = buildDataItem(exportableDataSourceMap, each, getLoadBalancers(ruleConfig));
+        ((ReadwriteSplittingRuleConfiguration) rule.getConfiguration()).getDataSources().forEach(each -> {
+            LocalDataQueryResultRow dataItem = buildDataItem(each, getLoadBalancers((ReadwriteSplittingRuleConfiguration) rule.getConfiguration()));
             if (null == sqlStatement.getRuleName() || sqlStatement.getRuleName().equalsIgnoreCase(each.getName())) {
                 result.add(dataItem);
             }
@@ -66,22 +75,16 @@ public final class ShowReadwriteSplittingRuleExecutor implements DistSQLQueryExe
         return result;
     }
     
-    @SuppressWarnings("unchecked")
-    private Map<String, Map<String, String>> getExportableDataSourceMap(final ReadwriteSplittingRule rule) {
-        return (Map<String, Map<String, String>>) rule.getAttributes().getAttribute(ExportableRuleAttribute.class).getExportData().get(ExportableConstants.EXPORT_STATIC_READWRITE_SPLITTING_RULE);
-    }
-    
-    private LocalDataQueryResultRow buildDataItem(final Map<String, Map<String, String>> exportableDataSourceMap,
-                                                  final ReadwriteSplittingDataSourceGroupRuleConfiguration dataSourceGroupRuleConfig, final Map<String, AlgorithmConfiguration> loadBalancers) {
-        String name = dataSourceGroupRuleConfig.getName();
-        Map<String, String> exportDataSources = exportableDataSourceMap.get(name);
-        Optional<AlgorithmConfiguration> loadBalancer = Optional.ofNullable(loadBalancers.get(dataSourceGroupRuleConfig.getLoadBalancerName()));
+    private LocalDataQueryResultRow buildDataItem(final ReadwriteSplittingDataSourceRuleConfiguration dataSourceRuleConfig, final Map<String, AlgorithmConfiguration> loadBalancers) {
+        String name = dataSourceRuleConfig.getName();
+        Map<String, String> exportDataSources = null == dataSourceRuleConfig.getDynamicStrategy() ? exportableDataSourceMap.get(name) : exportableAutoAwareDataSource.get(name);
+        Optional<AlgorithmConfiguration> loadBalancer = Optional.ofNullable(loadBalancers.get(dataSourceRuleConfig.getLoadBalancerName()));
         return new LocalDataQueryResultRow(name,
-                getWriteDataSourceName(dataSourceGroupRuleConfig, exportDataSources),
-                getReadDataSourceNames(dataSourceGroupRuleConfig, exportDataSources),
-                dataSourceGroupRuleConfig.getTransactionalReadQueryStrategy().name(),
-                loadBalancer.map(AlgorithmConfiguration::getType).orElse(null),
-                loadBalancer.map(AlgorithmConfiguration::getProps).orElse(null));
+                getAutoAwareDataSourceName(dataSourceRuleConfig),
+                getWriteDataSourceName(dataSourceRuleConfig, exportDataSources),
+                getReadDataSourceNames(dataSourceRuleConfig, exportDataSources),
+                loadBalancer.map(AlgorithmConfiguration::getType).orElse(""),
+                loadBalancer.map(each -> PropertiesConverter.convert(each.getProps())).orElse(""));
     }
     
     private Map<String, AlgorithmConfiguration> getLoadBalancers(final ReadwriteSplittingRuleConfiguration ruleConfig) {
@@ -89,21 +92,27 @@ public final class ShowReadwriteSplittingRuleExecutor implements DistSQLQueryExe
         return null == loadBalancers ? Collections.emptyMap() : loadBalancers;
     }
     
-    private String getWriteDataSourceName(final ReadwriteSplittingDataSourceGroupRuleConfiguration dataSourceGroupRuleConfig, final Map<String, String> exportDataSources) {
-        return null == exportDataSources ? dataSourceGroupRuleConfig.getWriteDataSourceName() : exportDataSources.get(ExportableItemConstants.PRIMARY_DATA_SOURCE_NAME);
+    private String getAutoAwareDataSourceName(final ReadwriteSplittingDataSourceRuleConfiguration dataSourceRuleConfig) {
+        return null == dataSourceRuleConfig.getDynamicStrategy() ? "" : dataSourceRuleConfig.getDynamicStrategy().getAutoAwareDataSourceName();
     }
     
-    private String getReadDataSourceNames(final ReadwriteSplittingDataSourceGroupRuleConfiguration dataSourceGroupRuleConfig, final Map<String, String> exportDataSources) {
-        return null == exportDataSources ? Joiner.on(",").join(dataSourceGroupRuleConfig.getReadDataSourceNames()) : exportDataSources.get(ExportableItemConstants.REPLICA_DATA_SOURCE_NAMES);
+    private String getWriteDataSourceName(final ReadwriteSplittingDataSourceRuleConfiguration dataSourceRuleConfig, final Map<String, String> exportDataSources) {
+        return null == exportDataSources ? dataSourceRuleConfig.getStaticStrategy().getWriteDataSourceName() : exportDataSources.get(ExportableItemConstants.PRIMARY_DATA_SOURCE_NAME);
+    }
+    
+    private String getReadDataSourceNames(final ReadwriteSplittingDataSourceRuleConfiguration dataSourceRuleConfig, final Map<String, String> exportDataSources) {
+        return null == exportDataSources
+                ? Joiner.on(",").join(dataSourceRuleConfig.getStaticStrategy().getReadDataSourceNames())
+                : exportDataSources.get(ExportableItemConstants.REPLICA_DATA_SOURCE_NAMES);
     }
     
     @Override
-    public Class<ReadwriteSplittingRule> getRuleClass() {
-        return ReadwriteSplittingRule.class;
+    public Collection<String> getColumnNames() {
+        return Arrays.asList("name", "auto_aware_data_source_name", "write_storage_unit_name", "read_storage_unit_names", "load_balancer_type", "load_balancer_props");
     }
     
     @Override
-    public Class<ShowReadwriteSplittingRulesStatement> getType() {
-        return ShowReadwriteSplittingRulesStatement.class;
+    public String getType() {
+        return ShowReadwriteSplittingRulesStatement.class.getName();
     }
 }

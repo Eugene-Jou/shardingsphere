@@ -33,7 +33,7 @@ public final class MockedRule implements ShardingSphereRule {
     }
     
     @Override
-    public int getOrder() {
-        return -10000;
+    public String getType() {
+        return MockedRule.class.getSimpleName();
     }
 }

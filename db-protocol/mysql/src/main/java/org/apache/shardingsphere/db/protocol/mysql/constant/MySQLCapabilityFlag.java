@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Capability flag for MySQL.
  * 
- * @see <a href="https://dev.mysql.com/doc/dev/mysql-server/latest/group__group__cs__capabilities__flags.html">Capabilities Flags</a>
+ * @see <a href="https://dev.mysql.com/doc/internals/en/capability-flags.html#packet-Protocol::CapabilityFlags">CapabilityFlags</a>
  */
 @RequiredArgsConstructor
 @Getter
@@ -83,7 +83,7 @@ public enum MySQLCapabilityFlag {
     
     /**
      * Get handshake capability flags lower bit.
-     *
+     * 
      * @return handshake capability flags lower bit
      */
     public static int calculateHandshakeCapabilityFlagsLower() {
@@ -97,7 +97,7 @@ public enum MySQLCapabilityFlag {
      * @return handshake capability flags upper bit
      */
     public static int calculateHandshakeCapabilityFlagsUpper() {
-        return calculateCapabilityFlags(CLIENT_MULTI_STATEMENTS, CLIENT_PLUGIN_AUTH, CLIENT_MULTI_RESULTS, CLIENT_PS_MULTI_RESULTS) >> 16;
+        return calculateCapabilityFlags(CLIENT_PLUGIN_AUTH) >> 16;
     }
     
     /**

@@ -19,14 +19,12 @@ package org.apache.shardingsphere.test.e2e.env.container.atomic.storage;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.config.StorageContainerConfiguration;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.impl.H2Container;
-import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.impl.MariaDBContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.impl.MySQLContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.impl.OpenGaussContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.impl.PostgreSQLContainer;
-import org.apache.shardingsphere.test.e2e.env.runtime.E2ETestEnvironment;
 
 /**
  * Storage container factory.
@@ -38,36 +36,22 @@ public final class StorageContainerFactory {
      * Create new instance of storage container.
      *
      * @param databaseType database type
-     * @param storageContainerConfig storage container configuration
-     * @return created instance
-     * @throws RuntimeException runtime exception
-     */
-    public static StorageContainer newInstance(final DatabaseType databaseType, final StorageContainerConfiguration storageContainerConfig) {
-        return newInstance(databaseType, E2ETestEnvironment.getInstance().getClusterEnvironment().getDatabaseImages().get(databaseType), storageContainerConfig);
-    }
-    
-    /**
-     * Create new instance of storage container.
-     *
-     * @param databaseType database type
      * @param storageContainerImage storage container image
-     * @param storageContainerConfig storage container configuration
+     * @param scenario scenario
+     * @param storageContainerConfiguration storage container configuration
      * @return created instance
-     * @throws RuntimeException runtime exception
      */
-    public static StorageContainer newInstance(final DatabaseType databaseType, final String storageContainerImage,
-                                               final StorageContainerConfiguration storageContainerConfig) {
+    public static StorageContainer newInstance(final DatabaseType databaseType, final String storageContainerImage, final String scenario,
+                                               final StorageContainerConfiguration storageContainerConfiguration) {
         switch (databaseType.getType()) {
             case "MySQL":
-                return new MySQLContainer(storageContainerImage, storageContainerConfig);
+                return new MySQLContainer(storageContainerImage, scenario, storageContainerConfiguration);
             case "PostgreSQL":
-                return new PostgreSQLContainer(storageContainerImage, storageContainerConfig);
+                return new PostgreSQLContainer(storageContainerImage, scenario, storageContainerConfiguration);
             case "openGauss":
-                return new OpenGaussContainer(storageContainerImage, storageContainerConfig);
+                return new OpenGaussContainer(storageContainerImage, scenario, storageContainerConfiguration);
             case "H2":
-                return new H2Container(storageContainerConfig);
-            case "MariaDB":
-                return new MariaDBContainer(storageContainerImage, storageContainerConfig);
+                return new H2Container(scenario);
             default:
                 throw new RuntimeException(String.format("Database `%s` is unknown.", databaseType.getType()));
         }

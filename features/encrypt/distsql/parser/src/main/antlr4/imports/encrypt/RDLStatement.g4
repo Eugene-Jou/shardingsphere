@@ -32,23 +32,39 @@ dropEncryptRule
     ;
 
 encryptRuleDefinition
-    : tableName encryptTableRuleDefinition
+    : tableName LP_ COLUMNS LP_ encryptColumnDefinition (COMMA_ encryptColumnDefinition)* RP_ (COMMA_ QUERY_WITH_CIPHER_COLUMN EQ_ queryWithCipherColumn)? RP_
     ;
 
-encryptTableRuleDefinition
-    : LP_ COLUMNS LP_ encryptColumnDefinition (COMMA_ encryptColumnDefinition)* RP_ RP_
+resourceName
+    : IDENTIFIER_
     ;
 
 encryptColumnDefinition
-    : LP_ columnDefinition COMMA_ cipherColumnDefinition (COMMA_ assistedQueryColumnDefinition)? (COMMA_ likeQueryColumnDefinition)? COMMA_ encryptAlgorithm (COMMA_ assistedQueryAlgorithm)? (COMMA_ likeQueryAlgorithm)? RP_
+    : LP_ columnDefinition (COMMA_ plainColumnDefinition)? COMMA_ cipherColumnDefinition (COMMA_ assistedQueryColumnDefinition)? (COMMA_ likeQueryColumnDefinition)? COMMA_ encryptAlgorithm (COMMA_ assistedQueryAlgorithm)? (COMMA_ likeQueryAlgorithm)? (COMMA_ QUERY_WITH_CIPHER_COLUMN EQ_ queryWithCipherColumn)? RP_
     ;
 
 columnDefinition
-    : NAME EQ_ columnName
+    : NAME EQ_ columnName (COMMA_ DATA_TYPE EQ_ dataType)?
+    ;
+
+columnName
+    : IDENTIFIER_
+    ;
+
+dataType
+    : STRING_
+    ;
+
+plainColumnDefinition
+    : PLAIN EQ_ plainColumnName (COMMA_ PLAIN_DATA_TYPE EQ_ dataType)?
+    ;
+
+plainColumnName
+    : IDENTIFIER_
     ;
 
 cipherColumnDefinition
-    :  CIPHER EQ_ cipherColumnName
+    :  CIPHER EQ_ cipherColumnName (COMMA_ CIPHER_DATA_TYPE EQ_ dataType)?
     ;
 
 cipherColumnName
@@ -56,7 +72,7 @@ cipherColumnName
     ;
 
 assistedQueryColumnDefinition
-    : (ASSISTED_QUERY | ASSISTED_QUERY_COLUMN) EQ_ assistedQueryColumnName
+    : ASSISTED_QUERY_COLUMN EQ_ assistedQueryColumnName (COMMA_ ASSISTED_QUERY_DATA_TYPE EQ_ dataType)?
     ;
 
 assistedQueryColumnName
@@ -64,7 +80,7 @@ assistedQueryColumnName
     ;
 
 likeQueryColumnDefinition
-    : (LIKE_QUERY | LIKE_QUERY_COLUMN) EQ_ likeQueryColumnName
+    : LIKE_QUERY_COLUMN EQ_ likeQueryColumnName (COMMA_ LIKE_QUERY_DATA_TYPE EQ_ dataType)?
     ;
 
 likeQueryColumnName
@@ -83,3 +99,14 @@ likeQueryAlgorithm
     : LIKE_QUERY_ALGORITHM LP_ algorithmDefinition RP_
     ;
 
+queryWithCipherColumn
+    : TRUE | FALSE
+    ;
+
+ifExists
+    : IF EXISTS
+    ;
+
+ifNotExists
+    : IF NOT EXISTS
+    ;

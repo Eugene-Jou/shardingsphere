@@ -1,6 +1,6 @@
 +++
 title = "CREATE MASK RULE"
-weight = 1
+weight = 2
 +++
 
 ## Description
@@ -12,7 +12,7 @@ The `CREATE MASK RULE` syntax is used to create a mask rule.
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-CreateMaskRule ::=
+CreateEncryptRule ::=
   'CREATE' 'MASK' 'RULE' ifNotExists? maskRuleDefinition (',' maskRuleDefinition)*
 
 ifNotExists ::=
@@ -25,7 +25,7 @@ columnDefinition ::=
   '(' 'NAME' '=' columnName ',' maskAlgorithmDefinition ')'
 
 maskAlgorithmDefinition ::=
-  'TYPE' '(' 'NAME' '=' algorithmType (',' propertiesDefinition)? ')'
+  'TYPE' '(' 'NAME' '=' maskAlgorithmType (',' propertiesDefinition)? ')'
 
 propertiesDefinition ::=
   'PROPERTIES' '(' key '=' value (',' key '=' value)* ')'
@@ -36,7 +36,7 @@ ruleName ::=
 columnName ::=
   identifier
 
-algorithmType ::=
+maskAlgorithmType ::=
   literal
 
 key ::=
@@ -53,7 +53,7 @@ value ::=
 
 ### Note
 
-- `algorithmType` specifies the data masking algorithm type. For more details, please refer to [Data Masking Algorithm](/en/user-manual/common-config/builtin-algorithm/mask/);
+- `maskAlgorithmType` specifies the data masking algorithm type. For more details, please refer to [Data Masking Algorithm](/en/user-manual/common-config/builtin-algorithm/mask/);
 - Duplicate `ruleName` will not be created;
 - `ifNotExists` clause is used for avoid `Duplicate mask rule` error.
 

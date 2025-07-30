@@ -23,20 +23,21 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.db.protocol.constant.CommonConstants;
-import org.apache.shardingsphere.infra.executor.sql.process.ProcessEngine;
+import org.apache.shardingsphere.db.protocol.payload.PacketPayload;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.executor.sql.process.ExecuteProcessEngine;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.authentication.result.AuthenticationResult;
-import org.apache.shardingsphere.proxy.frontend.exception.ExpectedExceptions;
+import org.apache.shardingsphere.proxy.frontend.authentication.AuthenticationResult;
 import org.apache.shardingsphere.proxy.frontend.executor.ConnectionThreadExecutorGroup;
 import org.apache.shardingsphere.proxy.frontend.executor.UserExecutorGroup;
 import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngine;
 import org.apache.shardingsphere.proxy.frontend.state.ProxyStateContext;
+import org.apache.shardingsphere.transaction.rule.TransactionRule;
 
-import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Frontend channel inbound handler.
@@ -48,13 +49,12 @@ public final class FrontendChannelInboundHandler extends ChannelInboundHandlerAd
     
     private final ConnectionSession connectionSession;
     
-    private final ProcessEngine processEngine = new ProcessEngine();
-    
-    private final AtomicBoolean authenticated = new AtomicBoolean(false);
+    private volatile boolean authenticated;
     
     public FrontendChannelInboundHandler(final DatabaseProtocolFrontendEngine databaseProtocolFrontendEngine, final Channel channel) {
         this.databaseProtocolFrontendEngine = databaseProtocolFrontendEngine;
-        connectionSession = new ConnectionSession(databaseProtocolFrontendEngine.getType(), channel);
+        connectionSession = new ConnectionSession(TypedSPILoader.getService(DatabaseType.class, databaseProtocolFrontendEngine.getType()),
+                ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getGlobalRuleMetaData().getSingleRule(TransactionRule.class).getDefaultType(), channel);
     }
     
     @Override
@@ -66,35 +66,28 @@ public final class FrontendChannelInboundHandler extends ChannelInboundHandlerAd
     
     @Override
     public void channelRead(final ChannelHandlerContext context, final Object message) {
-        if (!authenticated.get()) {
-            authenticated.set(authenticate(context, (ByteBuf) message));
+        if (!authenticated) {
+            authenticated = authenticate(context, (ByteBuf) message);
             return;
         }
         ProxyStateContext.execute(context, message, databaseProtocolFrontendEngine, connectionSession);
     }
     
     private boolean authenticate(final ChannelHandlerContext context, final ByteBuf message) {
-        try {
-            AuthenticationResult authResult = databaseProtocolFrontendEngine.getAuthenticationEngine().authenticate(context,
-                    databaseProtocolFrontendEngine.getCodecEngine().createPacketPayload(message, context.channel().attr(CommonConstants.CHARSET_ATTRIBUTE_KEY).get()));
+        try (PacketPayload payload = databaseProtocolFrontendEngine.getCodecEngine().createPacketPayload(message, context.channel().attr(CommonConstants.CHARSET_ATTRIBUTE_KEY).get())) {
+            AuthenticationResult authResult = databaseProtocolFrontendEngine.getAuthenticationEngine().authenticate(context, payload);
             if (authResult.isFinished()) {
                 connectionSession.setGrantee(new Grantee(authResult.getUsername(), authResult.getHostname()));
-                connectionSession.setCurrentDatabaseName(authResult.getDatabase());
-                connectionSession.setProcessId(processEngine.connect(connectionSession.getUsedDatabaseName(), connectionSession.getConnectionContext().getGrantee()));
+                connectionSession.setCurrentDatabase(authResult.getDatabase());
+                connectionSession.setExecutionId(new ExecuteProcessEngine().initializeConnection(connectionSession.getGrantee(), connectionSession.getDatabaseName()));
             }
             return authResult.isFinished();
             // CHECKSTYLE:OFF
         } catch (final Exception ex) {
             // CHECKSTYLE:ON
-            if (ExpectedExceptions.isExpected(ex.getClass())) {
-                log.debug("Exception occur: ", ex);
-            } else {
-                log.error("Exception occur: ", ex);
-            }
+            log.error("Exception occur: ", ex);
             context.writeAndFlush(databaseProtocolFrontendEngine.getCommandExecuteEngine().getErrorPacket(ex));
             context.close();
-        } finally {
-            message.release();
         }
         return false;
     }
@@ -107,34 +100,15 @@ public final class FrontendChannelInboundHandler extends ChannelInboundHandlerAd
     
     private void closeAllResources() {
         ConnectionThreadExecutorGroup.getInstance().unregisterAndAwaitTermination(connectionSession.getConnectionId());
-        processCloseExceptions(connectionSession.getDatabaseConnectionManager().closeAllResources());
-        Optional.ofNullable(connectionSession.getProcessId()).ifPresent(processEngine::disconnect);
+        connectionSession.getBackendConnection().closeAllResources();
+        Optional.ofNullable(connectionSession.getExecutionId()).ifPresent(new ExecuteProcessEngine()::finishConnection);
         databaseProtocolFrontendEngine.release(connectionSession);
-    }
-    
-    private void processCloseExceptions(final Collection<SQLException> exceptions) {
-        if (exceptions.isEmpty()) {
-            return;
-        }
-        SQLException ex = new SQLException("");
-        for (SQLException each : exceptions) {
-            ex.setNextException(each);
-        }
-        processException(ex);
-    }
-    
-    private void processException(final Exception cause) {
-        if (ExpectedExceptions.isExpected(cause.getClass())) {
-            log.debug("Exception occur: ", cause);
-        } else {
-            log.error("Exception occur: ", cause);
-        }
     }
     
     @Override
     public void channelWritabilityChanged(final ChannelHandlerContext context) {
         if (context.channel().isWritable()) {
-            connectionSession.getDatabaseConnectionManager().getConnectionResourceLock().doNotify();
+            connectionSession.getBackendConnection().getResourceLock().doNotify();
         }
     }
 }

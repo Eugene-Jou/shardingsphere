@@ -14,7 +14,7 @@ weight = 1
 ```xml
 <dependency>
     <groupId>org.apache.shardingsphere</groupId>
-    <artifactId>shardingsphere-jdbc</artifactId>
+    <artifactId>shardingsphere-jdbc-core</artifactId>
     <version>${shardingsphere.version}</version>
 </dependency>
 
@@ -25,7 +25,7 @@ weight = 1
     <version>${shardingsphere.version}</version>
 </dependency>
 
-<!-- 使用 XA 的 Narayana 模式时，需要引入此模块 -->
+<!-- 使用 XA 的 Narayana模式时，需要引入此模块 -->
 <dependency>
     <groupId>org.apache.shardingsphere</groupId>
     <artifactId>shardingsphere-transaction-xa-narayana</artifactId>
@@ -40,20 +40,22 @@ weight = 1
 </dependency>
 ```
 
+
 ## 操作步骤
 
-使用事务执行业务逻辑
+1. 设置事务类型
+2. 执行业务逻辑
 
 ## 配置示例
 
 ```java
-// 使用 ShardingSphereDataSource 获取连接，执行事务操作
-try (Connection connection = dataSource.getConnection()) {
-    connection.setAutoCommit(false);
-    PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO t_order (user_id, status) VALUES (?, ?)");
-    preparedStatement.setObject(1, 1000);
-    preparedStatement.setObject(2, "init");
-    preparedStatement.executeUpdate();
-    connection.commit();
-}
+TransactionTypeHolder.set(TransactionType.XA); // 支持 TransactionType.LOCAL, TransactionType.XA, TransactionType.BASE
+        try (Connection conn = dataSource.getConnection()) { // 使用 ShardingSphereDataSource
+        conn.setAutoCommit(false);
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO t_order (user_id, status) VALUES (?, ?)");
+        ps.setObject(1, 1000);
+        ps.setObject(2, "init");
+        ps.executeUpdate();
+        conn.commit();
+        }
 ```

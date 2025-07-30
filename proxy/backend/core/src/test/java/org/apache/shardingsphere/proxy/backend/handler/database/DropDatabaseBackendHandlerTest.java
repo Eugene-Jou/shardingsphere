@@ -18,35 +18,31 @@
 package org.apache.shardingsphere.proxy.backend.handler.database;
 
 import org.apache.shardingsphere.authority.rule.AuthorityRule;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.exception.dialect.exception.syntax.database.DatabaseDropNotExistsException;
+import org.apache.shardingsphere.dialect.exception.syntax.database.DatabaseDropNotExistsException;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.response.header.ResponseHeader;
 import org.apache.shardingsphere.proxy.backend.response.header.update.UpdateResponseHeader;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.database.DropDatabaseStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.DropDatabaseStatement;
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
 import org.apache.shardingsphere.test.mock.StaticMockSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -57,9 +53,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(AutoMockExtension.class)
 @StaticMockSettings(ProxyContext.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class DropDatabaseBackendHandlerTest {
+public final class DropDatabaseBackendHandlerTest {
     
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    @Mock
     private ConnectionSession connectionSession;
     
     @Mock
@@ -68,76 +64,67 @@ class DropDatabaseBackendHandlerTest {
     private DropDatabaseBackendHandler handler;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         ContextManager contextManager = mockContextManager();
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
         when(ProxyContext.getInstance().databaseExists("foo_db")).thenReturn(true);
         when(ProxyContext.getInstance().databaseExists("bar_db")).thenReturn(true);
-        when(connectionSession.getConnectionContext().getGrantee()).thenReturn(null);
         handler = new DropDatabaseBackendHandler(sqlStatement, connectionSession);
     }
     
-    private ContextManager mockContextManager() {
-        ShardingSphereDatabase database1 = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
-        when(database1.getName()).thenReturn("foo_db");
-        ShardingSphereDatabase database2 = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
-        when(database2.getName()).thenReturn("bar_db");
+    private static ContextManager mockContextManager() {
+        Map<String, ShardingSphereDatabase> databases = new HashMap<>(2, 1);
+        ShardingSphereDatabase database = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
+        when(database.getRuleMetaData().getRules()).thenReturn(Collections.emptyList());
+        databases.put("foo_db", database);
+        databases.put("bar_db", database);
         MetaDataContexts metaDataContexts = mock(MetaDataContexts.class, RETURNS_DEEP_STUBS);
-        when(metaDataContexts.getMetaData().getAllDatabases()).thenReturn(Arrays.asList(database1, database2));
-        when(metaDataContexts.getMetaData().getDatabase("foo_db")).thenReturn(database1);
-        when(metaDataContexts.getMetaData().getDatabase("bar_db")).thenReturn(database2);
-        when(metaDataContexts.getMetaData().getDatabase("test_not_exist_db")).thenReturn(mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS));
-        when(metaDataContexts.getMetaData().getGlobalRuleMetaData()).thenReturn(new RuleMetaData(Collections.singleton(mock(AuthorityRule.class))));
+        when(metaDataContexts.getMetaData().getDatabases()).thenReturn(databases);
+        when(metaDataContexts.getMetaData().getDatabase("foo_db")).thenReturn(database);
+        when(metaDataContexts.getMetaData().getDatabase("bar_db")).thenReturn(database);
+        when(metaDataContexts.getMetaData().getDatabase("test_not_exist_db")).thenReturn(database);
+        when(metaDataContexts.getMetaData().getGlobalRuleMetaData()).thenReturn(new ShardingSphereRuleMetaData(Collections.singleton(mock(AuthorityRule.class))));
         ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
         when(result.getMetaDataContexts()).thenReturn(metaDataContexts);
         return result;
     }
     
     @Test
-    void assertExecuteDropNotExistDatabase() {
+    public void assertExecuteDropNotExistDatabase() {
         when(sqlStatement.getDatabaseName()).thenReturn("test_not_exist_db");
         assertThrows(DatabaseDropNotExistsException.class, () -> handler.execute());
     }
     
     @Test
-    void assertExecuteDropNotExistDatabaseWithIfExists() {
+    public void assertExecuteDropNotExistDatabaseWithIfExists() {
         when(sqlStatement.getDatabaseName()).thenReturn("test_not_exist_db");
         when(sqlStatement.isIfExists()).thenReturn(true);
-        assertDoesNotThrow(() -> handler.execute());
+        handler.execute();
     }
     
     @Test
-    void assertExecuteDropWithoutCurrentDatabase() throws SQLException {
+    public void assertExecuteDropWithoutCurrentDatabase() {
         when(sqlStatement.getDatabaseName()).thenReturn("foo_db");
         ResponseHeader responseHeader = handler.execute();
-        verify(connectionSession, times(0)).setCurrentDatabaseName(null);
+        verify(connectionSession, times(0)).setCurrentDatabase(null);
         assertThat(responseHeader, instanceOf(UpdateResponseHeader.class));
     }
     
     @Test
-    void assertExecuteDropCurrentDatabaseWithMySQL() throws SQLException {
-        when(connectionSession.getUsedDatabaseName()).thenReturn("foo_db");
-        when(connectionSession.getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "MySQL"));
+    public void assertExecuteDropCurrentDatabase() {
+        when(connectionSession.getDatabaseName()).thenReturn("foo_db");
         when(sqlStatement.getDatabaseName()).thenReturn("foo_db");
         ResponseHeader responseHeader = handler.execute();
-        verify(connectionSession).setCurrentDatabaseName(null);
+        verify(connectionSession).setCurrentDatabase(null);
         assertThat(responseHeader, instanceOf(UpdateResponseHeader.class));
     }
     
     @Test
-    void assertExecuteDropCurrentDatabaseWithPostgreSQL() {
-        when(connectionSession.getUsedDatabaseName()).thenReturn("foo_db");
-        when(connectionSession.getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "PostgreSQL"));
-        when(sqlStatement.getDatabaseName()).thenReturn("foo_db");
-        assertThrows(UnsupportedOperationException.class, () -> handler.execute());
-    }
-    
-    @Test
-    void assertExecuteDropOtherDatabase() throws SQLException {
-        when(connectionSession.getUsedDatabaseName()).thenReturn("foo_db");
+    public void assertExecuteDropOtherDatabase() {
+        when(connectionSession.getDatabaseName()).thenReturn("foo_db");
         when(sqlStatement.getDatabaseName()).thenReturn("bar_db");
         ResponseHeader responseHeader = handler.execute();
-        verify(connectionSession, times(0)).setCurrentDatabaseName(null);
+        verify(connectionSession, times(0)).setCurrentDatabase(null);
         assertThat(responseHeader, instanceOf(UpdateResponseHeader.class));
     }
 }

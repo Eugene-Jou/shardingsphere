@@ -26,21 +26,21 @@ import net.bytebuddy.pool.TypePool.Default;
 import net.bytebuddy.utility.JavaModule;
 import org.apache.shardingsphere.agent.api.PluginConfiguration;
 import org.apache.shardingsphere.agent.core.advisor.config.AdvisorConfiguration;
+import org.apache.shardingsphere.agent.core.advisor.config.AdvisorConfigurationLoader;
 import org.apache.shardingsphere.agent.core.advisor.config.MethodAdvisorConfiguration;
 import org.apache.shardingsphere.agent.core.builder.interceptor.AgentBuilderInterceptChainEngine;
 import org.apache.shardingsphere.agent.core.builder.interceptor.impl.MethodAdvisorBuilderInterceptor;
 import org.apache.shardingsphere.agent.core.builder.interceptor.impl.TargetAdviceObjectBuilderInterceptor;
+import org.apache.shardingsphere.agent.core.classloader.AgentExtraClassLoader;
+import org.apache.shardingsphere.agent.core.classloader.ClassLoaderContext;
+import org.apache.shardingsphere.agent.core.log.AgentLogger;
+import org.apache.shardingsphere.agent.core.log.AgentLoggerFactory;
 import org.apache.shardingsphere.agent.core.plugin.PluginLifecycleServiceManager;
-import org.apache.shardingsphere.agent.core.plugin.classloader.AgentPluginClassLoader;
-import org.apache.shardingsphere.agent.core.plugin.classloader.ClassLoaderContext;
 
-import java.security.ProtectionDomain;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Agent transformer.
@@ -48,9 +48,9 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public final class AgentTransformer implements Transformer {
     
-    private static final Logger LOGGER = Logger.getLogger(AgentTransformer.class.getName());
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(AdvisorConfigurationLoader.class);
     
-    private static final Map<AgentPluginClassLoader, TypePool> TYPE_POOL_MAP = new ConcurrentHashMap<>();
+    private static final Map<AgentExtraClassLoader, TypePool> TYPE_POOL_MAP = new ConcurrentHashMap<>();
     
     private final Map<String, PluginConfiguration> pluginConfigs;
     
@@ -62,7 +62,7 @@ public final class AgentTransformer implements Transformer {
     
     @SuppressWarnings("NullableProblems")
     @Override
-    public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module, final ProtectionDomain protectionDomain) {
+    public Builder<?> transform(final Builder<?> builder, final TypeDescription typeDescription, final ClassLoader classLoader, final JavaModule module) {
         if (!advisorConfigs.containsKey(typeDescription.getTypeName())) {
             return builder;
         }
@@ -79,12 +79,12 @@ public final class AgentTransformer implements Transformer {
                 result.getAdvisors().add(each);
                 continue;
             }
-            LOGGER.log(Level.SEVERE, "The advice class `{0}` does not exist", new String[]{each.getAdviceClassName()});
+            LOGGER.error("The advice class `{}` does not exist", each.getAdviceClassName());
         }
         return result;
     }
     
-    private boolean isExist(final String adviceClassName, final AgentPluginClassLoader pluginClassLoader) {
+    private boolean isExist(final String adviceClassName, final AgentExtraClassLoader pluginClassLoader) {
         TypePool typePool = TYPE_POOL_MAP.get(pluginClassLoader);
         return null == typePool ? TYPE_POOL_MAP.computeIfAbsent(pluginClassLoader, Default::of).describe(adviceClassName).isResolved() : typePool.describe(adviceClassName).isResolved();
     }

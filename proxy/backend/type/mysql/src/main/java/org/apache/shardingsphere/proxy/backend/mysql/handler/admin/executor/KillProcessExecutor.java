@@ -18,22 +18,17 @@
 package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
-import org.apache.shardingsphere.infra.exception.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.mode.process.event.KillProcessListIdRequestEvent;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminExecutor;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.MySQLKillStatement;
-
-import java.sql.SQLException;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLKillStatement;
 
 /**
  * Kill process executor.
  */
 @RequiredArgsConstructor
 public final class KillProcessExecutor implements DatabaseAdminExecutor {
-    
-    private static final String QUERY_SCOPE = "QUERY";
     
     private final MySQLKillStatement killStatement;
     
@@ -43,10 +38,8 @@ public final class KillProcessExecutor implements DatabaseAdminExecutor {
      * @param connectionSession connection session
      */
     @Override
-    public void execute(final ConnectionSession connectionSession) throws SQLException {
-        ShardingSpherePreconditions.checkState(QUERY_SCOPE.equalsIgnoreCase(killStatement.getScope()),
-                () -> new UnsupportedSQLOperationException("Only `KILL QUERY <processId>` SQL syntax is supported"));
-        String processId = killStatement.getProcessId();
-        ProxyContext.getInstance().getContextManager().getPersistServiceFacade().getModeFacade().getProcessService().killProcess(processId);
+    public void execute(final ConnectionSession connectionSession) {
+        String processlistId = killStatement.getProcesslistId();
+        ProxyContext.getInstance().getContextManager().getInstanceContext().getEventBusContext().post(new KillProcessListIdRequestEvent(processlistId));
     }
 }

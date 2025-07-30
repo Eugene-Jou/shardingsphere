@@ -19,7 +19,6 @@ package org.apache.shardingsphere.agent.core.advisor.config.yaml.fixture;
 
 import lombok.NoArgsConstructor;
 
-@SuppressWarnings("unused")
 @NoArgsConstructor
 public final class YamlTargetObjectFixture {
     
@@ -36,10 +35,8 @@ public final class YamlTargetObjectFixture {
      * Call instance method.
      *
      * @param value value
-     * @return value
      */
-    public static String call(final String value) {
-        return value;
+    public void call(final String value) {
     }
     
     /**

@@ -23,9 +23,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.Calendar;
 
 /**
  * Binary protocol value for time for MySQL.
@@ -52,19 +50,22 @@ public final class MySQLTimeBinaryProtocolValue implements MySQLBinaryProtocolVa
     }
     
     private Timestamp getTimestamp(final MySQLPacketPayload payload) {
-        Timestamp result = Timestamp.valueOf(LocalDateTime.of(0, 1, 1, payload.readInt1(), payload.readInt1(), payload.readInt1()));
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(0, Calendar.JANUARY, 0, payload.readInt1(), payload.readInt1(), payload.readInt1());
+        Timestamp result = new Timestamp(calendar.getTimeInMillis());
         result.setNanos(0);
         return result;
     }
     
     @Override
     public void write(final MySQLPacketPayload payload, final Object value) {
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(((Time) value).getTime()), ZoneId.systemDefault());
-        int hours = localDateTime.getHour();
-        int minutes = localDateTime.getMinute();
-        int seconds = localDateTime.getSecond();
-        int nanos = localDateTime.getNano();
-        boolean isTimeAbsent = 0 == hours && 0 == minutes && 0 == seconds;
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(((Time) value).getTime());
+        int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+        int minutes = calendar.get(Calendar.MINUTE);
+        int seconds = calendar.get(Calendar.SECOND);
+        int nanos = new Timestamp(calendar.getTimeInMillis()).getNanos();
+        boolean isTimeAbsent = 0 == hourOfDay && 0 == minutes && 0 == seconds;
         boolean isNanosAbsent = 0 == nanos;
         if (isTimeAbsent && isNanosAbsent) {
             payload.writeInt1(0);
@@ -72,11 +73,11 @@ public final class MySQLTimeBinaryProtocolValue implements MySQLBinaryProtocolVa
         }
         if (isNanosAbsent) {
             payload.writeInt1(8);
-            writeTime(payload, hours, minutes, seconds);
+            writeTime(payload, hourOfDay, minutes, seconds);
             return;
         }
         payload.writeInt1(12);
-        writeTime(payload, hours, minutes, seconds);
+        writeTime(payload, hourOfDay, minutes, seconds);
         writeNanos(payload, nanos);
     }
     

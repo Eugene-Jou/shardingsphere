@@ -26,8 +26,6 @@ import org.apache.shardingsphere.infra.datanode.DataNodeInfo;
 
 /**
  * Sharding value for range.
- * 
- * @param <T> type of sharding value
  */
 @RequiredArgsConstructor
 @Getter

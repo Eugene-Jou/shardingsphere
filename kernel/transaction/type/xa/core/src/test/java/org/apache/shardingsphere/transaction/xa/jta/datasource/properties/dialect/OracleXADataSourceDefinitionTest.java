@@ -24,10 +24,10 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class OracleXADataSourceDefinitionTest {
+public final class OracleXADataSourceDefinitionTest {
     
     @Test
-    void assertGetXADriverClassName() {
+    public void assertGetXADriverClassName() {
         assertThat(new OracleXADataSourceDefinition().getXADriverClassNames(), is(Collections.singletonList("oracle.jdbc.xa.client.OracleXADataSource")));
     }
 }

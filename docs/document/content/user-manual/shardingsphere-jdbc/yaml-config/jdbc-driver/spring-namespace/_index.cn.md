@@ -15,7 +15,7 @@ ShardingSphere 提供 JDBC 驱动，开发者可以在 Spring 中配置 `Shardin
 ```xml
 <dependency>
     <groupId>org.apache.shardingsphere</groupId>
-    <artifactId>shardingsphere-jdbc</artifactId>
+    <artifactId>shardingsphere-jdbc-core</artifactId>
     <version>${shardingsphere.version}</version>
 </dependency>
 ```
@@ -24,10 +24,10 @@ ShardingSphere 提供 JDBC 驱动，开发者可以在 Spring 中配置 `Shardin
 
 #### 配置项说明
 
-| *名称*        | *类型* | *说明*                                     |
-|-------------|------|------------------------------------------|
-| driverClass | 属性   | 数据库 Driver，这里需要指定使用 ShardingSphereDriver |
-| url         | 属性   | YAML 配置文件路径                              |
+| *名称*             | *类型*    | *说明*                                              |
+|-------------------|----------|-----------------------------------------------------|
+| driverClass       | 属性      | 数据库 Driver，这里需要指定使用 ShardingSphereDriver    |
+| url               | 属性      | YAML 配置文件路径                                     |
 
 #### 配置示例
 
@@ -37,7 +37,7 @@ ShardingSphere 提供 JDBC 驱动，开发者可以在 Spring 中配置 `Shardin
        xsi:schemaLocation="http://www.springframework.org/schema/beans 
                            http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-    <bean id="shardingDataSource" class="com.zaxxer.hikari.HikariDataSource">
+    <bean id="shardingDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
         <property name="driverClass" value="org.apache.shardingsphere.driver.ShardingSphereDriver" />
         <property name="url" value="jdbc:shardingsphere:classpath:xxx.yaml" />
     </bean>

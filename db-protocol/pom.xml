@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.shardingsphere</groupId>
         <artifactId>shardingsphere</artifactId>
-        <version>5.5.3-SNAPSHOT</version>
+        <version>5.3.2</version>
     </parent>
     <artifactId>shardingsphere-db-protocol</artifactId>
     <packaging>pom</packaging>
@@ -32,6 +32,13 @@
         <module>postgresql</module>
         <module>mysql</module>
         <module>opengauss</module>
-        <module>firebird</module>
     </modules>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-sql-parser-statement</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 </project>

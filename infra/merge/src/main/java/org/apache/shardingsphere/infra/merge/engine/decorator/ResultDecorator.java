@@ -17,7 +17,8 @@
 
 package org.apache.shardingsphere.infra.merge.engine.decorator;
 
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
 
@@ -31,13 +32,24 @@ import java.sql.SQLException;
 public interface ResultDecorator<T extends ShardingSphereRule> {
     
     /**
-     * Decorate merged result.
+     * Decorate query result.
      *
+     * @param queryResult query result
+     * @param sqlStatementContext SQL statement context
+     * @param rule ShardingSphere rule
+     * @return merged result
+     * @throws SQLException SQL exception
+     */
+    MergedResult decorate(QueryResult queryResult, SQLStatementContext<?> sqlStatementContext, T rule) throws SQLException;
+    
+    /**
+     * Decorate merged result.
+     * 
      * @param mergedResult merged result
      * @param sqlStatementContext SQL statement context
      * @param rule ShardingSphere rule
      * @return merged result
      * @throws SQLException SQL exception
      */
-    MergedResult decorate(MergedResult mergedResult, SQLStatementContext sqlStatementContext, T rule) throws SQLException;
+    MergedResult decorate(MergedResult mergedResult, SQLStatementContext<?> sqlStatementContext, T rule) throws SQLException;
 }

@@ -23,6 +23,7 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,47 +31,43 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class LocalDataMergedResultTest {
+public final class LocalDataMergedResultTest {
     
     @Test
-    void assertNext() {
+    public void assertNext() {
         LocalDataQueryResultRow row = new LocalDataQueryResultRow("value");
-        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singleton(row));
+        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singletonList(row));
         assertTrue(actual.next());
         assertFalse(actual.next());
     }
     
     @Test
-    void assertGetValue() {
+    public void assertGetValue() {
         LocalDataQueryResultRow row = new LocalDataQueryResultRow("value");
-        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singleton(row));
+        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singletonList(row));
         assertTrue(actual.next());
         assertThat(actual.getValue(1, Object.class).toString(), is("value"));
     }
     
     @Test
-    void assertGetCalendarValue() {
+    public void assertGetCalendarValue() {
         LocalDataQueryResultRow row = new LocalDataQueryResultRow(new Date(0L));
-        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singleton(row));
+        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singletonList(row));
         assertTrue(actual.next());
-        assertThat(actual.getCalendarValue(1, Object.class, Calendar.getInstance()), is("0"));
+        assertThat(actual.getCalendarValue(1, Object.class, Calendar.getInstance()), is(new Date(0L)));
     }
     
     @Test
-    void assertGetInputStream() {
-        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singleton(new LocalDataQueryResultRow("value")));
+    public void assertGetInputStream() {
+        List<Object> row = Collections.singletonList("value");
+        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singletonList(new LocalDataQueryResultRow(row)));
         assertThrows(SQLFeatureNotSupportedException.class, () -> actual.getInputStream(1, "Ascii"));
     }
     
     @Test
-    void assertGetCharacterStream() {
-        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singleton(new LocalDataQueryResultRow("value")));
-        assertThrows(SQLFeatureNotSupportedException.class, () -> actual.getCharacterStream(1));
-    }
-    
-    @Test
-    void assertWasNull() {
-        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singleton(new LocalDataQueryResultRow("value")));
+    public void assertWasNull() {
+        List<Object> row = Collections.singletonList("value");
+        LocalDataMergedResult actual = new LocalDataMergedResult(Collections.singletonList(new LocalDataQueryResultRow(row)));
         assertTrue(actual.next());
         assertFalse(actual.wasNull());
     }

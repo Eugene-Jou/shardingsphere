@@ -33,6 +33,4 @@ public final class YamlUserConfiguration implements YamlConfiguration {
     private String password;
     
     private String authenticationMethodName;
-    
-    private boolean admin;
 }

@@ -23,10 +23,11 @@ ShowSqlParserRule ::=
 
 ### Return Value Description
 
-| Column                    | Description                       |
-|---------------------------|-----------------------------------|
-| parse_tree_cache          | parse tree cache configuration    |
-| sql_statement_cache       | SQL statement cache configuration |
+| Colume                    | Description                        |
+|---------------------------|------------------------------------|
+| sql_comment_parse_enable  | sql comment parse enable status    |
+| parse_tree_cache          | parse tree cache configuration     |
+| sql_statement_cache       | sql statement cache configuration  |
 
 ### Example
 
@@ -38,11 +39,11 @@ SHOW SQL_PARSER RULE;
 
 ```sql
 mysql> SHOW SQL_PARSER RULE;
-+-----------------------------------------+-------------------------------------------+
-| parse_tree_cache                        | sql_statement_cache                       |
-+-----------------------------------------+-------------------------------------------+
-| initialCapacity: 128, maximumSize: 1024 | initialCapacity: 2000, maximumSize: 65535 |
-+-----------------------------------------+-------------------------------------------+
++--------------------------+-----------------------------------------+-------------------------------------------+
+| sql_comment_parse_enable | parse_tree_cache                        | sql_statement_cache                       |
++--------------------------+-----------------------------------------+-------------------------------------------+
+| false                    | initialCapacity: 128, maximumSize: 1024 | initialCapacity: 2000, maximumSize: 65535 |
++--------------------------+-----------------------------------------+-------------------------------------------+
 1 row in set (0.05 sec)
 ```
 

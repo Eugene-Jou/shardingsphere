@@ -1,6 +1,6 @@
 +++
 title = "SHOW UNUSED SHARDING AUDITORS"
-weight = 8
+weight = 9
 +++
 
 ### 描述
@@ -31,11 +31,11 @@ databaseName ::=
 
 ### 返回值说明
 
-| 列     | 说明       |
-|-------|----------|
-| name  | 分片审计器名称  |
-| type  | 分片审计算法类型 |
-| props | 分片审计算法参数 |
+| 列                      | 说明          |
+| -----------------------|---------------|
+| name                   | 分片审计器名称  |
+| type                   | 分片审计算法类型 |
+| props                  | 分片审计算法参数 |
 
 ### 示例
 
@@ -50,7 +50,7 @@ mysql> SHOW UNUSED SHARDING AUDITORS FROM sharding_db;
 +-------------------------------+-------------------------+-------+
 | name                          | type                    | props |
 +-------------------------------+-------------------------+-------+
-| sharding_key_required_auditor | dml_sharding_conditions |       |
+| sharding_key_required_auditor | dml_sharding_conditions | {}    |
 +-------------------------------+-------------------------+-------+
 1 row in set (0.00 sec)
 ```
@@ -66,7 +66,7 @@ mysql> SHOW UNUSED SHARDING AUDITORS;
 +-------------------------------+-------------------------+-------+
 | name                          | type                    | props |
 +-------------------------------+-------------------------+-------+
-| sharding_key_required_auditor | dml_sharding_conditions |       |
+| sharding_key_required_auditor | dml_sharding_conditions | {}    |
 +-------------------------------+-------------------------+-------+
 1 row in set (0.00 sec)
 ```

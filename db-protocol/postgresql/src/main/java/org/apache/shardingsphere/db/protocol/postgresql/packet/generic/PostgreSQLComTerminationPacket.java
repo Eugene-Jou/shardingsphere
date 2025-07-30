@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.db.protocol.postgresql.packet.generic;
 
+import lombok.ToString;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.PostgreSQLCommandPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.PostgreSQLCommandPacketType;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.identifier.PostgreSQLIdentifierTag;
@@ -25,6 +26,7 @@ import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacket
 /**
  * Command termination packet for PostgreSQL.
  */
+@ToString
 public final class PostgreSQLComTerminationPacket extends PostgreSQLCommandPacket {
     
     public PostgreSQLComTerminationPacket(final PostgreSQLPacketPayload payload) {
@@ -32,7 +34,7 @@ public final class PostgreSQLComTerminationPacket extends PostgreSQLCommandPacke
     }
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
     }
     
     @Override

@@ -38,14 +38,11 @@ public class ExpectedAggregationProjection extends AbstractExpectedSQLSegment im
     @XmlAttribute
     private String type;
     
-    @XmlAttribute
-    private String expression;
+    @XmlAttribute(name = "inner-expression")
+    private String innerExpression;
     
     @XmlAttribute
     private String alias;
-    
-    @XmlAttribute
-    private String separator;
     
     @XmlElement(name = "parameters")
     private final List<ExpectedExpression> parameters = new LinkedList<>();

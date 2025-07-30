@@ -1,6 +1,6 @@
 +++
 title = "ALTER MASK RULE"
-weight = 2
+weight = 3
 +++
 
 ## Description
@@ -12,7 +12,7 @@ The `ALTER MASK RULE` syntax is used to create a mask rule.
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-AlterMaskRule ::=
+AlterEncryptRule ::=
   'ALTER' 'MASK' 'RULE' maskRuleDefinition (',' maskRuleDefinition)*
 
 maskRuleDefinition ::=
@@ -22,7 +22,7 @@ columnDefinition ::=
   '(' 'NAME' '=' columnName ',' maskAlgorithmDefinition ')'
 
 maskAlgorithmDefinition ::=
-  'TYPE' '(' 'NAME' '=' algorithmType (',' propertiesDefinition)? ')'
+  'TYPE' '(' 'NAME' '=' maskAlgorithmType (',' propertiesDefinition)? ')'
 
 propertiesDefinition ::=
   'PROPERTIES' '(' key '=' value (',' key '=' value)* ')'
@@ -33,7 +33,7 @@ ruleName ::=
 columnName ::=
   identifier
 
-algorithmType ::=
+maskAlgorithmType ::=
   literal
 
 key ::=
@@ -50,7 +50,7 @@ value ::=
 
 ### Supplement
 
-- `algorithmType` specifies the data masking algorithm type, please refer to [Data Masking Algorithm](/en/user-manual/common-config/builtin-algorithm/mask/).
+- `maskAlgorithmType` specifies the data masking algorithm type, please refer to [Data Masking Algorithm](/en/user-manual/common-config/builtin-algorithm/mask/).
 
 ### Example
 

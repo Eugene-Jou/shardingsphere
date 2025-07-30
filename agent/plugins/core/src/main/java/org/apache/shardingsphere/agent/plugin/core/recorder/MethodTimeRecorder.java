@@ -19,8 +19,8 @@ package org.apache.shardingsphere.agent.plugin.core.recorder;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.agent.api.advice.AgentAdvice;
-import org.apache.shardingsphere.agent.api.advice.TargetAdviceMethod;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,10 +36,10 @@ public final class MethodTimeRecorder {
     
     /**
      * Record now.
-     *
+     * 
      * @param method method to be recorded
      */
-    public void recordNow(final TargetAdviceMethod method) {
+    public void record(final Method method) {
         CURRENT_RECORDER.get().put(getKey(method), System.currentTimeMillis());
     }
     
@@ -49,7 +49,7 @@ public final class MethodTimeRecorder {
      * @param method method to be recorded
      * @return elapsed time
      */
-    public long getElapsedTimeAndClean(final TargetAdviceMethod method) {
+    public long getElapsedTimeAndClean(final Method method) {
         String key = getKey(method);
         try {
             return getElapsedTime(key);
@@ -58,7 +58,7 @@ public final class MethodTimeRecorder {
         }
     }
     
-    private String getKey(final TargetAdviceMethod method) {
+    private String getKey(final Method method) {
         return String.format("%s@%s", adviceClass.getName(), method.getName());
     }
     
@@ -68,8 +68,5 @@ public final class MethodTimeRecorder {
     
     private void clean(final String key) {
         CURRENT_RECORDER.get().remove(key);
-        if (CURRENT_RECORDER.get().isEmpty()) {
-            CURRENT_RECORDER.remove();
-        }
     }
 }

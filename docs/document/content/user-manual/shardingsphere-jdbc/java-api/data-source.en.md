@@ -17,7 +17,7 @@ This section describes how to configure data sources through the `JAVA API`.
 ```xml
 <dependency>
     <groupId>org.apache.shardingsphere</groupId>
-    <artifactId>shardingsphere-jdbc</artifactId>
+    <artifactId>shardingsphere-jdbc-core</artifactId>
     <version>${latest.release.version}</version>
 </dependency>
 ```

@@ -19,7 +19,7 @@ package org.apache.shardingsphere.sharding.algorithm.sharding.range;
 
 import com.google.common.collect.Range;
 import org.apache.shardingsphere.infra.datanode.DataNodeInfo;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.sharding.api.sharding.standard.PreciseShardingValue;
 import org.apache.shardingsphere.sharding.api.sharding.standard.RangeShardingValue;
 import org.apache.shardingsphere.sharding.spi.ShardingAlgorithm;
@@ -36,20 +36,20 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BoundaryBasedRangeShardingAlgorithmTest {
+public final class BoundaryBasedRangeShardingAlgorithmTest {
     
     private static final DataNodeInfo DATA_NODE_INFO = new DataNodeInfo("t_order_", 1, '0');
     
     private BoundaryBasedRangeShardingAlgorithm shardingAlgorithm;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         shardingAlgorithm = (BoundaryBasedRangeShardingAlgorithm) TypedSPILoader.getService(ShardingAlgorithm.class,
                 "BOUNDARY_RANGE", PropertiesBuilder.build(new Property("sharding-ranges", "1,5,10")));
     }
     
     @Test
-    void assertPreciseDoSharding() {
+    public void assertPreciseDoSharding() {
         assertPreciseDoSharding(new PreciseShardingValue<>("t_order", "order_id", DATA_NODE_INFO, 0L));
     }
     
@@ -59,12 +59,12 @@ class BoundaryBasedRangeShardingAlgorithmTest {
     }
     
     @Test
-    void assertPreciseDoShardingWithIntShardingValue() {
+    public void assertPreciseDoShardingWithIntShardingValue() {
         assertPreciseDoSharding(new PreciseShardingValue<>("t_order", "order_id", DATA_NODE_INFO, 0));
     }
     
     @Test
-    void assertRangeDoSharding() {
+    public void assertRangeDoSharding() {
         assertRangeDoSharding(new RangeShardingValue<>("t_order", "order_id", DATA_NODE_INFO, Range.closed(2L, 15L)));
     }
     
@@ -78,12 +78,12 @@ class BoundaryBasedRangeShardingAlgorithmTest {
     }
     
     @Test
-    void assertRangeDoShardingWithIntShardingValue() {
+    public void assertRangeDoShardingWithIntShardingValue() {
         assertRangeDoSharding(new RangeShardingValue<>("t_order", "order_id", DATA_NODE_INFO, Range.closed(2, 15)));
     }
     
     @Test
-    void assertGetAutoTablesAmount() {
+    public void assertGetAutoTablesAmount() {
         assertThat(shardingAlgorithm.getAutoTablesAmount(), is(4));
     }
 }

@@ -21,34 +21,29 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.buffer.UnpooledHeapByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.ssl.SslHandler;
 import io.netty.util.Attribute;
 import lombok.SneakyThrows;
-import org.apache.shardingsphere.authentication.result.AuthenticationResult;
 import org.apache.shardingsphere.authority.config.AuthorityRuleConfiguration;
-import org.apache.shardingsphere.authority.config.UserConfiguration;
 import org.apache.shardingsphere.authority.rule.AuthorityRule;
 import org.apache.shardingsphere.authority.rule.builder.AuthorityRuleBuilder;
 import org.apache.shardingsphere.db.protocol.constant.CommonConstants;
 import org.apache.shardingsphere.db.protocol.payload.PacketPayload;
-import org.apache.shardingsphere.db.protocol.postgresql.packet.handshake.PostgreSQLSSLUnwillingPacket;
-import org.apache.shardingsphere.db.protocol.postgresql.packet.handshake.PostgreSQLSSLWillingPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.handshake.authentication.PostgreSQLMD5PasswordAuthenticationPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacketPayload;
-import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
+import org.apache.shardingsphere.dialect.postgresql.exception.authority.EmptyUsernameException;
+import org.apache.shardingsphere.dialect.postgresql.exception.authority.InvalidPasswordException;
+import org.apache.shardingsphere.dialect.postgresql.exception.protocol.ProtocolViolationException;
+import org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
-import org.apache.shardingsphere.infra.exception.postgresql.exception.authority.EmptyUsernameException;
-import org.apache.shardingsphere.infra.exception.postgresql.exception.authority.InvalidPasswordException;
-import org.apache.shardingsphere.infra.exception.postgresql.exception.protocol.ProtocolViolationException;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
-import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.metadata.statistics.ShardingSphereStatistics;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
+import org.apache.shardingsphere.infra.metadata.user.ShardingSphereUser;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
+import org.apache.shardingsphere.mode.metadata.persist.MetaDataPersistService;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
+import org.apache.shardingsphere.proxy.frontend.authentication.AuthenticationResult;
 import org.apache.shardingsphere.proxy.frontend.postgresql.authentication.authenticator.impl.PostgreSQLMD5PasswordAuthenticator;
-import org.apache.shardingsphere.proxy.frontend.ssl.ProxySSLContext;
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
 import org.apache.shardingsphere.test.mock.StaticMockSettings;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,22 +56,21 @@ import org.mockito.internal.configuration.plugins.Plugins;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(AutoMockExtension.class)
-@StaticMockSettings({ProxyContext.class, ProxySSLContext.class})
-class PostgreSQLAuthenticationEngineTest {
+@StaticMockSettings(ProxyContext.class)
+public final class PostgreSQLAuthenticationEngineTest {
     
     private final String username = "root";
     
@@ -87,38 +81,22 @@ class PostgreSQLAuthenticationEngineTest {
     
     @SuppressWarnings("unchecked")
     @BeforeEach
-    void setup() {
+    public void setup() {
         when(channelHandlerContext.channel().attr(CommonConstants.CHARSET_ATTRIBUTE_KEY)).thenReturn(mock(Attribute.class));
     }
     
     @Test
-    void assertSSLUnwilling() {
+    public void assertSSLNegative() {
         ByteBuf byteBuf = createByteBuf(8, 8);
         byteBuf.writeInt(8);
         byteBuf.writeInt(80877103);
         PacketPayload payload = new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8);
-        ChannelHandlerContext context = mock(ChannelHandlerContext.class);
-        AuthenticationResult actual = new PostgreSQLAuthenticationEngine().authenticate(context, payload);
-        verify(context).writeAndFlush(any(PostgreSQLSSLUnwillingPacket.class));
+        AuthenticationResult actual = new PostgreSQLAuthenticationEngine().authenticate(mock(ChannelHandlerContext.class), payload);
         assertFalse(actual.isFinished());
     }
     
     @Test
-    void assertSSLWilling() {
-        ByteBuf byteBuf = createByteBuf(8, 8);
-        byteBuf.writeInt(8);
-        byteBuf.writeInt(80877103);
-        PacketPayload payload = new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8);
-        ChannelHandlerContext context = mock(ChannelHandlerContext.class, RETURNS_DEEP_STUBS);
-        when(ProxySSLContext.getInstance().isSSLEnabled()).thenReturn(true);
-        AuthenticationResult actual = new PostgreSQLAuthenticationEngine().authenticate(context, payload);
-        verify(context).writeAndFlush(any(PostgreSQLSSLWillingPacket.class));
-        verify(context.pipeline()).addFirst(eq(SslHandler.class.getSimpleName()), any(SslHandler.class));
-        assertFalse(actual.isFinished());
-    }
-    
-    @Test
-    void assertUserNotSet() {
+    public void assertUserNotSet() {
         PostgreSQLPacketPayload payload = new PostgreSQLPacketPayload(createByteBuf(8, 512), StandardCharsets.UTF_8);
         payload.writeInt4(64);
         payload.writeInt4(196608);
@@ -130,12 +108,12 @@ class PostgreSQLAuthenticationEngineTest {
     }
     
     @Test
-    void assertAuthenticateWithNonPasswordMessage() {
+    public void assertAuthenticateWithNonPasswordMessage() {
         PostgreSQLAuthenticationEngine authenticationEngine = new PostgreSQLAuthenticationEngine();
         setAlreadyReceivedStartupMessage(authenticationEngine);
         PostgreSQLPacketPayload payload = new PostgreSQLPacketPayload(createByteBuf(8, 16), StandardCharsets.UTF_8);
         payload.writeInt1('F');
-        payload.writeInt8(0L);
+        payload.writeInt8(0);
         ContextManager contextManager = mockContextManager();
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
         assertThrows(ProtocolViolationException.class, () -> authenticationEngine.authenticate(channelHandlerContext, payload));
@@ -147,12 +125,12 @@ class PostgreSQLAuthenticationEngineTest {
     }
     
     @Test
-    void assertLoginSuccessful() {
+    public void assertLoginSuccessful() {
         assertLogin(password);
     }
     
     @Test
-    void assertLoginFailed() {
+    public void assertLoginFailed() {
         assertThrows(InvalidPasswordException.class, () -> assertLogin("wrong" + password));
     }
     
@@ -181,7 +159,7 @@ class PostgreSQLAuthenticationEngineTest {
         payload.writeInt1('p');
         payload.writeInt4(4 + md5Digest.length() + 1);
         payload.writeStringNul(md5Digest);
-        MetaDataContexts metaDataContexts = getMetaDataContexts(new UserConfiguration(username, password, "", null, false));
+        MetaDataContexts metaDataContexts = getMetaDataContexts(new ShardingSphereUser(username, password, ""));
         when(contextManager.getMetaDataContexts()).thenReturn(metaDataContexts);
         actual = engine.authenticate(channelHandlerContext, payload);
         assertThat(actual.isFinished(), is(password.equals(inputPassword)));
@@ -193,21 +171,19 @@ class PostgreSQLAuthenticationEngineTest {
     
     private ContextManager mockContextManager() {
         ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
-        when(result.getMetaDataContexts().getMetaData().getGlobalRuleMetaData()).thenReturn(new RuleMetaData(Collections.singleton(mock(AuthorityRule.class))));
+        when(result.getMetaDataContexts().getMetaData().getGlobalRuleMetaData()).thenReturn(new ShardingSphereRuleMetaData(Collections.singleton(mock(AuthorityRule.class))));
         return result;
     }
     
-    private MetaDataContexts getMetaDataContexts(final UserConfiguration userConfig) {
-        ShardingSphereMetaData metaData = new ShardingSphereMetaData(
-                Collections.emptyList(), mock(ResourceMetaData.class), buildGlobalRuleMetaData(userConfig), new ConfigurationProperties(new Properties()));
-        return new MetaDataContexts(metaData, new ShardingSphereStatistics());
+    private MetaDataContexts getMetaDataContexts(final ShardingSphereUser user) {
+        return new MetaDataContexts(
+                mock(MetaDataPersistService.class), new ShardingSphereMetaData(new LinkedHashMap<>(), buildGlobalRuleMetaData(user), new ConfigurationProperties(new Properties())));
     }
     
-    private RuleMetaData buildGlobalRuleMetaData(final UserConfiguration userConfig) {
-        AuthorityRuleConfiguration ruleConfig = new AuthorityRuleConfiguration(
-                Collections.singleton(userConfig), new AlgorithmConfiguration("ALL_PERMITTED", new Properties()), Collections.emptyMap(), null);
-        AuthorityRule rule = new AuthorityRuleBuilder().build(ruleConfig, Collections.emptyList(), mock(ConfigurationProperties.class));
-        return new RuleMetaData(Collections.singleton(rule));
+    private ShardingSphereRuleMetaData buildGlobalRuleMetaData(final ShardingSphereUser user) {
+        AuthorityRuleConfiguration ruleConfig = new AuthorityRuleConfiguration(Collections.singletonList(user), new AlgorithmConfiguration("ALL_PERMITTED", new Properties()), null);
+        AuthorityRule rule = new AuthorityRuleBuilder().build(ruleConfig, Collections.emptyMap(), mock(ConfigurationProperties.class));
+        return new ShardingSphereRuleMetaData(Collections.singleton(rule));
     }
     
     @SneakyThrows(ReflectiveOperationException.class)

@@ -19,8 +19,7 @@ package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.metadata.database.system.SystemDatabase;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResultMetaData;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.impl.raw.metadata.RawQueryResultColumnMetaData;
@@ -30,21 +29,19 @@ import org.apache.shardingsphere.infra.executor.sql.execute.result.query.type.me
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.infra.merge.result.impl.transparent.TransparentMergedResult;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereTable;
-import org.apache.shardingsphere.infra.util.regex.RegexUtils;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
-import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminQueryExecutor;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.mysql.dal.show.table.MySQLShowTablesStatement;
+import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminQueryExecutor;
+import org.apache.shardingsphere.proxy.backend.util.RegularUtil;
+import org.apache.shardingsphere.sql.parser.sql.common.util.SQLUtil;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowTablesStatement;
 
 import java.sql.Types;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -53,7 +50,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public final class ShowTablesExecutor implements DatabaseAdminQueryExecutor {
     
-    private final MySQLShowTablesStatement sqlStatement;
+    private static final String TABLE_TYPE = "BASE TABLE";
+    
+    private final MySQLShowTablesStatement showTablesStatement;
     
     private final DatabaseType databaseType;
     
@@ -65,7 +64,7 @@ public final class ShowTablesExecutor implements DatabaseAdminQueryExecutor {
     
     @Override
     public void execute(final ConnectionSession connectionSession) {
-        String databaseName = sqlStatement.getFromDatabase().map(schema -> schema.getDatabase().getIdentifier().getValue()).orElseGet(connectionSession::getUsedDatabaseName);
+        String databaseName = showTablesStatement.getFromSchema().map(schema -> schema.getSchema().getIdentifier().getValue()).orElseGet(connectionSession::getDatabaseName);
         queryResultMetaData = createQueryResultMetaData(databaseName);
         mergedResult = new TransparentMergedResult(getQueryResult(databaseName));
     }
@@ -74,46 +73,30 @@ public final class ShowTablesExecutor implements DatabaseAdminQueryExecutor {
         List<RawQueryResultColumnMetaData> columnNames = new LinkedList<>();
         String tableColumnName = String.format("Tables_in_%s", databaseName);
         columnNames.add(new RawQueryResultColumnMetaData("", tableColumnName, tableColumnName, Types.VARCHAR, "VARCHAR", 255, 0));
-        if (sqlStatement.isContainsFull()) {
-            columnNames.add(new RawQueryResultColumnMetaData("", "Table_type", "Table_type", Types.VARCHAR, "VARCHAR", 20, 0));
-        }
+        columnNames.add(new RawQueryResultColumnMetaData("", "Table_type", "Table_type", Types.VARCHAR, "VARCHAR", 20, 0));
         return new RawQueryResultMetaData(columnNames);
     }
     
     private QueryResult getQueryResult(final String databaseName) {
-        SystemDatabase systemDatabase = new SystemDatabase(databaseType);
-        if (!systemDatabase.getSystemSchemas().contains(databaseName) && !ProxyContext.getInstance().getContextManager().getDatabase(databaseName).isComplete()) {
+        if (!databaseType.getSystemSchemas().contains(databaseName) && !ProxyContext.getInstance().getDatabase(databaseName).isComplete()) {
             return new RawMemoryQueryResult(queryResultMetaData, Collections.emptyList());
         }
-        List<MemoryQueryResultDataRow> rows = getTables(databaseName).stream().map(this::getRow).collect(Collectors.toList());
+        List<MemoryQueryResultDataRow> rows = getAllTableNames(databaseName).stream().map(each -> {
+            List<Object> rowValues = new LinkedList<>();
+            rowValues.add(each);
+            rowValues.add(TABLE_TYPE);
+            return new MemoryQueryResultDataRow(rowValues);
+        }).collect(Collectors.toList());
         return new RawMemoryQueryResult(queryResultMetaData, rows);
     }
     
-    private MemoryQueryResultDataRow getRow(final ShardingSphereTable table) {
-        return sqlStatement.isContainsFull()
-                ? new MemoryQueryResultDataRow(Arrays.asList(table.getName(), table.getType()))
-                : new MemoryQueryResultDataRow(Collections.singletonList(table.getName()));
-    }
-    
-    private Collection<ShardingSphereTable> getTables(final String databaseName) {
-        if (null == ProxyContext.getInstance().getContextManager().getDatabase(databaseName).getSchema(databaseName)) {
-            return Collections.emptyList();
+    private Collection<String> getAllTableNames(final String databaseName) {
+        Collection<String> result = ProxyContext.getInstance()
+                .getDatabase(databaseName).getSchema(databaseName).getTables().values().stream().map(ShardingSphereTable::getName).collect(Collectors.toList());
+        if (showTablesStatement.getFilter().isPresent()) {
+            Optional<String> pattern = showTablesStatement.getFilter().get().getLike().map(optional -> SQLUtil.convertLikePatternToRegex(optional.getPattern()));
+            return pattern.isPresent() ? result.stream().filter(each -> RegularUtil.matchesCaseInsensitive(pattern.get(), each)).collect(Collectors.toList()) : result;
         }
-        Collection<ShardingSphereTable> tables = ProxyContext.getInstance().getContextManager().getDatabase(databaseName).getSchema(databaseName).getAllTables();
-        Collection<ShardingSphereTable> filteredTables = filterByLike(tables);
-        return filteredTables.stream().sorted(Comparator.comparing(ShardingSphereTable::getName)).collect(Collectors.toList());
-    }
-    
-    private Collection<ShardingSphereTable> filterByLike(final Collection<ShardingSphereTable> tables) {
-        Optional<Pattern> likePattern = getLikePattern();
-        return likePattern.isPresent() ? tables.stream().filter(each -> likePattern.get().matcher(each.getName()).matches()).collect(Collectors.toList()) : tables;
-    }
-    
-    private Optional<Pattern> getLikePattern() {
-        if (!sqlStatement.getFilter().isPresent()) {
-            return Optional.empty();
-        }
-        Optional<String> regex = sqlStatement.getFilter().get().getLike().map(optional -> RegexUtils.convertLikePatternToRegex(optional.getPattern()));
-        return regex.map(optional -> Pattern.compile(optional, Pattern.CASE_INSENSITIVE));
+        return result;
     }
 }

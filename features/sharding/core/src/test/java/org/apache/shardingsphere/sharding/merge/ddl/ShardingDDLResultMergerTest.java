@@ -17,33 +17,35 @@
 
 package org.apache.shardingsphere.sharding.merge.ddl;
 
-import org.apache.shardingsphere.infra.binder.context.statement.type.ddl.CursorHeldSQLStatementContext;
-import org.apache.shardingsphere.infra.binder.context.statement.type.ddl.CursorStatementContext;
-import org.apache.shardingsphere.infra.binder.context.statement.type.dml.SelectStatementContext;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.binder.statement.ddl.CursorStatementContext;
+import org.apache.shardingsphere.infra.binder.statement.ddl.FetchStatementContext;
+import org.apache.shardingsphere.infra.binder.statement.dml.SelectStatementContext;
+import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
+import org.apache.shardingsphere.infra.context.ConnectionContext;
+import org.apache.shardingsphere.infra.context.cursor.CursorConnectionContext;
+import org.apache.shardingsphere.infra.database.DefaultDatabase;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
-import org.apache.shardingsphere.infra.merge.result.impl.stream.IteratorStreamMergedResult;
 import org.apache.shardingsphere.infra.merge.result.impl.transparent.TransparentMergedResult;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
-import org.apache.shardingsphere.infra.session.connection.cursor.CursorConnectionContext;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
+import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereSchema;
+import org.apache.shardingsphere.sharding.merge.common.IteratorStreamMergedResult;
 import org.apache.shardingsphere.sharding.merge.ddl.fetch.FetchStreamMergedResult;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.ddl.cursor.CursorNameSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ProjectionsSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.table.SimpleTableSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.table.TableNameSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.FetchStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.cursor.CursorNameSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionsSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.TableNameSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.SelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dml.MySQLSelectStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.opengauss.ddl.OpenGaussFetchStatement;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,36 +53,38 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ShardingDDLResultMergerTest {
-    
-    private final DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "FIXTURE");
-    
-    private final ShardingDDLResultMerger merger = new ShardingDDLResultMerger();
+public final class ShardingDDLResultMergerTest {
     
     @Test
-    void assertMergeWithIteratorStreamMergedResult() throws SQLException {
-        CursorHeldSQLStatementContext sqlStatement = mock(CursorHeldSQLStatementContext.class);
-        when(sqlStatement.getSqlStatement()).thenReturn(mock(FetchStatement.class));
-        assertThat(merger.merge(Collections.singletonList(createQueryResult()), sqlStatement, mock(), mock()), instanceOf(IteratorStreamMergedResult.class));
+    public void assertBuildIteratorStreamMergedResult() throws SQLException {
+        ShardingDDLResultMerger merger = new ShardingDDLResultMerger();
+        assertThat(merger.merge(createSingleQueryResults(), mock(FetchStatementContext.class), mock(ShardingSphereDatabase.class), mock(ConnectionContext.class)),
+                instanceOf(IteratorStreamMergedResult.class));
     }
     
     @Test
-    void assertMergeWithTransparentMergedResult() throws SQLException {
-        assertThat(merger.merge(createQueryResults(), mock(SelectStatementContext.class), mock(), mock()), instanceOf(TransparentMergedResult.class));
-    }
-    
-    @Test
-    void assertMergeWithFetchStreamMergedResult() throws SQLException {
+    public void assertBuildFetchStreamMergedResult() throws SQLException {
+        ShardingDDLResultMerger merger = new ShardingDDLResultMerger();
         ShardingSphereDatabase database = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
-        when(database.getName()).thenReturn("foo_db");
+        when(database.getSchema(DefaultDatabase.LOGIC_NAME)).thenReturn(mock(ShardingSphereSchema.class));
         ConnectionContext connectionContext = mock(ConnectionContext.class);
-        when(connectionContext.getCursorContext()).thenReturn(new CursorConnectionContext());
-        assertThat(merger.merge(createQueryResults(), createCursorHeldSQLStatementContext(database), mock(), connectionContext), instanceOf(FetchStreamMergedResult.class));
+        when(connectionContext.getCursorConnectionContext()).thenReturn(new CursorConnectionContext());
+        assertThat(merger.merge(createMultiQueryResults(), createFetchStatementContext(database), mock(ShardingSphereDatabase.class), connectionContext),
+                instanceOf(FetchStreamMergedResult.class));
     }
     
-    private CursorHeldSQLStatementContext createCursorHeldSQLStatementContext(final ShardingSphereDatabase database) {
-        CursorHeldSQLStatementContext result = new CursorHeldSQLStatementContext(new FetchStatement(databaseType, new CursorNameSegment(0, 0, new IdentifierValue("foo_cursor")), null));
-        result.setCursorStatementContext(createCursorStatementContext(database));
+    @Test
+    public void assertBuildTransparentMergedResult() throws SQLException {
+        ShardingDDLResultMerger merger = new ShardingDDLResultMerger();
+        assertThat(merger.merge(createMultiQueryResults(), mock(SelectStatementContext.class), mock(ShardingSphereDatabase.class), mock(ConnectionContext.class)),
+                instanceOf(TransparentMergedResult.class));
+    }
+    
+    private FetchStatementContext createFetchStatementContext(final ShardingSphereDatabase database) {
+        OpenGaussFetchStatement fetchStatement = createFetchStatement();
+        FetchStatementContext result = new FetchStatementContext(fetchStatement);
+        CursorStatementContext cursorStatementContext = createCursorStatementContext(database);
+        result.setUpCursorDefinition(cursorStatementContext);
         return result;
     }
     
@@ -88,24 +92,28 @@ class ShardingDDLResultMergerTest {
         CursorStatementContext result = mock(CursorStatementContext.class, RETURNS_DEEP_STUBS);
         SelectStatement selectStatement = createSelectStatement();
         selectStatement.setProjections(new ProjectionsSegment(0, 0));
-        SelectStatementContext selectStatementContext = new SelectStatementContext(
-                selectStatement, Collections.emptyList(), new ShardingSphereMetaData(Collections.singleton(database), mock(), mock(), mock()), "foo_db", Collections.emptyList());
+        SelectStatementContext selectStatementContext = new SelectStatementContext(createShardingSphereMetaData(database), Collections.emptyList(),
+                selectStatement, DefaultDatabase.LOGIC_NAME);
         when(result.getSelectStatementContext()).thenReturn(selectStatementContext);
         when(result.getSqlStatement().getSelect()).thenReturn(selectStatement);
         return result;
     }
     
-    private SelectStatement createSelectStatement() {
-        SelectStatement result = mock(SelectStatement.class, RETURNS_DEEP_STUBS);
-        when(result.getDatabaseType()).thenReturn(databaseType);
-        when(result.getFrom()).thenReturn(Optional.of(new SimpleTableSegment(new TableNameSegment(10, 13, new IdentifierValue("tbl")))));
-        when(result.getProjections()).thenReturn(new ProjectionsSegment(0, 0));
+    private ShardingSphereMetaData createShardingSphereMetaData(final ShardingSphereDatabase database) {
+        return new ShardingSphereMetaData(Collections.singletonMap(DefaultDatabase.LOGIC_NAME, database), mock(ShardingSphereRuleMetaData.class), mock(ConfigurationProperties.class));
+    }
+    
+    private List<QueryResult> createSingleQueryResults() throws SQLException {
+        List<QueryResult> result = new LinkedList<>();
+        QueryResult queryResult = createQueryResult();
+        result.add(queryResult);
         return result;
     }
     
-    private List<QueryResult> createQueryResults() throws SQLException {
+    private List<QueryResult> createMultiQueryResults() throws SQLException {
         List<QueryResult> result = new LinkedList<>();
-        result.add(createQueryResult());
+        QueryResult queryResult = createQueryResult();
+        result.add(queryResult);
         result.add(mock(QueryResult.class, RETURNS_DEEP_STUBS));
         result.add(mock(QueryResult.class, RETURNS_DEEP_STUBS));
         result.add(mock(QueryResult.class, RETURNS_DEEP_STUBS));
@@ -117,6 +125,19 @@ class ShardingDDLResultMergerTest {
         when(result.getMetaData().getColumnCount()).thenReturn(1);
         when(result.getMetaData().getColumnLabel(1)).thenReturn("count(*)");
         when(result.getValue(1, Object.class)).thenReturn(0);
+        return result;
+    }
+    
+    private OpenGaussFetchStatement createFetchStatement() {
+        OpenGaussFetchStatement result = new OpenGaussFetchStatement();
+        result.setCursorName(new CursorNameSegment(0, 0, new IdentifierValue("t_order_cursor")));
+        return result;
+    }
+    
+    private SelectStatement createSelectStatement() {
+        SelectStatement result = new MySQLSelectStatement();
+        result.setFrom(new SimpleTableSegment(new TableNameSegment(10, 13, new IdentifierValue("tbl"))));
+        result.setProjections(new ProjectionsSegment(0, 0));
         return result;
     }
 }

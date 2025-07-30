@@ -1,20 +1,20 @@
 +++
 title = "SHOW UNUSED SHARDING KEY GENERATORS"
-weight = 6
+weight = 7
 
 +++
 
 ### Description
 
-`SHOW UNUSED SHARDING KEY GENERATORS` syntax is used to query sharding key generators that are not used in specified database.
+`SHOW SHARDING KEY GENERATORS` syntax is used to query sharding key generators that are not used in specified database.
 
 ### Syntax
 
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-ShowUnusedShardingKeyGenerators::=
-  'SHOW' 'UNUSED' 'SHARDING' 'KEY' 'GENERATOR' ('FROM' databaseName)?
+ShowShardingKeyGenerators::=
+  'SHOW' 'SHARDING' 'KEY' 'GENERATOR' ('FROM' databaseName)?
 
 databaseName ::=
   identifier
@@ -31,11 +31,11 @@ databaseName ::=
 
 ### Return value description
 
-| column | Description                       |
-|--------|-----------------------------------|
-| name   | Sharding key generator name       |
-| type   | Sharding key generator type       |
-| props  | Sharding key generator properties |
+| column                 | Description                          |
+| -----------------------| -------------------------------------|
+| name                   | Sharding key generator name          |
+| type                   | Sharding key generator type          |
+| props                  | Sharding key generator properties    |
 
 ### Example
 

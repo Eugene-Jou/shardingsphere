@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLDatetime2BinlogProtocolValueTest {
+public final class MySQLDatetime2BinlogProtocolValueTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -46,19 +46,19 @@ class MySQLDatetime2BinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @BeforeEach
-    void setUp() {
-        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.DATETIME2);
+    public void setUp() {
+        columnDef = new MySQLBinlogColumnDef(MySQLBinaryColumnType.MYSQL_TYPE_DATETIME2);
     }
     
     @Test
-    void assertReadWithoutFraction() {
+    public void assertReadWithoutFraction() {
         when(payload.readInt1()).thenReturn(0xfe, 0xf3, 0xff, 0x7e, 0xfb);
         LocalDateTime expected = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
         assertThat(new MySQLDatetime2BinlogProtocolValue().read(columnDef, payload), is(Timestamp.valueOf(expected)));
     }
     
     @Test
-    void assertReadWithoutFraction1() {
+    public void assertReadWithoutFraction1() {
         columnDef.setColumnMeta(1);
         when(payload.readInt1()).thenReturn(0xfe, 0xf3, 0xff, 0x7e, 0xfb, 0x00);
         LocalDateTime expected = LocalDateTime.of(9999, 12, 31, 23, 59, 59, 0);
@@ -66,7 +66,7 @@ class MySQLDatetime2BinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadWithoutFraction3() {
+    public void assertReadWithoutFraction3() {
         columnDef.setColumnMeta(3);
         when(payload.readInt1()).thenReturn(0xfe, 0xf3, 0xff, 0x7e, 0xfb);
         when(payload.getByteBuf()).thenReturn(byteBuf);
@@ -76,7 +76,7 @@ class MySQLDatetime2BinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadWithoutFraction5() {
+    public void assertReadWithoutFraction5() {
         columnDef.setColumnMeta(5);
         when(payload.readInt1()).thenReturn(0xfe, 0xf3, 0xff, 0x7e, 0xfb);
         when(payload.getByteBuf()).thenReturn(byteBuf);
@@ -86,7 +86,7 @@ class MySQLDatetime2BinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadNullTime() {
-        assertThat(new MySQLDatetime2BinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtils.DATETIME_OF_ZERO));
+    public void assertReadNullTime() {
+        assertThat(new MySQLDatetime2BinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtil.DATETIME_OF_ZERO));
     }
 }

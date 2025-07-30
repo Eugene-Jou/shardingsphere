@@ -1,11 +1,11 @@
 +++
 title = "ALTER SHARDING TABLE REFERENCE RULE"
-weight = 13
+weight = 14
 +++
 
 ## 描述
 
-`ALTER SHARDING TABLE REFERENCE RULE` 语法用于修改分片表关联关系。
+`ALTER SHARDING TABLE REFERENCE RULE` 语法用于修改分片表关联关系
 
 ### 语法定义
 
@@ -17,9 +17,6 @@ AlterShardingTableReferenceRule ::=
 
 referenceRelationshipDefinition ::=
   ruleName '(' tableName (',' tableName)* ')'
-
-ruleName ::=
-  identifier
 
 tableName ::=
   identifier
@@ -57,4 +54,4 @@ ALTER SHARDING TABLE REFERENCE RULE ref_0 (t_order,t_order_item), ref_1 (t_produ
 ### 相关链接
 
 - [保留字](/cn/user-manual/shardingsphere-proxy/distsql/syntax/reserved-word/)
-- [CREATE SHARDING TABLE RULE](/cn/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/sharding/create-sharding-table-rule/)
+- [CREATE SHARDING TABLE RULE](/cn/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/create-sharding-table-rule/)

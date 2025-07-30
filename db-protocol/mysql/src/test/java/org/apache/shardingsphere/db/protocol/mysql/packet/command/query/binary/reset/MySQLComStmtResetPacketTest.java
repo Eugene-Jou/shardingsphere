@@ -26,13 +26,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLComStmtResetPacketTest {
+public final class MySQLComStmtResetPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
     
     @Test
-    void assertGetStatementId() {
+    public void assertGetStatementId() {
         new MySQLComStmtResetPacket(payload);
         verify(payload).readInt4();
     }

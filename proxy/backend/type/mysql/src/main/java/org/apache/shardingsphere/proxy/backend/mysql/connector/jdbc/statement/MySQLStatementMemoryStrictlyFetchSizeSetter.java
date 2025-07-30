@@ -37,7 +37,7 @@ public final class MySQLStatementMemoryStrictlyFetchSizeSetter implements Statem
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "MySQL";
     }
 }

@@ -25,15 +25,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MySQLClearPasswordAuthenticatorTest {
+public final class MySQLClearPasswordAuthenticatorTest {
     
     @Test
-    void assertAuthenticationMethodName() {
-        assertThat(new MySQLClearPasswordAuthenticator().getAuthenticationMethodName(), is("mysql_clear_password"));
+    public void assertAuthenticationMethodName() {
+        assertThat(new MySQLClearPasswordAuthenticator().getAuthenticationMethod().getMethodName(), is("mysql_clear_password"));
     }
     
     @Test
-    void assertAuthenticate() {
+    public void assertAuthenticate() {
         ShardingSphereUser user = new ShardingSphereUser("foo", "password", "%");
         byte[] password = "password".getBytes();
         byte[] authInfo = new byte[password.length + 1];
@@ -42,7 +42,7 @@ class MySQLClearPasswordAuthenticatorTest {
     }
     
     @Test
-    void assertAuthenticateFailed() {
+    public void assertAuthenticateFailed() {
         ShardingSphereUser user = new ShardingSphereUser("foo", "password", "%");
         byte[] password = "wrong".getBytes();
         assertFalse(new MySQLClearPasswordAuthenticator().authenticate(user, new Object[]{password}));

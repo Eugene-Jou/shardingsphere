@@ -20,7 +20,7 @@ package org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.ex
 import io.netty.buffer.ByteBuf;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.ByteBufTestUtils;
 import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacketPayload;
-import org.apache.shardingsphere.infra.exception.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.type.generic.UnsupportedSQLOperationException;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -29,15 +29,19 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class PostgreSQLBoolArrayBinaryProtocolValueTest {
+public final class PostgreSQLBoolArrayBinaryProtocolValueTest {
     
-    @Test
-    void assertGetColumnLength() {
-        assertThrows(UnsupportedSQLOperationException.class, () -> new PostgreSQLBoolArrayBinaryProtocolValue().getColumnLength(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), "val"));
+    private PostgreSQLBinaryProtocolValue newInstance() {
+        return new PostgreSQLBoolArrayBinaryProtocolValue();
     }
     
     @Test
-    void assertRead() {
+    public void assertGetColumnLength() {
+        assertThrows(UnsupportedSQLOperationException.class, () -> newInstance().getColumnLength("val"));
+    }
+    
+    @Test
+    public void assertRead() {
         String parameterValue = "{\"true\",\"false\"}";
         int expectedLength = 4 + parameterValue.length();
         ByteBuf byteBuf = ByteBufTestUtils.createByteBuf(expectedLength);
@@ -45,13 +49,13 @@ class PostgreSQLBoolArrayBinaryProtocolValueTest {
         byteBuf.writeCharSequence(parameterValue, StandardCharsets.ISO_8859_1);
         byteBuf.readInt();
         PostgreSQLPacketPayload payload = new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8);
-        Object actual = new PostgreSQLBoolArrayBinaryProtocolValue().read(payload, parameterValue.length());
-        assertThat(actual, is(new boolean[]{true, false}));
+        Object result = newInstance().read(payload, parameterValue.length());
+        assertThat(result, is(new boolean[]{true, false}));
         assertThat(byteBuf.readerIndex(), is(expectedLength));
     }
     
     @Test
-    void assertWrite() {
-        assertThrows(UnsupportedSQLOperationException.class, () -> new PostgreSQLBoolArrayBinaryProtocolValue().write(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), "val"));
+    public void assertWrite() {
+        assertThrows(UnsupportedSQLOperationException.class, () -> newInstance().write(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), "val"));
     }
 }

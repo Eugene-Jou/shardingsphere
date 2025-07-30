@@ -18,5 +18,5 @@
 package org.apache.shardingsphere.test.it.sql.parser.internal;
 
 @InternalSQLParserITSettings("ShardingSphere")
-class InternalDistSQLParserIT extends InternalSQLParserIT {
+public final class InternalDistSQLParserIT extends InternalSQLParserIT {
 }

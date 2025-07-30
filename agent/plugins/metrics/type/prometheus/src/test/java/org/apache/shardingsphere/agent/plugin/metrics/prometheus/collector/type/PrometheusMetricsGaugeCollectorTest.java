@@ -28,16 +28,16 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PrometheusMetricsGaugeCollectorTest {
+public final class PrometheusMetricsGaugeCollectorTest {
     
     @Test
-    void assertCreate() throws ReflectiveOperationException {
+    public void assertCreate() throws ReflectiveOperationException {
         PrometheusMetricsGaugeCollector collector = new PrometheusMetricsGaugeCollector(new MetricConfiguration("foo_gauge",
                 MetricCollectorType.GAUGE, "foo_help", Collections.emptyList(), Collections.emptyMap()));
         collector.inc();
         Gauge gauge = (Gauge) Plugins.getMemberAccessor().get(PrometheusMetricsGaugeCollector.class.getDeclaredField("gauge"), collector);
-        assertThat(gauge.get(), is(1D));
+        assertThat(gauge.get(), is(1d));
         collector.dec();
-        assertThat(gauge.get(), is(0D));
+        assertThat(gauge.get(), is(0d));
     }
 }

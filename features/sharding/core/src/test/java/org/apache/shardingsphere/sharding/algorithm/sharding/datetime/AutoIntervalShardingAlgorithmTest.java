@@ -19,10 +19,9 @@ package org.apache.shardingsphere.sharding.algorithm.sharding.datetime;
 
 import com.google.common.collect.Range;
 import org.apache.shardingsphere.infra.datanode.DataNodeInfo;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.sharding.api.sharding.standard.PreciseShardingValue;
 import org.apache.shardingsphere.sharding.api.sharding.standard.RangeShardingValue;
-import org.apache.shardingsphere.sharding.exception.data.InvalidDatetimeFormatException;
 import org.apache.shardingsphere.sharding.spi.ShardingAlgorithm;
 import org.apache.shardingsphere.test.util.PropertiesBuilder;
 import org.apache.shardingsphere.test.util.PropertiesBuilder.Property;
@@ -37,43 +36,36 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class AutoIntervalShardingAlgorithmTest {
+public final class AutoIntervalShardingAlgorithmTest {
     
     private static final DataNodeInfo DATA_NODE_INFO = new DataNodeInfo("t_order_", 1, '0');
     
     private AutoIntervalShardingAlgorithm shardingAlgorithm;
     
     @BeforeEach
-    void setup() {
+    public void setup() {
         shardingAlgorithm = (AutoIntervalShardingAlgorithm) TypedSPILoader.getService(ShardingAlgorithm.class, "AUTO_INTERVAL",
                 PropertiesBuilder.build(new Property("datetime-lower", "2020-01-01 00:00:00"), new Property("datetime-upper", "2020-01-01 00:00:16"), new Property("sharding-seconds", "4")));
     }
     
     @Test
-    void assertInitFailedWithInvalidDatetimeFormat() {
-        assertThrows(InvalidDatetimeFormatException.class,
-                () -> TypedSPILoader.getService(ShardingAlgorithm.class, "AUTO_INTERVAL", PropertiesBuilder.build(new Property("datetime-lower", "invalid"))));
-    }
-    
-    @Test
-    void assertPreciseDoSharding() {
+    public void assertPreciseDoSharding() {
         List<String> availableTargetNames = Arrays.asList("t_order_0", "t_order_1", "t_order_2", "t_order_3");
         assertThat(shardingAlgorithm.doSharding(availableTargetNames,
                 new PreciseShardingValue<>("t_order", "create_time", DATA_NODE_INFO, "2020-01-01 00:00:01")), is("t_order_1"));
     }
     
     @Test
-    void assertPreciseDoShardingBeyondTheLastOne() {
+    public void assertPreciseDoShardingBeyondTheLastOne() {
         List<String> availableTargetNames = Arrays.asList("t_order_0", "t_order_1", "t_order_2", "t_order_3", "t_order_4", "t_order_5");
         assertThat(shardingAlgorithm.doSharding(availableTargetNames,
                 new PreciseShardingValue<>("t_order", "create_time", DATA_NODE_INFO, "2021-01-01 00:00:02")), is("t_order_5"));
     }
     
     @Test
-    void assertRangeDoShardingWithAllRange() {
+    public void assertRangeDoShardingWithAllRange() {
         List<String> availableTargetNames = Arrays.asList("t_order_0", "t_order_1", "t_order_2", "t_order_3", "t_order_4");
         Collection<String> actual = shardingAlgorithm.doSharding(availableTargetNames,
                 new RangeShardingValue<>("t_order", "create_time", DATA_NODE_INFO, Range.closed("2019-01-01 00:00:00", "2020-01-01 00:00:15")));
@@ -81,7 +73,7 @@ class AutoIntervalShardingAlgorithmTest {
     }
     
     @Test
-    void assertRangeDoShardingWithPartRange() {
+    public void assertRangeDoShardingWithPartRange() {
         List<String> availableTargetNames = Arrays.asList("t_order_0", "t_order_1", "t_order_2", "t_order_3", "t_order_4");
         Collection<String> actual = shardingAlgorithm.doSharding(availableTargetNames,
                 new RangeShardingValue<>("t_order", "create_time", DATA_NODE_INFO, Range.closed("2020-01-01 00:00:04", "2020-01-01 00:00:10")));
@@ -92,7 +84,7 @@ class AutoIntervalShardingAlgorithmTest {
     }
     
     @Test
-    void assertRangeDoShardingWithoutLowerBound() {
+    public void assertRangeDoShardingWithoutLowerBound() {
         List<String> availableTargetNames = Arrays.asList("t_order_0", "t_order_1", "t_order_2", "t_order_3");
         Collection<String> actual = shardingAlgorithm.doSharding(availableTargetNames,
                 new RangeShardingValue<>("t_order", "create_time", DATA_NODE_INFO, Range.lessThan("2020-01-01 00:00:11")));
@@ -104,7 +96,7 @@ class AutoIntervalShardingAlgorithmTest {
     }
     
     @Test
-    void assertRangeDoShardingWithoutUpperBound() {
+    public void assertRangeDoShardingWithoutUpperBound() {
         List<String> availableTargetNames = Arrays.asList("t_order_0", "t_order_1", "t_order_2", "t_order_3", "t_order_4", "t_order_5");
         Collection<String> actual = shardingAlgorithm.doSharding(availableTargetNames,
                 new RangeShardingValue<>("t_order", "create_time", DATA_NODE_INFO, Range.greaterThan("2020-01-01 00:00:09")));
@@ -115,14 +107,14 @@ class AutoIntervalShardingAlgorithmTest {
     }
     
     @Test
-    void assertGetAutoTablesAmount() {
+    public void assertGetAutoTablesAmount() {
         Properties props = PropertiesBuilder.build(
                 new Property("datetime-lower", "2020-01-01 00:00:00"), new Property("datetime-upper", "2021-01-01 00:00:00"), new Property("sharding-seconds", "86400"));
         assertThat(((AutoIntervalShardingAlgorithm) TypedSPILoader.getService(ShardingAlgorithm.class, "AUTO_INTERVAL", props)).getAutoTablesAmount(), is(368));
     }
     
     @Test
-    void assertRangeDoShardingWithGreaterTenTables() {
+    public void assertRangeDoShardingWithGreaterTenTables() {
         Properties props = PropertiesBuilder.build(
                 new Property("datetime-lower", "2020-01-01 00:00:00"), new Property("datetime-upper", "2020-01-01 00:00:30"), new Property("sharding-seconds", "1"));
         AutoIntervalShardingAlgorithm shardingAlgorithm = (AutoIntervalShardingAlgorithm) TypedSPILoader.getService(ShardingAlgorithm.class, "AUTO_INTERVAL", props);
@@ -136,7 +128,7 @@ class AutoIntervalShardingAlgorithmTest {
     }
     
     @Test
-    void assertRangeDoShardingInValueWithMilliseconds() {
+    public void assertRangeDoShardingInValueWithMilliseconds() {
         Properties props = PropertiesBuilder.build(
                 new Property("datetime-lower", "2020-01-01 00:00:00"), new Property("datetime-upper", "2020-01-01 00:00:30"), new Property("sharding-seconds", "1"));
         AutoIntervalShardingAlgorithm shardingAlgorithm = (AutoIntervalShardingAlgorithm) TypedSPILoader.getService(ShardingAlgorithm.class, "AUTO_INTERVAL", props);

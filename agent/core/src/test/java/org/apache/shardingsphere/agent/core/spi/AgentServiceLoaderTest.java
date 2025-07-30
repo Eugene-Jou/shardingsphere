@@ -28,25 +28,25 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class AgentServiceLoaderTest {
+public final class AgentServiceLoaderTest {
     
     @Test
-    void assertGetServiceLoaderWithNullValue() {
+    public void assertGetServiceLoaderWithNullValue() {
         assertThrows(NullPointerException.class, () -> AgentServiceLoader.getServiceLoader(null));
     }
     
     @Test
-    void assertGetServiceLoaderWithNoInterface() {
+    public void assertGetServiceLoaderWithNoInterface() {
         assertThrows(IllegalArgumentException.class, () -> AgentServiceLoader.getServiceLoader(Object.class));
     }
     
     @Test
-    void assertGetServiceLoaderWithEmptyInstances() {
+    public void assertGetServiceLoaderWithEmptyInstances() {
         assertTrue(AgentServiceLoader.getServiceLoader(AgentServiceEmptySPIFixture.class).getServices().isEmpty());
     }
     
     @Test
-    void assertGetServiceLoaderWithImplementSPI() {
+    public void assertGetServiceLoaderWithImplementSPI() {
         AgentServiceLoader<AgentServiceSPIFixture> actual = AgentServiceLoader.getServiceLoader(AgentServiceSPIFixture.class);
         assertThat(actual.getServices().size(), is(1));
         AgentServiceSPIFixture actualInstance = actual.getServices().iterator().next();

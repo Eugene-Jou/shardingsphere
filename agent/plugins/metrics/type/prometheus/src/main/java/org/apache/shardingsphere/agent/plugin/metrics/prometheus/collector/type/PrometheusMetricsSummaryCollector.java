@@ -22,7 +22,7 @@ import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricConfigur
 import org.apache.shardingsphere.agent.plugin.metrics.core.collector.type.SummaryMetricsCollector;
 
 /**
- * Metrics summary collector of Prometheus.
+ * Prometheus metrics summary collector.
  */
 public final class PrometheusMetricsSummaryCollector implements SummaryMetricsCollector {
     

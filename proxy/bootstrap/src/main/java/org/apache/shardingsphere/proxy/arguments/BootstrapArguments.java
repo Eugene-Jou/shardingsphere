@@ -17,16 +17,12 @@
 
 package org.apache.shardingsphere.proxy.arguments;
 
-import com.google.common.net.InetAddresses;
 import lombok.RequiredArgsConstructor;
 
-import java.nio.file.InvalidPathException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Bootstrap arguments.
@@ -34,7 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public final class BootstrapArguments {
     
-    private static final String DEFAULT_CONFIG_PATH = System.getenv().getOrDefault("PROXY_DEFAULT_CONFIG_PATH", "/conf/");
+    private static final String DEFAULT_CONFIG_PATH = "/conf/";
     
     private static final String DEFAULT_BIND_ADDRESS = "0.0.0.0";
     
@@ -44,7 +40,6 @@ public final class BootstrapArguments {
      * Get port.
      *
      * @return port
-     * @throws IllegalArgumentException illegal argument exception
      */
     public Optional<Integer> getPort() {
         if (0 == args.length) {
@@ -56,7 +51,7 @@ public final class BootstrapArguments {
                 return Optional.empty();
             }
             return Optional.of(port);
-        } catch (final NumberFormatException ignored) {
+        } catch (final NumberFormatException ex) {
             throw new IllegalArgumentException(String.format("Invalid port `%s`.", args[0]));
         }
     }
@@ -70,6 +65,28 @@ public final class BootstrapArguments {
         return args.length < 2 ? DEFAULT_CONFIG_PATH : paddingWithSlash(args[1]);
     }
     
+    /**
+     * Get bind address list.
+     *
+     * @return address list
+     */
+    public List<String> getAddresses() {
+        return args.length < 3 ? Collections.singletonList(DEFAULT_BIND_ADDRESS) : Arrays.asList(args[2].split(","));
+    }
+    
+    /**
+     * Get force startup parameter.
+     *
+     * @return force parameter
+     */
+    public boolean getForce() {
+        return args.length >= 4 && parseForceParameter(args[3]);
+    }
+    
+    private boolean parseForceParameter(final String forceParam) {
+        return Boolean.TRUE.toString().equalsIgnoreCase(forceParam.trim());
+    }
+    
     private String paddingWithSlash(final String pathArg) {
         StringBuilder result = new StringBuilder(pathArg);
         if (!pathArg.startsWith("/")) {
@@ -79,39 +96,5 @@ public final class BootstrapArguments {
             result.append('/');
         }
         return result.toString();
-    }
-    
-    /**
-     * Get bind address list.
-     *
-     * @return address list
-     */
-    public List<String> getAddresses() {
-        if (args.length < 3) {
-            return Collections.singletonList(DEFAULT_BIND_ADDRESS);
-        }
-        return Arrays.stream(args[2].split(",")).filter(InetAddresses::isInetAddress).collect(Collectors.toList());
-    }
-    
-    /**
-     * Get unix domain socket path.
-     *
-     * @return socket path
-     */
-    public Optional<String> getSocketPath() {
-        if (args.length < 3) {
-            return Optional.empty();
-        }
-        List<String> addresses = Arrays.asList(args[2].split(","));
-        return addresses.stream().filter(address -> !InetAddresses.isInetAddress(address)).filter(this::isValidPath).findFirst();
-    }
-    
-    private boolean isValidPath(final String path) {
-        try {
-            Paths.get(path);
-        } catch (final InvalidPathException ignored) {
-            throw new IllegalArgumentException(String.format("Invalid path `%s`.", path));
-        }
-        return true;
     }
 }

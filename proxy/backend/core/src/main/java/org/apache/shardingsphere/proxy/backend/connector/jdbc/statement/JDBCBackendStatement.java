@@ -18,19 +18,18 @@
 package org.apache.shardingsphere.proxy.backend.connector.jdbc.statement;
 
 import org.apache.shardingsphere.db.protocol.parameter.TypeUnspecifiedSQLParameter;
-import org.apache.shardingsphere.infra.database.core.spi.DatabaseTypedSPILoader;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.executor.sql.context.ExecutionUnit;
 import org.apache.shardingsphere.infra.executor.sql.execute.engine.ConnectionMode;
 import org.apache.shardingsphere.infra.executor.sql.prepare.driver.jdbc.ExecutorJDBCStatementManager;
 import org.apache.shardingsphere.infra.executor.sql.prepare.driver.jdbc.StatementOption;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,23 +48,20 @@ public final class JDBCBackendStatement implements ExecutorJDBCStatementManager 
     }
     
     @Override
-    public Statement createStorageResource(final ExecutionUnit executionUnit, final Connection connection, final int connectionOffset,
-                                           final ConnectionMode connectionMode, final StatementOption option, final DatabaseType databaseType) throws SQLException {
+    public Statement createStorageResource(final ExecutionUnit executionUnit, final Connection connection, final ConnectionMode connectionMode, final StatementOption option,
+                                           final DatabaseType databaseType) throws SQLException {
         String sql = executionUnit.getSqlUnit().getSql();
         List<Object> params = executionUnit.getSqlUnit().getParameters();
         PreparedStatement result = option.isReturnGeneratedKeys()
                 ? connection.prepareStatement(executionUnit.getSqlUnit().getSql(), Statement.RETURN_GENERATED_KEYS)
                 : connection.prepareStatement(sql);
-        Iterator<Object> paramIterator = params.iterator();
-        int index = 0;
-        while (paramIterator.hasNext()) {
-            Object param = paramIterator.next();
+        for (int i = 0; i < params.size(); i++) {
+            Object param = params.get(i);
             if (param instanceof TypeUnspecifiedSQLParameter) {
-                result.setObject(index + 1, param, Types.OTHER);
+                result.setObject(i + 1, param, Types.OTHER);
             } else {
-                result.setObject(index + 1, param);
+                result.setObject(i + 1, param);
             }
-            index++;
         }
         if (ConnectionMode.MEMORY_STRICTLY == connectionMode) {
             setFetchSize(result, databaseType);
@@ -74,7 +70,7 @@ public final class JDBCBackendStatement implements ExecutorJDBCStatementManager 
     }
     
     private void setFetchSize(final Statement statement, final DatabaseType databaseType) throws SQLException {
-        Optional<StatementMemoryStrictlyFetchSizeSetter> fetchSizeSetter = DatabaseTypedSPILoader.findService(StatementMemoryStrictlyFetchSizeSetter.class, databaseType);
+        Optional<StatementMemoryStrictlyFetchSizeSetter> fetchSizeSetter = TypedSPILoader.findService(StatementMemoryStrictlyFetchSizeSetter.class, databaseType.getType());
         if (fetchSizeSetter.isPresent()) {
             fetchSizeSetter.get().setFetchSize(statement);
         }

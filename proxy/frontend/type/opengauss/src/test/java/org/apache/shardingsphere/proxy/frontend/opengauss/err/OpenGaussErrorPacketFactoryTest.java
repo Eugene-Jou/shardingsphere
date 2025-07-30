@@ -29,11 +29,13 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-class OpenGaussErrorPacketFactoryTest {
+public final class OpenGaussErrorPacketFactoryTest {
     
     @Test
-    void assertNewInstanceWithServerErrorMessage() {
+    public void assertNewInstanceWithServerErrorMessage() {
         String encodedMessage = "SFATAL\0C3D000\0Mdatabase \"test\" does not exist\0c-1\0Ddetail\0Hhint\0P1\0p2\0qinternal query\0Wwhere\0Ffile\0L3\0Rroutine\0a0.0.0.0:1";
         PSQLException cause = new PSQLException(new ServerErrorMessage(encodedMessage));
         OpenGaussErrorResponsePacket actual = OpenGaussErrorPacketFactory.newInstance(cause);
@@ -42,7 +44,7 @@ class OpenGaussErrorPacketFactoryTest {
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_SEVERITY), is("FATAL"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_CODE), is("3D000"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_MESSAGE), is("database \"test\" does not exist"));
-        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_ERROR_CODE), is("-1"));
+        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_ERRORCODE), is("-1"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_DETAIL), is("detail"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_HINT), is("hint"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_POSITION), is("1"));
@@ -55,7 +57,7 @@ class OpenGaussErrorPacketFactoryTest {
     }
     
     @Test
-    void assertNewInstanceWithSQLException() {
+    public void assertNewInstanceWithSQLException() {
         SQLException cause = new SQLException("database \"test\" does not exist", "3D000", null);
         OpenGaussErrorResponsePacket actual = OpenGaussErrorPacketFactory.newInstance(cause);
         Map<Character, String> actualFields = getFieldsInPacket(actual);
@@ -63,24 +65,25 @@ class OpenGaussErrorPacketFactoryTest {
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_SEVERITY), is("ERROR"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_CODE), is("3D000"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_MESSAGE), is("database \"test\" does not exist"));
-        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_ERROR_CODE), is("0"));
+        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_ERRORCODE), is("0"));
     }
     
     @Test
-    void assertNewInstanceWithUnknownException() {
-        Exception cause = new RuntimeException("No reason");
+    public void assertNewInstanceWithUnknownException() {
+        Exception cause = mock(Exception.class);
+        when(cause.getLocalizedMessage()).thenReturn("LocalizedMessage");
         OpenGaussErrorResponsePacket actual = OpenGaussErrorPacketFactory.newInstance(cause);
         Map<Character, String> actualFields = getFieldsInPacket(actual);
         assertThat(actualFields.size(), is(4));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_SEVERITY), is("ERROR"));
         assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_CODE), is("58000"));
-        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_MESSAGE), is("Unknown exception." + System.lineSeparator() + "More details: java.lang.RuntimeException: No reason"));
-        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_ERROR_CODE), is("0"));
+        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_MESSAGE), is("LocalizedMessage"));
+        assertThat(actualFields.get(OpenGaussErrorResponsePacket.FIELD_TYPE_ERRORCODE), is("0"));
     }
     
     @SuppressWarnings("unchecked")
     @SneakyThrows(ReflectiveOperationException.class)
-    private Map<Character, String> getFieldsInPacket(final OpenGaussErrorResponsePacket packet) {
+    private static Map<Character, String> getFieldsInPacket(final OpenGaussErrorResponsePacket packet) {
         return (Map<Character, String>) Plugins.getMemberAccessor().get(OpenGaussErrorResponsePacket.class.getDeclaredField("fields"), packet);
     }
 }

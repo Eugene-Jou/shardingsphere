@@ -17,20 +17,33 @@
 
 package org.apache.shardingsphere.encrypt.metadata.reviser.column;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.encrypt.rule.table.EncryptTable;
+import org.apache.shardingsphere.encrypt.rule.EncryptTable;
 import org.apache.shardingsphere.infra.metadata.database.schema.reviser.column.ColumnExistedReviser;
+
+import java.util.Collection;
 
 /**
  * Encrypt column existed reviser.
  */
-@RequiredArgsConstructor
 public final class EncryptColumnExistedReviser implements ColumnExistedReviser {
     
     private final EncryptTable encryptTable;
     
+    private final Collection<String> plainColumns;
+    
+    private final Collection<String> assistedQueryColumns;
+    
+    private final Collection<String> likeQueryColumns;
+    
+    public EncryptColumnExistedReviser(final EncryptTable encryptTable) {
+        this.encryptTable = encryptTable;
+        plainColumns = encryptTable.getPlainColumns();
+        assistedQueryColumns = encryptTable.getAssistedQueryColumns();
+        likeQueryColumns = encryptTable.getLikeQueryColumns();
+    }
+    
     @Override
     public boolean isExisted(final String originalName) {
-        return encryptTable.isCipherColumn(originalName) || !encryptTable.isAssistedQueryColumn(originalName) && !encryptTable.isLikeQueryColumn(originalName);
+        return plainColumns.contains(originalName) || encryptTable.isCipherColumn(originalName) || !assistedQueryColumns.contains(originalName) && !likeQueryColumns.contains(originalName);
     }
 }

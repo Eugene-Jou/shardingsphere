@@ -19,19 +19,19 @@ package org.apache.shardingsphere.db.protocol.mysql.packet.generic;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.db.protocol.mysql.packet.MySQLPacket;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.infra.exception.core.external.sql.vendor.VendorError;
-
-import java.sql.SQLException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.vendor.VendorError;
 
 /**
  * ERR packet protocol for MySQL.
  * 
- * @see <a href="https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_basic_err_packet.html">ERR Packet</a>
+ * @see <a href="https://dev.mysql.com/doc/internals/en/packet-ERR_Packet.html">ERR Packet</a>
  */
+@RequiredArgsConstructor
 @Getter
-public final class MySQLErrPacket extends MySQLPacket {
+public final class MySQLErrPacket implements MySQLPacket {
     
     /**
      * Header of ERR packet.
@@ -46,16 +46,8 @@ public final class MySQLErrPacket extends MySQLPacket {
     
     private final String errorMessage;
     
-    public MySQLErrPacket(final SQLException exception) {
-        errorCode = exception.getErrorCode();
-        sqlState = exception.getSQLState();
-        errorMessage = exception.getMessage();
-    }
-    
     public MySQLErrPacket(final VendorError vendorError, final Object... errorMessageArgs) {
-        errorCode = vendorError.getVendorCode();
-        sqlState = vendorError.getSqlState().getValue();
-        errorMessage = String.format(vendorError.getReason(), errorMessageArgs);
+        this(vendorError.getVendorCode(), vendorError.getSqlState().getValue(), String.format(vendorError.getReason(), errorMessageArgs));
     }
     
     public MySQLErrPacket(final MySQLPacketPayload payload) {
@@ -67,7 +59,7 @@ public final class MySQLErrPacket extends MySQLPacket {
     }
     
     @Override
-    protected void write(final MySQLPacketPayload payload) {
+    public void write(final MySQLPacketPayload payload) {
         payload.writeInt1(HEADER);
         payload.writeInt2(errorCode);
         payload.writeStringFix(SQL_STATE_MARKER);

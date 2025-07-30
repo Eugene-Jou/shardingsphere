@@ -28,13 +28,13 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PrometheusMetricsHistogramCollectorTest {
+public final class PrometheusMetricsHistogramCollectorTest {
     
     @Test
-    void assertCreate() throws ReflectiveOperationException {
+    public void assertCreate() throws ReflectiveOperationException {
         PrometheusMetricsHistogramCollector collector = new PrometheusMetricsHistogramCollector(new MetricConfiguration("foo_histogram",
                 MetricCollectorType.HISTOGRAM, "foo_help", Collections.emptyList(), Collections.emptyMap()));
-        collector.observe(1D);
+        collector.observe(1);
         Histogram histogram = (Histogram) Plugins.getMemberAccessor().get(PrometheusMetricsHistogramCollector.class.getDeclaredField("histogram"), collector);
         assertThat(histogram.collect().size(), is(1));
     }

@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class NarayanaXATransactionManagerProviderTest {
+public final class NarayanaXATransactionManagerProviderTest {
     
     private final NarayanaXATransactionManagerProvider transactionManagerProvider = new NarayanaXATransactionManagerProvider();
     
@@ -58,26 +58,26 @@ class NarayanaXATransactionManagerProviderTest {
     private XADataSource xaDataSource;
     
     @BeforeEach
-    void setUp() throws ReflectiveOperationException {
+    public void setUp() throws ReflectiveOperationException {
         Plugins.getMemberAccessor().set(NarayanaXATransactionManagerProvider.class.getDeclaredField("xaRecoveryModule"), transactionManagerProvider, xaRecoveryModule);
         Plugins.getMemberAccessor().set(NarayanaXATransactionManagerProvider.class.getDeclaredField("transactionManager"), transactionManagerProvider, transactionManager);
         Plugins.getMemberAccessor().set(NarayanaXATransactionManagerProvider.class.getDeclaredField("recoveryManagerService"), transactionManagerProvider, recoveryManagerService);
     }
     
     @Test
-    void assertRegisterRecoveryResource() {
+    public void assertRegisterRecoveryResource() {
         transactionManagerProvider.registerRecoveryResource("ds1", xaDataSource);
         verify(xaRecoveryModule).addXAResourceRecoveryHelper(any(DataSourceXAResourceRecoveryHelper.class));
     }
     
     @Test
-    void assertRemoveRecoveryResource() {
+    public void assertRemoveRecoveryResource() {
         transactionManagerProvider.removeRecoveryResource("ds1", xaDataSource);
         verify(xaRecoveryModule).removeXAResourceRecoveryHelper(any(DataSourceXAResourceRecoveryHelper.class));
     }
     
     @Test
-    void assertEnlistResource() throws SystemException, RollbackException {
+    public void assertEnlistResource() throws SystemException, RollbackException {
         SingleXAResource singleXAResource = mock(SingleXAResource.class);
         Transaction transaction = mock(Transaction.class);
         when(transactionManager.getTransaction()).thenReturn(transaction);
@@ -86,12 +86,12 @@ class NarayanaXATransactionManagerProviderTest {
     }
     
     @Test
-    void assertGetTransactionManager() {
+    public void assertGetTransactionManager() {
         assertThat(transactionManagerProvider.getTransactionManager(), is(transactionManager));
     }
     
     @Test
-    void assertClose() throws Exception {
+    public void assertClose() throws Exception {
         transactionManagerProvider.close();
         verify(recoveryManagerService).stop();
         verify(recoveryManagerService).destroy();

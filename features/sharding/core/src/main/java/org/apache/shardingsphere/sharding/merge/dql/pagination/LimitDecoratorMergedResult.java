@@ -19,7 +19,7 @@ package org.apache.shardingsphere.sharding.merge.dql.pagination;
 
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.infra.merge.result.impl.decorator.DecoratorMergedResult;
-import org.apache.shardingsphere.infra.binder.context.segment.select.pagination.PaginationContext;
+import org.apache.shardingsphere.infra.binder.segment.select.pagination.PaginationContext;
 
 import java.sql.SQLException;
 
@@ -28,20 +28,20 @@ import java.sql.SQLException;
  */
 public final class LimitDecoratorMergedResult extends DecoratorMergedResult {
     
-    private final PaginationContext paginationContext;
+    private final PaginationContext pagination;
     
     private final boolean skipAll;
     
     private int rowNumber;
     
-    public LimitDecoratorMergedResult(final MergedResult mergedResult, final PaginationContext paginationContext) throws SQLException {
+    public LimitDecoratorMergedResult(final MergedResult mergedResult, final PaginationContext pagination) throws SQLException {
         super(mergedResult);
-        this.paginationContext = paginationContext;
+        this.pagination = pagination;
         skipAll = skipOffset();
     }
     
     private boolean skipOffset() throws SQLException {
-        for (int i = 0; i < paginationContext.getActualOffset(); i++) {
+        for (int i = 0; i < pagination.getActualOffset(); i++) {
             if (!getMergedResult().next()) {
                 return true;
             }
@@ -55,9 +55,9 @@ public final class LimitDecoratorMergedResult extends DecoratorMergedResult {
         if (skipAll) {
             return false;
         }
-        if (!paginationContext.getActualRowCount().isPresent()) {
+        if (!pagination.getActualRowCount().isPresent()) {
             return getMergedResult().next();
         }
-        return ++rowNumber <= paginationContext.getActualRowCount().get() && getMergedResult().next();
+        return ++rowNumber <= pagination.getActualRowCount().get() && getMergedResult().next();
     }
 }

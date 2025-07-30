@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class MySQLAuthenticationPluginDataTest {
+public final class MySQLAuthenticationPluginDataTest {
     
     @Test
-    void assertGetAuthPluginData() {
+    public void assertGetAuthPluginData() {
         byte[] actualPart1 = {106, 105, 55, 122, 117, 98, 115, 109};
         byte[] actualPart2 = {68, 102, 53, 122, 65, 49, 84, 79, 85, 115, 116, 113};
         MySQLAuthenticationPluginData actual = new MySQLAuthenticationPluginData(actualPart1, actualPart2);
@@ -36,7 +36,7 @@ class MySQLAuthenticationPluginDataTest {
     }
     
     @Test
-    void assertGetAuthPluginDataWithoutArguments() {
+    public void assertGetAuthPluginDataWithoutArguments() {
         MySQLAuthenticationPluginData actual = new MySQLAuthenticationPluginData();
         assertThat(actual.getAuthenticationPluginDataPart1().length, is(8));
         assertThat(actual.getAuthenticationPluginDataPart2().length, is(12));

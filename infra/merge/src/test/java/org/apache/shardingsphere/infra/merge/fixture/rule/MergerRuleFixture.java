@@ -30,7 +30,7 @@ public final class MergerRuleFixture implements ShardingSphereRule {
     }
     
     @Override
-    public int getOrder() {
-        return 0;
+    public String getType() {
+        return MergerRuleFixture.class.getSimpleName();
     }
 }

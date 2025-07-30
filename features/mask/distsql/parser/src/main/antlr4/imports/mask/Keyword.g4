@@ -23,14 +23,6 @@ WS
     : [ \t\r\n] + ->skip
     ;
 
-TRUE
-    : T R U E
-    ;
-
-FALSE
-    : F A L S E
-    ;
-
 CREATE
     : C R E A T E
     ;
@@ -123,12 +115,32 @@ MASK_FROM_X_TO_Y
     : M A S K UL_ F R O M UL_ X UL_ T O UL_ Y
     ;
 
-MASK_BEFORE_SPECIAL_CHARS
-    : M A S K UL_ B E F O R E UL_ S P E C I A L UL_ C H A R S
+MASK_BEFORE_SPECIAL_CHAR
+    : M A S K UL_ B E F O R E UL_ S P E C I A L UL_ C H A R
     ;
 
-MASK_AFTER_SPECIAL_CHARS
-    : M A S K UL_ A F T E R UL_ S P E C I A L UL_ C H A R S
+MASK_AFTER_SPECIAL_CHAR
+    : M A S K UL_ A F T E R UL_ S P E C I A L UL_ C H A R
+    ;
+
+PERSONAL_IDENTITY_NUMBER_RANDOM_REPLACE
+    : P E R S O N A L UL_ I D E N T I T Y UL_ N U M B E R UL_ R A N D O M UL_ R E P L A C E
+    ;
+
+MILITARY_IDENTITY_NUMBER_RANDOM_REPLACE
+    : M I L I T A R Y UL_ I D E N T I T Y UL_ N U M B E R UL_ R A N D O M UL_ R E P L A C E
+    ;
+
+LANDLINE_NUMBER_RANDOM_REPLACE
+    : L A N D L I N E UL_ N U M B E R UL_ R A N D O M UL_ R E P L A C E
+    ;
+
+TELEPHONE_RANDOM_REPLACE
+    : T E L E P H O N E UL_ R A N D O M UL_ R E P L A C E
+    ;
+
+UNIFIED_CREDIT_CODE_RANDOM_REPLACE
+    : U N I F I E D UL_ C R E D I T UL_ C O D E UL_ R A N D O M UL_ R E P L A C E
     ;
 
 GENERIC_TABLE_RANDOM_REPLACE
@@ -137,12 +149,4 @@ GENERIC_TABLE_RANDOM_REPLACE
 
 ADDRESS_RANDOM_REPLACE
     : A D D R E S S UL_ R A N D O M UL_ R E P L A C E
-    ;
-
-ALGORITHM
-    : A L G O R I T H M
-    ;
-
-PLUGINS
-    : P L U G I N S
     ;

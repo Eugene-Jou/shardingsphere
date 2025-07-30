@@ -39,6 +39,10 @@ SHOW
     : S H O W
     ;
 
+RESOURCE
+    : R E S O U R C E
+    ;
+
 RULE
     :  R U L E
     ;
@@ -95,20 +99,20 @@ CIPHER
     : C I P H E R
     ;
 
-ASSISTED_QUERY
-    : A S S I S T E D UL_ Q U E R Y
+PLAIN
+    : P L A I N
     ;
 
 ASSISTED_QUERY_COLUMN
     : A S S I S T E D UL_ Q U E R Y UL_ C O L U M N
     ;
 
-LIKE_QUERY
-    : L I K E UL_ Q U E R Y
-    ;
-
 LIKE_QUERY_COLUMN
     : L I K E UL_ Q U E R Y UL_ C O L U M N
+    ;
+
+QUERY_WITH_CIPHER_COLUMN
+    : Q U E R Y UL_ W I T H UL_ C I P H E R UL_ C O L U M N
     ;
 
 TRUE
@@ -117,6 +121,26 @@ TRUE
 
 FALSE
     : F A L S E
+    ;
+
+DATA_TYPE
+    : D A T A UL_ T Y P E
+    ;
+
+PLAIN_DATA_TYPE
+    : P L A I N UL_ D A T A UL_ T Y P E
+    ;
+
+CIPHER_DATA_TYPE
+    : C I P H E R UL_ D A T A UL_ T Y P E
+    ;
+
+ASSISTED_QUERY_DATA_TYPE
+    : A S S I S T E D UL_ Q U E R Y UL_ D A T A UL_ T Y P E
+    ;
+
+LIKE_QUERY_DATA_TYPE
+    : L I K E UL_ Q U E R Y UL_ D A T A UL_ T Y P E
     ;
 
 IF
@@ -139,14 +163,22 @@ AES
     : A E S
     ;
 
+RC4
+    : R C [4]
+    ;
+
+SM3
+    : S M [3]
+    ;
+
+SM4
+    : S M [4]
+    ;
+
+CHAR_DIGEST_LIKE
+    : C H A R UL_ D I G E S T UL_ L I K E
+    ;
+
 NOT
     : N O T
-    ;
-
-ALGORITHM
-    : A L G O R I T H M 
-    ;
-
-PLUGINS
-    : P L U G I N S
     ;

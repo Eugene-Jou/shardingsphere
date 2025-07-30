@@ -21,31 +21,14 @@
     <parent>
         <groupId>org.apache.shardingsphere</groupId>
         <artifactId>shardingsphere-transaction-base</artifactId>
-        <version>5.5.3-SNAPSHOT</version>
+        <version>5.3.2</version>
     </parent>
     <artifactId>shardingsphere-transaction-base-seata-at</artifactId>
     <name>${project.artifactId}</name>
     
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.seata</groupId>
-                <artifactId>seata-all</artifactId>
-                <version>${seata.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.antlr</groupId>
-                        <artifactId>antlr4-runtime</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-runtime</artifactId>
-                <version>${antlr4.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <properties>
+        <seata.version>1.4.2</seata.version>
+    </properties>
     
     <dependencies>
         <dependency>
@@ -56,14 +39,15 @@
         
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
-            <artifactId>shardingsphere-infra-database-mysql</artifactId>
-            <version>${project.version}</version>
+            <artifactId>shardingsphere-test-fixture-jdbc</artifactId>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
         
         <dependency>
-            <groupId>org.apache.seata</groupId>
+            <groupId>io.seata</groupId>
             <artifactId>seata-all</artifactId>
+            <version>${seata.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

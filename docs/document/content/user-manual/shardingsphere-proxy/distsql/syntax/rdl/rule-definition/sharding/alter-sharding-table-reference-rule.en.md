@@ -1,6 +1,6 @@
 +++
 title = "ALTER SHARDING TABLE REFERENCE RULE"
-weight = 13
+weight = 14
 +++
 
 ## Description
@@ -17,9 +17,6 @@ AlterShardingTableReferenceRule ::=
 
 referenceRelationshipDefinition ::=
   ruleName '(' tableName (',' tableName)* ')'
-
-ruleName ::=
-  identifier
 
 tableName ::=
   identifier
@@ -58,4 +55,4 @@ ALTER SHARDING TABLE REFERENCE RULE ref_0 (t_order,t_order_item), ref_1 (t_produ
 ### Related links
 
 - [Reserved word](/en/user-manual/shardingsphere-proxy/distsql/syntax/reserved-word/)
-- [CREATE SHARDING TABLE RULE](/en/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/sharding/create-sharding-table-rule/)
+- [CREATE SHARDING TABLE RULE](/en/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/create-sharding-table-rule/)

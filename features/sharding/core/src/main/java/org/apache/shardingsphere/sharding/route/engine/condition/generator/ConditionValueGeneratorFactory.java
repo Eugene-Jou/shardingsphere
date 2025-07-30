@@ -19,16 +19,16 @@ package org.apache.shardingsphere.sharding.route.engine.condition.generator;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.shardingsphere.infra.metadata.database.schema.HashColumn;
+import org.apache.shardingsphere.sharding.route.engine.condition.Column;
 import org.apache.shardingsphere.sharding.route.engine.condition.generator.impl.ConditionValueBetweenOperatorGenerator;
 import org.apache.shardingsphere.sharding.route.engine.condition.generator.impl.ConditionValueCompareOperatorGenerator;
 import org.apache.shardingsphere.sharding.route.engine.condition.generator.impl.ConditionValueInOperatorGenerator;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.ShardingConditionValue;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.BetweenExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.BinaryOperationExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.ExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.InExpression;
-import org.apache.shardingsphere.timeservice.core.rule.TimestampServiceRule;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.BetweenExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.BinaryOperationExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.ExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.InExpression;
+import org.apache.shardingsphere.timeservice.core.rule.TimeServiceRule;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,19 +51,18 @@ public final class ConditionValueGeneratorFactory {
      * @param predicate predicate right value
      * @param column column
      * @param params SQL parameters
-     * @param timestampServiceRule time service rule
+     * @param timeServiceRule time service rule
      * @return route value
      */
-    public static Optional<ShardingConditionValue> generate(final ExpressionSegment predicate, final HashColumn column, final List<Object> params,
-                                                            final TimestampServiceRule timestampServiceRule) {
+    public static Optional<ShardingConditionValue> generate(final ExpressionSegment predicate, final Column column, final List<Object> params, final TimeServiceRule timeServiceRule) {
         if (predicate instanceof BinaryOperationExpression) {
-            return COMPARE_OPERATOR_GENERATOR.generate((BinaryOperationExpression) predicate, column, params, timestampServiceRule);
+            return COMPARE_OPERATOR_GENERATOR.generate((BinaryOperationExpression) predicate, column, params, timeServiceRule);
         }
         if (predicate instanceof InExpression) {
-            return IN_OPERATOR_GENERATOR.generate((InExpression) predicate, column, params, timestampServiceRule);
+            return IN_OPERATOR_GENERATOR.generate((InExpression) predicate, column, params, timeServiceRule);
         }
         if (predicate instanceof BetweenExpression) {
-            return BETWEEN_OPERATOR_GENERATOR.generate((BetweenExpression) predicate, column, params, timestampServiceRule);
+            return BETWEEN_OPERATOR_GENERATOR.generate((BetweenExpression) predicate, column, params, timeServiceRule);
         }
         return Optional.empty();
     }

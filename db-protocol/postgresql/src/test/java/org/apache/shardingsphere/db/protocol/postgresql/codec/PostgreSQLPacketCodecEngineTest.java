@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class PostgreSQLPacketCodecEngineTest {
+public final class PostgreSQLPacketCodecEngineTest {
     
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ChannelHandlerContext context;
@@ -58,22 +58,22 @@ class PostgreSQLPacketCodecEngineTest {
     private ByteBuf byteBuf;
     
     @BeforeEach
-    void setup() {
+    public void setup() {
         when(context.channel().attr(AttributeKey.<Charset>valueOf(Charset.class.getName())).get()).thenReturn(StandardCharsets.UTF_8);
     }
     
     @Test
-    void assertIsValidHeader() {
+    public void assertIsValidHeader() {
         assertTrue(new PostgreSQLPacketCodecEngine().isValidHeader(50));
     }
     
     @Test
-    void assertIsInvalidHeader() {
+    public void assertIsInvalidHeader() {
         assertTrue(new PostgreSQLPacketCodecEngine().isValidHeader(4));
     }
     
     @Test
-    void assertDecode() {
+    public void assertDecode() {
         when(byteBuf.readableBytes()).thenReturn(51, 47, 0);
         List<Object> out = new LinkedList<>();
         new PostgreSQLPacketCodecEngine().decode(context, byteBuf, out);
@@ -81,21 +81,21 @@ class PostgreSQLPacketCodecEngineTest {
     }
     
     @Test
-    void assertDecodeWithStickyPacket() {
+    public void assertDecodeWithStickyPacket() {
         List<Object> out = new LinkedList<>();
         new PostgreSQLPacketCodecEngine().decode(context, byteBuf, out);
         assertTrue(out.isEmpty());
     }
     
     @Test
-    void assertEncodePostgreSQLPacket() {
+    public void assertEncodePostgreSQLPacket() {
         PostgreSQLPacket packet = mock(PostgreSQLPacket.class);
         new PostgreSQLPacketCodecEngine().encode(context, packet, byteBuf);
         verify(packet).write(any(PostgreSQLPacketPayload.class));
     }
     
     @Test
-    void assertEncodePostgreSQLIdentifierPacket() {
+    public void assertEncodePostgreSQLIdentifierPacket() {
         PostgreSQLIdentifierPacket packet = mock(PostgreSQLIdentifierPacket.class);
         when(packet.getIdentifier()).thenReturn(PostgreSQLMessagePacketType.AUTHENTICATION_REQUEST);
         when(byteBuf.readableBytes()).thenReturn(9);
@@ -107,7 +107,7 @@ class PostgreSQLPacketCodecEngineTest {
     }
     
     @Test
-    void assertEncodeOccursException() {
+    public void assertEncodeOccursException() {
         PostgreSQLPacket packet = mock(PostgreSQLPacket.class);
         RuntimeException ex = mock(RuntimeException.class);
         when(ex.getMessage()).thenReturn("Error");
@@ -120,7 +120,7 @@ class PostgreSQLPacketCodecEngineTest {
     }
     
     @Test
-    void assertCreatePacketPayload() {
+    public void assertCreatePacketPayload() {
         assertThat(new PostgreSQLPacketCodecEngine().createPacketPayload(byteBuf, StandardCharsets.UTF_8).getByteBuf(), is(byteBuf));
     }
 }

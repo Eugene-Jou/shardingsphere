@@ -1,19 +1,19 @@
 +++
 title = "REFRESH DATABASE METADATA FROM GOVERNANCE CENTER"
-weight = 10
+weight = 7
 +++
 
 ### Description
 
-The `REFRESH DATABASE METADATA` syntax is used to refresh the metadata of the local logic database.
+The `REFRESH DATABASE METADATA FROM GOVERNANCE CENTER` syntax is used to pull the latest configuration from the governance center and refresh the metadata of the local logic database.
 
 ### Syntax
 
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-RefreshDatabaseMetadata ::=
-  'FORCE'? 'REFRESH' 'DATABASE' 'METADATA' databaseName?
+RefreshDatabaseMetadataFromGovernanceCenter ::=
+  'REFRESH' 'DATABASE' 'METADATA' databaseName? 'FROM' 'GOVERNANCE' 'CENTER'
 
 databaseName ::=
   identifier
@@ -28,31 +28,25 @@ databaseName ::=
 
 - When `databaseName` is not specified, the default is to refresh all database metadata.
 
-- When using `FORCE` to refresh metadata, the latest metadata will be obtained locally and written to the governance center. If without `FORCE`, it will be pulled from the governance center.
+- refresh table metadata need to use `DATABASE`. If `DATABASE` is not used, `No database selected` will be prompted.
 
 ### Example
 
 - Refresh metadata for specified database
 
 ```sql
-REFRESH DATABASE METADATA sharding_db;
+REFRESH DATABASE METADATA sharding_db FROM GOVERNANCE CENTER;
 ```
 
 - Refresh all database metadata
 
 ```sql
-REFRESH DATABASE METADATA;
-```
-
-- Force refresh all database metadata
-
-```sql
-FORCE REFRESH DATABASE METADATA;
+REFRESH DATABASE METADATA FROM GOVERNANCE CENTER;
 ```
 
 ### Reserved word
 
-`FORCE`, `REFRESH`, `DATABASE`, `METADATA`
+`REFRESH`, `DATABASE`, `METADATA`, `FROM`, `GOVERNANCE`, `CENTER`
 
 ### Related links
 

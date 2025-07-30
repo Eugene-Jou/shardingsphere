@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLEmptyQueryResponsePacketTest {
+public final class PostgreSQLEmptyQueryResponsePacketTest {
     
     @Test
-    void assertIdentifier() {
+    public void assertIdentifier() {
         PostgreSQLIdentifierTag actual = new PostgreSQLEmptyQueryResponsePacket().getIdentifier();
         assertThat(actual, is(PostgreSQLMessagePacketType.EMPTY_QUERY_RESPONSE));
     }

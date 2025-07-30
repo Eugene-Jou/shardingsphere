@@ -17,64 +17,58 @@
 
 package org.apache.shardingsphere.encrypt.merge.dql;
 
-import org.apache.shardingsphere.encrypt.exception.data.DecryptFailedException;
-import org.apache.shardingsphere.encrypt.rule.EncryptRule;
-import org.apache.shardingsphere.encrypt.rule.column.EncryptColumn;
-import org.apache.shardingsphere.infra.binder.context.statement.type.dml.SelectStatementContext;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseTypeRegistry;
-import org.apache.shardingsphere.infra.exception.core.external.sql.identifier.SQLExceptionIdentifier;
+import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.encrypt.api.encrypt.standard.StandardEncryptAlgorithm;
+import org.apache.shardingsphere.encrypt.spi.context.EncryptContext;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
-import org.apache.shardingsphere.infra.merge.result.impl.decorator.DecoratorMergedResult;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
-import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.bound.ColumnSegmentBoundInfo;
 
+import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Calendar;
 import java.util.Optional;
 
 /**
  * Merged result for encrypt.
  */
-public final class EncryptMergedResult extends DecoratorMergedResult {
+@RequiredArgsConstructor
+public final class EncryptMergedResult implements MergedResult {
     
-    private final ShardingSphereDatabase database;
+    private final EncryptAlgorithmMetaData metaData;
     
-    private final ShardingSphereMetaData metaData;
+    private final MergedResult mergedResult;
     
-    private final SelectStatementContext selectStatementContext;
+    @Override
+    public boolean next() throws SQLException {
+        return mergedResult.next();
+    }
     
-    public EncryptMergedResult(final ShardingSphereDatabase database, final ShardingSphereMetaData metaData, final SelectStatementContext selectStatementContext, final MergedResult mergedResult) {
-        super(mergedResult);
-        this.database = database;
-        this.metaData = metaData;
-        this.selectStatementContext = selectStatementContext;
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public Object getValue(final int columnIndex, final Class<?> type) throws SQLException {
+        Optional<EncryptContext> encryptContext = metaData.findEncryptContext(columnIndex);
+        if (!encryptContext.isPresent() || !metaData.isQueryWithCipherColumn(encryptContext.get().getTableName(), encryptContext.get().getColumnName())) {
+            return mergedResult.getValue(columnIndex, type);
+        }
+        Optional<StandardEncryptAlgorithm> encryptAlgorithm = metaData.findEncryptor(encryptContext.get().getTableName(), encryptContext.get().getColumnName());
+        if (!encryptAlgorithm.isPresent()) {
+            return mergedResult.getValue(columnIndex, type);
+        }
+        Object cipherValue = mergedResult.getValue(columnIndex, Object.class);
+        return null == cipherValue ? null : encryptAlgorithm.get().decrypt(cipherValue, encryptContext.get());
     }
     
     @Override
-    public Object getValue(final int columnIndex, final Class<?> type) throws SQLException {
-        Optional<ColumnSegmentBoundInfo> columnSegmentBoundInfo = selectStatementContext.findColumnBoundInfo(columnIndex);
-        if (!columnSegmentBoundInfo.isPresent()) {
-            return getMergedResult().getValue(columnIndex, type);
-        }
-        String originalTableName = columnSegmentBoundInfo.get().getOriginalTable().getValue();
-        String originalColumnName = columnSegmentBoundInfo.get().getOriginalColumn().getValue();
-        ShardingSphereDatabase database = metaData.containsDatabase(columnSegmentBoundInfo.get().getOriginalDatabase().getValue())
-                ? metaData.getDatabase(columnSegmentBoundInfo.get().getOriginalDatabase().getValue())
-                : this.database;
-        Optional<EncryptRule> rule = database.getRuleMetaData().findSingleRule(EncryptRule.class);
-        if (!rule.isPresent() || !rule.get().findEncryptTable(originalTableName).map(optional -> optional.isEncryptColumn(originalColumnName)).orElse(false)) {
-            return getMergedResult().getValue(columnIndex, type);
-        }
-        Object cipherValue = getMergedResult().getValue(columnIndex, Object.class);
-        EncryptColumn encryptColumn = rule.get().getEncryptTable(originalTableName).getEncryptColumn(originalColumnName);
-        String schemaName = selectStatementContext.getTablesContext().getSchemaName()
-                .orElseGet(() -> new DatabaseTypeRegistry(selectStatementContext.getSqlStatement().getDatabaseType()).getDefaultSchemaName(database.getName()));
-        try {
-            return encryptColumn.getCipher().decrypt(database.getName(), schemaName, originalTableName, originalColumnName, cipherValue);
-            // CHECKSTYLE:OFF
-        } catch (final Exception ex) {
-            // CHECKSTYLE:ON
-            throw new DecryptFailedException(String.valueOf(cipherValue), new SQLExceptionIdentifier(database.getName(), originalTableName, originalColumnName), ex);
-        }
+    public Object getCalendarValue(final int columnIndex, final Class<?> type, final Calendar calendar) throws SQLException {
+        return mergedResult.getCalendarValue(columnIndex, type, calendar);
+    }
+    
+    @Override
+    public InputStream getInputStream(final int columnIndex, final String type) throws SQLException {
+        return mergedResult.getInputStream(columnIndex, type);
+    }
+    
+    @Override
+    public boolean wasNull() throws SQLException {
+        return mergedResult.wasNull();
     }
 }

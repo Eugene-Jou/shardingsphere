@@ -18,26 +18,33 @@
 package org.apache.shardingsphere.infra.util.eventbus;
 
 import com.google.common.eventbus.EventBus;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  * Event bus context.
  */
+@SuppressWarnings("UnstableApiUsage")
 public final class EventBusContext {
     
     private final EventBus eventBus = new EventBus();
     
+    static {
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+    }
+    
     /**
-     * Register event subscriber.
-     *
-     * @param subscriber event subscriber
+     * Register object.
+     * 
+     * @param object object
      */
-    public void register(final EventSubscriber subscriber) {
-        eventBus.register(subscriber);
+    public void register(final Object object) {
+        eventBus.register(object);
     }
     
     /**
      * Post event.
-     *
+     * 
      * @param event event
      */
     public void post(final Object event) {

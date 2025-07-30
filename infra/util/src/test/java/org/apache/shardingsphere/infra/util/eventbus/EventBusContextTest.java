@@ -17,18 +17,18 @@
 
 package org.apache.shardingsphere.infra.util.eventbus;
 
-import org.apache.shardingsphere.infra.util.eventbus.fixture.EventSubscriberFixture;
+import org.apache.shardingsphere.infra.util.eventbus.fixture.EventListenerFixture;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class EventBusContextTest {
+public final class EventBusContextTest {
     
     @Test
-    void assertEventBusContextTest() {
+    public void assertEventBusContextTest() {
         EventBusContext eventBusContext = new EventBusContext();
-        EventSubscriberFixture listener = new EventSubscriberFixture();
+        EventListenerFixture listener = new EventListenerFixture();
         eventBusContext.register(listener);
         eventBusContext.post("foo_event");
         assertThat(listener.getEvents().size(), is(1));

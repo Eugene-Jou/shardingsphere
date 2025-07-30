@@ -39,11 +39,7 @@ public final class JDBCQueryResultMetaData implements QueryResultMetaData {
     
     @Override
     public String getTableName(final int columnIndex) throws SQLException {
-        try {
-            return resultSetMetaData.getTableName(columnIndex);
-        } catch (final SQLFeatureNotSupportedException ignore) {
-            return "";
-        }
+        return resultSetMetaData.getTableName(columnIndex);
     }
     
     @Override

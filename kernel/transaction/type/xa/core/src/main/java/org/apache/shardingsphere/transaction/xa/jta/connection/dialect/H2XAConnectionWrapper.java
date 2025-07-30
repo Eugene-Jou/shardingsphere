@@ -26,7 +26,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Properties;
 
 /**
  * XA connection wrapper for H2.
@@ -35,22 +34,23 @@ public final class H2XAConnectionWrapper implements XAConnectionWrapper {
     
     private static final int XA_DATA_SOURCE_TRACE_TYPE_ID = 13;
     
-    private Class<Connection> jdbcConnectionClass;
+    private static volatile Class<Connection> jdbcConnectionClass;
     
-    private Constructor<?> xaConnectionConstructor;
+    private static volatile Constructor<?> xaConnectionConstructor;
     
-    private Method nextIdMethod;
+    private static volatile Method nextIdMethod;
     
-    private Object dataSourceFactory;
+    private static volatile Object dataSourceFactory;
+    
+    private static volatile boolean initialized;
     
     @Override
     public XAConnection wrap(final XADataSource xaDataSource, final Connection connection) throws SQLException {
+        if (!initialized) {
+            loadReflection();
+            initialized = true;
+        }
         return createXAConnection(connection.unwrap(jdbcConnectionClass));
-    }
-    
-    @Override
-    public void init(final Properties props) {
-        loadReflection();
     }
     
     private void loadReflection() {
@@ -92,7 +92,7 @@ public final class H2XAConnectionWrapper implements XAConnectionWrapper {
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "H2";
     }
 }

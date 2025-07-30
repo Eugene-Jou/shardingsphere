@@ -25,25 +25,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLComStmtClosePacketTest {
+public final class MySQLComStmtClosePacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
     
     @Test
-    void assertNew() {
+    public void assertNew() {
         when(payload.readInt4()).thenReturn(1);
         MySQLComStmtClosePacket actual = new MySQLComStmtClosePacket(payload);
         assertThat(actual.getStatementId(), is(1));
     }
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         when(payload.readInt4()).thenReturn(1);
-        assertDoesNotThrow(() -> new MySQLComStmtClosePacket(payload).write(payload));
+        MySQLComStmtClosePacket actual = new MySQLComStmtClosePacket(payload);
+        actual.write(payload);
     }
 }

@@ -4,19 +4,17 @@ weight = 1
 chapter = true
 +++
 
-## Prepare Before Release
+## Prepare before release
 
-The preparation work is carried out **7 days before cutting release**, so that contributors can control the development progress according to the release plan.
-
-### 1. Check and Update LICENSE and NOTICE
+### 1. Check and update LICENSE and NOTICE
 
 Check and update dependency version in LICENSE.
 
 Check and update year in NOTICE.
 
-### 2. Confirm Release Notes
+### 2. Confirm release notes
 
-The release note should be provided in English / Chinese, confirm whether English and Chinese description are clear,
+The release note should be provided in English / Chinese, confirm whether English and Chinese description are clear, 
 and shall be classified according to the following labels:
 
 1. New Feature
@@ -24,13 +22,7 @@ and shall be classified according to the following labels:
 1. Enhancement
 1. Bug Fix
 
-### 3. Create Milestone for Next Development
-
-1. Create a [Github Milestone](https://github.com/apache/shardingsphere/milestones);
-1. Set milestone title to next development version;
-1. **Set the `due date` as the next version release cutting date** 。
-
-### 4. Confirm Issue List
+### 3. Confirm issue list
 
 Open [GitHub issues](https://github.com/apache/shardingsphere/issues), filter the issue whose milestone is `${RELEASE.VERSION}` and status is open:
 
@@ -38,26 +30,33 @@ Open [GitHub issues](https://github.com/apache/shardingsphere/issues), filter th
 1. For outstanding issues, communicate with the developer in charge. If this release is not affected, modify milestone to the next version;
 1. Confirm that there is no issue in open status under milestone of release version.
 
-### 5. Confirm Pull Request List
+### 4. Confirm pull request list
 
 Open [GitHub pull requests](https://github.com/apache/shardingsphere/pulls), filter pull requests whose milestone is `${RELEASE.VERSION}` and status is open:
 
-1. Review the open pull request and merge;
+1. Review the open pull request and merge; 
 1. For pull requests that cannot merge and do not affect this release, modify milestone to the next version;
 1. Confirm that there is no open pull request under milestone of release version.
 
-### 6. Call for a Discussion
+### 5. Call for a discussion
 
-1. Create a [GitHub Discussion](https://github.com/apache/shardingsphere/discussions) contains all the release notes and **release cutting date** ;
-1. Send email to [dev@shardingsphere.apache.org](mailto:dev@shardingsphere.apache.org) with the GitHub Discussion and **release cutting date** in the message body;
+1. Create a [GitHub Discussion](https://github.com/apache/shardingsphere/discussions) contains all the release notes;
+1. Send email to [dev@shardingsphere.apache.org](mailto:dev@shardingsphere.apache.org) with the GitHub Discussion in the message body;
 1. Follow the mailing list and confirm that the community developers have no questions about the release note.
+
+### 6. Close milestone
+
+Open [GitHub milestone](https://github.com/apache/shardingsphere/milestones)
+
+1. Confirm that the milestone completion status of `${RELEASE.VERSION}` is 100%;
+1. Click `close` to close milestone.
 
 ## GPG Settings
 
 ### 1. Install GPG
 
-Download installation package on [official GnuPG website](https://www.gnupg.org/download/index.html).
-The command of GnuPG 1.x version can differ a little from that of 2.x version.
+Download installation package on [official GnuPG website](https://www.gnupg.org/download/index.html). 
+The command of GnuPG 1.x version can differ a little from that of 2.x version. 
 The following instructions take `GnuPG-2.1.23` version for example.
 After the installation, execute the following command to check the version number.
 
@@ -105,7 +104,7 @@ Please specify how long the key should be valid.
      <n>w = key expires in n weeks
      <n>m = key expires in n months
      <n>y = key expires in n years
-Key is valid for? (0)
+Key is valid for? (0) 
 Key does not expire at all
 Is this correct? (y/N) y
 
@@ -147,25 +146,17 @@ The command is as follows:
 gpg --keyserver hkp://keyserver.ubuntu.com --send-key 700E6065
 ```
 
-`keyserver.ubuntu.com` is randomly chosen from public key server.
+`keyserver.ubuntu.com` is randomly chosen from public key server. 
 Each server will automatically synchronize with one another, so it would be okay to choose any one.
 
 ## Prepare Branch for Release
 
-### 1. Close milestone
-
-Open [GitHub milestone](https://github.com/apache/shardingsphere/milestones)
-
-1. Confirm that the milestone completion status of `${RELEASE.VERSION}` is 100%;
-1. Click `close` to close milestone.
-
-### 2. Confirm the Release Commit and Create Release Branch
+### 1. Create Release Branch
 
 Suppose ShardingSphere source codes downloaded from GitHub is under `~/open_source/shardingsphere/`, clone a new one into `~/shardingsphere/` directory from local.
 
 Suppose the version to be released is `${RELEASE.VERSION}`, create `${RELEASE.VERSION}-release` branch, where all the following operations will be performed.
 
-Reference command:
 ```shell
 cd ~
 git clone ~/open_source/shardingsphere
@@ -178,7 +169,7 @@ git checkout -b ${RELEASE.VERSION}-release
 git push origin ${RELEASE.VERSION}-release
 ```
 
-### 3. Update Release Notes And Example Version
+### 2. Update Release Notes And Example Version
 
 Update the following file in release branch, and submit a PR to release branch:
 
@@ -188,7 +179,7 @@ https://github.com/apache/shardingsphere/blob/${RELEASE.VERSION}-release/RELEASE
 
 Update the POM of the module `examples`, changing the version from ${DEVELOPMENT.VERSION} to ${RELEASE.VERSION}, and submit a PR to release branch.
 
-### 4. Update the download page
+### 3. Update the download page
 
 Update the following pages:
 * <https://shardingsphere.apache.org/document/current/en/downloads/>
@@ -196,19 +187,15 @@ Update the following pages:
 
 GPG signatures and hashes (SHA* etc) should be prefixed with `https://downloads.apache.org/shardingsphere/`
 
-### 5. Update README files
+### 4. Update README files
 
 Update `${RELEASE.VERSION}` and `${NEXT.RELEASE.VERSION}` in README.md and README_ZH.md.
-
-### 6. Update ShardingSphereDriver
-
-Update `MAJOR_DRIVER_VERSION` and `MINOR_DRIVER_VERSION` in ShardingSphereDriver.java.
 
 ## Apache Maven Central Repository Release
 
 ### 1. Set settings-security.xml and settings.xml
 
-Add the following template to `~/.m2/settings.xml`, all the passwords need to be filled in after encryption.
+Add the following template to `~/.m2/settings.xml`, all the passwords need to be filled in after encryption. 
 For encryption settings, please see [here](http://maven.apache.org/guides/mini/guide-encryption.html).
 
 ```xml
@@ -235,10 +222,10 @@ export GPG_TTY=$(tty)
 ```
 
 ```shell
-./mvnw release:prepare -Prelease,default-dep -Darguments="-DskipTests" -DautoVersionSubmodules=true -DdryRun=true -Dusername=${Github username}
+mvn release:prepare -Prelease -Darguments="-DskipTests -Dspotless.apply.skip=true" -DautoVersionSubmodules=true -DdryRun=true -Dusername=${Github username}
 ```
 
--Prelease,default-dep: choose release profile, which will pack all the source codes, jar files and executable binary packages of ShardingSphere-Proxy.
+-Prelease: choose release profile, which will pack all the source codes, jar files and executable binary packages of ShardingSphere-Proxy.
 
 -DautoVersionSubmodules=true: it can make the version number is inputted only once and not for each sub-module.
 
@@ -249,13 +236,13 @@ export GPG_TTY=$(tty)
 First, clean local pre-release check information.
 
 ```shell
-./mvnw release:clean
+mvn release:clean
 ```
 
 Then, prepare to execute the release.
 
 ```shell
-./mvnw release:prepare -Prelease,default-dep -Darguments="-DskipTests" -DautoVersionSubmodules=true -DpushChanges=false -Dusername=${Github username}
+mvn release:prepare -Prelease -Darguments="-DskipTests -Dspotless.apply.skip=true" -DautoVersionSubmodules=true -DpushChanges=false -Dusername=${Github username}
 ```
 
 It is basically the same as the previous rehearsal command, but deleting -DdryRun=true parameter.
@@ -271,14 +258,14 @@ git push origin ${RELEASE.VERSION}
 ### 4. Deploy the Release
 
 ```shell
-./mvnw release:perform -Prelease,default-dep -Darguments="-DskipTests" -DautoVersionSubmodules=true -DlocalCheckout=true -Dusername=${Github username}
+mvn release:perform -Prelease -Darguments="-DskipTests -Dspotless.apply.skip=true" -DautoVersionSubmodules=true -DlocalCheckout=true -Dusername=${Github username}
 ```
 
 -DlocalCheckout=true: checkout code from local repository instead of remote repository.
 
-After that command is executed, the version to be released will be uploaded to Apache staging repository automatically.
+After that command is executed, the version to be released will be uploaded to Apache staging repository automatically. 
 
-Visit [staging repository](https://repository.apache.org/#stagingRepositories) and use Apache LDAP account to log in; then you can see the uploaded version, the content of `Repository` column is the ${STAGING.REPOSITORY}.
+Visit [staging repository](https://repository.apache.org/#stagingRepositories) and use Apache LDAP account to log in; then you can see the uploaded version, the content of `Repository` column is the ${STAGING.REPOSITORY}. 
 
 Click `Close` to tell Nexus that the construction is finished, because only in this way, this version can be usable.
 If there is any problem in gpg signature, `Close` will fail, but you can see the failure information through `Activity`.
@@ -303,7 +290,7 @@ cd ~/ss_svn/dev/shardingsphere
 
 ### 2. Add gpg Public Key and commit
 
-Only the account in its **first deployment** needs to add that.
+Only the account in its **first deployment** needs to add that. 
 It is alright for `KEYS` to only include the public key of the deployed account.
 
 ```shell
@@ -409,7 +396,7 @@ diff -r apache-shardingsphere-${RELEASE.VERSION}-src-release shardingsphere-${RE
 
 **3.3 Check binary packages**
 
-Decompress
+Decompress 
 - `apache-shardingsphere-${RELEASE.VERSION}-shardingsphere-jdbc-bin.tar.gz`
 - `apache-shardingsphere-${RELEASE.VERSION}-shardingsphere-proxy-bin.tar.gz`
 - `apache-shardingsphere-${RELEASE.VERSION}-shardingsphere-agent-bin.tar.gz`
@@ -429,8 +416,8 @@ And check the following items:
 
 **Vote procedure**
 
-1. ShardingSphere community vote: send the vote e-mail to `dev@shardingsphere.apache.org`.
-PMC needs to check the rightness of the version according to the document before they vote.
+1. ShardingSphere community vote: send the vote e-mail to `dev@shardingsphere.apache.org`. 
+PMC needs to check the rightness of the version according to the document before they vote. 
 After at least **72 hours** and with at least **3 `+1 PMC member`** votes, it can come to the next stage of the vote.
 
 2. Announce the vote result: send the result vote e-mail to [dev@shardingsphere.apache.org](mailto:dev@shardingsphere.apache.org).
@@ -481,13 +468,13 @@ The vote will be open for at least 72 hours or until necessary number of votes a
 
 Please vote accordingly:
 
-[ ] +1 approve
+[ ] +1 approve 
 
 [ ] +0 no opinion
-
+ 
 [ ] -1 disapprove with the reason
 
-PMC vote is "+1 binding", all others is "+1 non-binding".
+PMC vote is +1 binding, all others is +1 non-binding.
 
 Checklist for reference:
 
@@ -517,7 +504,7 @@ Title：
 Body:
 
 ```
-We’ve received 3 "+1 binding" votes and one "+1 non-binding" vote:
+We’ve received 3 +1 binding votes and one +1 non-binding vote:
 
 +1 binding, xxx
 +1 binding, xxx
@@ -525,7 +512,7 @@ We’ve received 3 "+1 binding" votes and one "+1 non-binding" vote:
 
 +1 non-binding, xxx
 
-Thank you everyone for taking the time to review the release and help us.
+Thank you everyone for taking the time to review the release and help us. 
 I will process to publish the release and send ANNOUNCE.
 
 ```
@@ -534,7 +521,7 @@ I will process to publish the release and send ANNOUNCE.
 
 ### 1. Move source packages, binary packages and KEYS from the `dev` directory to `release` directory
 
-> Note: This step requires the help of PMC.
+It needs PMC help to do it.
 
 Move release candidates to release area:
 ```shell
@@ -573,34 +560,12 @@ docker login
 ```shell
 cd ~/shardingsphere
 git checkout ${RELEASE.VERSION}
-./mvnw -pl distribution/proxy -B -Prelease,default-dep,docker.buildx.push clean package
+./mvnw -pl distribution/proxy -B -Prelease,docker.buildx.push clean package
 ```
 
 3.4 Confirm the successful release
 
 Go to [Docker Hub](https://hub.docker.com/r/apache/shardingsphere-proxy/) and check whether there is a published image. And make sure that the image supports both `linux/amd64` and `linux/arm64`.
-
-```shell
-docker logout
-```
-
-3.5 Log in to GitHub Packages Container Registry
-
-```shell
-docker login ghcr.io/apache/shardingsphere
-```
-
-3.6 Build and push ShardingSphere Agent Docker image
-
-```shell
-cd ~/shardingsphere
-git checkout ${RELEASE.VERSION}
-./mvnw -am -pl distribution/agent -Prelease,default-dep,docker.buildx.push -T 1C -DskipTests clean package
-```
-
-3.7 Confirm the successful release
-
-Check [GitHub Packages](https://github.com/apache/shardingsphere/pkgs/container/shardingsphere-agent) for released images, and make sure that the image supports both `linux/amd64` and `linux/arm64`.
 
 ```shell
 docker logout
@@ -614,13 +579,11 @@ Edit release version and release notes, select `Set as the latest release`, clic
 
 ### 5. Remove previous release from Release Area
 
-> Note: This step requires the help of PMC.
-
 Keep the latest version in [**Release Area**](https://dist.apache.org/repos/dist/release/shardingsphere/) only.
 
 Incubating stage versions will be archived automatically in [Archive repository](https://archive.apache.org/dist/incubator/shardingsphere/)
 
-Remove the previous release from the [**Release Area**](https://dist.apache.org/repos/dist/release/shardingsphere/) after confirming the previous release exists in [Archive repository](https://archive.apache.org/dist/shardingsphere/),
+Remove the previous release from the [**Release Area**](https://dist.apache.org/repos/dist/release/shardingsphere/) after confirming the previous release exists in [Archive repository](https://archive.apache.org/dist/shardingsphere/), 
 
 ```shell
 svn del -m "Archiving release ${PREVIOUS.RELEASE.VERSION}" https://dist.apache.org/repos/dist/release/shardingsphere/${PREVIOUS.RELEASE.VERSION}
@@ -634,9 +597,7 @@ Refer to [Release Download Pages for Projects](https://infra.apache.org/release-
 
 ### 6. Add entrance of documents of the new release into home page
 
-Refer to commit:
-Update the version number of document files, including index.html, indexzh.html, learning.html, legacy.html, and legacyzh.html under the shardingsphere-doc repository to the current version. [Reference commit](https://github.com/apache/shardingsphere-doc/commit/9fdf438d1170129d2690b5dee316403984579430)
-Update language.html(docs/document/themes/hugo-theme-learn/layouts/partials/language.html) under the shardingsphere repository and add the current version number for navigation. [Reference commit](https://github.com/apache/shardingsphere/pull/29017/files)
+Refer to commit: https://github.com/apache/shardingsphere-doc/commit/9fdf438d1170129d2690b5dee316403984579430
 
 ### 7. Update Example Version
 

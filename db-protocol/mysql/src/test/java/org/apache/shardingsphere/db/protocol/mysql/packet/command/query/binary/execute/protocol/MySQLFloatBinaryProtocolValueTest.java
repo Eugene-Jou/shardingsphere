@@ -32,20 +32,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLFloatBinaryProtocolValueTest {
+public final class MySQLFloatBinaryProtocolValueTest {
     
     @Mock
     private ByteBuf byteBuf;
     
     @Test
-    void assertRead() {
-        when(byteBuf.readFloatLE()).thenReturn(1.0F);
-        assertThat(new MySQLFloatBinaryProtocolValue().read(new MySQLPacketPayload(byteBuf, StandardCharsets.UTF_8), false), is(1.0F));
+    public void assertRead() {
+        when(byteBuf.readFloatLE()).thenReturn(1.0f);
+        assertThat(new MySQLFloatBinaryProtocolValue().read(new MySQLPacketPayload(byteBuf, StandardCharsets.UTF_8), false), is(1.0f));
     }
     
     @Test
-    void assertWrite() {
-        new MySQLFloatBinaryProtocolValue().write(new MySQLPacketPayload(byteBuf, StandardCharsets.UTF_8), 1.0F);
-        verify(byteBuf).writeFloatLE(1.0F);
+    public void assertWrite() {
+        new MySQLFloatBinaryProtocolValue().write(new MySQLPacketPayload(byteBuf, StandardCharsets.UTF_8), 1.0f);
+        verify(byteBuf).writeFloatLE(1.0f);
     }
 }

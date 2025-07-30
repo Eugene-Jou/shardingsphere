@@ -25,10 +25,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class PostgreSQLBindCompletePacketTest {
+public final class PostgreSQLBindCompletePacketTest {
     
     @Test
-    void assertGetInstanceAndWrite() {
+    public void assertGetInstanceAndWrite() {
         PostgreSQLPacketPayload payload = mock(PostgreSQLPacketPayload.class);
         ByteBuf byteBuf = mock(ByteBuf.class);
         when(payload.getByteBuf()).thenReturn(byteBuf);

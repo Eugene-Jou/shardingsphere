@@ -20,6 +20,8 @@ package org.apache.shardingsphere.agent.core.plugin.jar;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.shardingsphere.agent.core.log.AgentLogger;
+import org.apache.shardingsphere.agent.core.log.AgentLoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,8 +33,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Plugin jar loader.
@@ -40,11 +40,11 @@ import java.util.logging.Logger;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class PluginJarLoader {
     
-    private static final Logger LOGGER = Logger.getLogger(PluginJarLoader.class.getName());
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(PluginJarLoader.class);
     
     /**
      * Load plugin jars.
-     *
+     * 
      * @param agentRootPath agent root path
      * @return plugin jars
      * @throws IOException IO exception
@@ -54,7 +54,7 @@ public final class PluginJarLoader {
         Collection<JarFile> result = new LinkedList<>();
         for (File each : jarFiles) {
             result.add(new JarFile(each, true));
-            LOGGER.log(Level.INFO, "Loaded jar: {0}", new String[]{each.getName()});
+            LOGGER.info("Loaded jar: {}", each.getName());
         }
         return result;
     }
@@ -66,9 +66,8 @@ public final class PluginJarLoader {
             
             @Override
             public FileVisitResult visitFile(final Path path, final BasicFileAttributes attributes) {
-                File currentFile = path.toFile();
-                if (currentFile.isFile() && !currentFile.isHidden() && currentFile.getName().endsWith(".jar")) {
-                    result.add(currentFile);
+                if (path.toFile().isFile() && path.toFile().getName().endsWith(".jar")) {
+                    result.add(path.toFile());
                 }
                 return FileVisitResult.CONTINUE;
             }

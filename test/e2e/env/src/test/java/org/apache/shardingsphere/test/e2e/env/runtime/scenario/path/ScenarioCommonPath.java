@@ -18,7 +18,6 @@
 package org.apache.shardingsphere.test.e2e.env.runtime.scenario.path;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 
 import java.net.URL;
 
@@ -43,18 +42,16 @@ public final class ScenarioCommonPath {
      */
     public void checkFolderExist() {
         String scenarioDirectory = String.join("/", ROOT_PATH, scenario);
-        assertNotNull(Thread.currentThread().getContextClassLoader().getResource(scenarioDirectory), String.format("Scenario folder `%s` must exist.", scenarioDirectory));
+        assertNotNull(ScenarioCommonPath.class.getClassLoader().getResource(scenarioDirectory), String.format("Scenario folder `%s` must exist.", scenarioDirectory));
     }
     
     /**
      * Get rule configuration file.
      *
-     * @param databaseType database type
      * @return rule configuration file
      */
-    public String getRuleConfigurationFile(final DatabaseType databaseType) {
-        String databaseFileName = String.join("/", String.format("env/scenario/%s/jdbc/conf", scenario), databaseType.getType().toLowerCase(), RULE_CONFIG_FILE);
-        return exists(databaseFileName) ? getFile(databaseFileName) : getFile(String.join("/", ROOT_PATH, scenario, RULE_CONFIG_FILE));
+    public String getRuleConfigurationFile() {
+        return getFile(RULE_CONFIG_FILE);
     }
     
     /**
@@ -67,13 +64,9 @@ public final class ScenarioCommonPath {
     }
     
     private String getFile(final String fileName) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(fileName);
-        assertNotNull(url, String.format("File `%s` must exist.", fileName));
+        String path = String.join("/", ROOT_PATH, scenario, fileName);
+        URL url = ScenarioCommonPath.class.getClassLoader().getResource(path);
+        assertNotNull(url, String.format("File `%s` must exist.", path));
         return url.getFile();
-    }
-    
-    private boolean exists(final String fileName) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(fileName);
-        return null != url;
     }
 }

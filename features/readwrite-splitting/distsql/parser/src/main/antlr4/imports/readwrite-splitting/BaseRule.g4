@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 grammar BaseRule;
 
 import Symbol, Keyword, Literals;
@@ -28,13 +28,19 @@ algorithmDefinition
     ;
 
 algorithmTypeName
-    : STRING_ | buildInReadQueryLoadBalanceAlgorithmType
+    : STRING_ | buildInAlgorithmTypeName
     ;
 
-buildInReadQueryLoadBalanceAlgorithmType
+buildInAlgorithmTypeName
     : ROUND_ROBIN
     | RANDOM
     | WEIGHT
+    | TRANSACTION_RANDOM
+    | TRANSACTION_ROUND_ROBIN
+    | TRANSACTION_WEIGHT
+    | FIXED_REPLICA_RANDOM
+    | FIXED_REPLICA_ROUND_ROBIN
+    | FIXED_REPLICA_WEIGHT
     ;
 
 propertiesDefinition
@@ -52,8 +58,12 @@ property
 databaseName
     : IDENTIFIER_
     ;
+    
+resourceName
+    : IDENTIFIER_
+    ;
 
-ruleName
+groupName
     : IDENTIFIER_
     ;
 

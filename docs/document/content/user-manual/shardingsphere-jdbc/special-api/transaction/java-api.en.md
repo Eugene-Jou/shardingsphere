@@ -14,7 +14,7 @@ Introducing Maven dependency
 ```xml
 <dependency>
     <groupId>org.apache.shardingsphere</groupId>
-    <artifactId>shardingsphere-jdbc</artifactId>
+    <artifactId>shardingsphere-jdbc-core</artifactId>
     <version>${shardingsphere.version}</version>
 </dependency>
 
@@ -25,7 +25,7 @@ Introducing Maven dependency
     <version>${shardingsphere.version}</version>
 </dependency>
 
-<!-- This module is required when using the Narayana mode with XA transactions -->
+<!-- This module is required when using XA's Narayana mode -->
 <dependency>
     <groupId>org.apache.shardingsphere</groupId>
     <artifactId>shardingsphere-transaction-xa-narayana</artifactId>
@@ -40,20 +40,22 @@ Introducing Maven dependency
 </dependency>
 ```
 
+
 ## Procedure
 
-Perform the business logic using transactions
+1. Set the transaction type
+2. Perform the business logic
 
 ## Sample
 
 ```java
-// Use ShardingSphereDataSource to get a connection and perform transaction operations.
-try (Connection connection = dataSource.getConnection()) {
-    connection.setAutoCommit(false);
-    PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO t_order (user_id, status) VALUES (?, ?)");
-    preparedStatement.setObject(1, 1000);
-    preparedStatement.setObject(2, "init");
-    preparedStatement.executeUpdate();
-    connection.commit();
-}
+TransactionTypeHolder.set(TransactionType.XA); // support TransactionType.LOCAL, TransactionType.XA, TransactionType.BASE
+        try (Connection conn = dataSource.getConnection()) { // use ShardingSphereDataSource
+        conn.setAutoCommit(false);
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO t_order (user_id, status) VALUES (?, ?)");
+        ps.setObject(1, 1000);
+        ps.setObject(2, "init");
+        ps.executeUpdate();
+        conn.commit();
+        }
 ```

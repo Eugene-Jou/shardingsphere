@@ -24,7 +24,7 @@ import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricConfigur
 import java.util.List;
 
 /**
- * Metrics gauge metric family collector of Prometheus.
+ * Prometheus metrics gauge metric family collector.
  */
 public final class PrometheusMetricsGaugeMetricFamilyCollector implements GaugeMetricFamilyMetricsCollector {
     

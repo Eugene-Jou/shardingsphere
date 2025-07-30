@@ -17,36 +17,29 @@
 
 package org.apache.shardingsphere.transaction.rule;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.executor.sql.context.ExecutionContext;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.rule.attribute.RuleAttributes;
-import org.apache.shardingsphere.infra.rule.scope.GlobalRule;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.DMLStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
-import org.apache.shardingsphere.transaction.ConnectionTransaction;
+import org.apache.shardingsphere.infra.rule.identifier.scope.GlobalRule;
+import org.apache.shardingsphere.infra.rule.identifier.type.ResourceHeldRule;
 import org.apache.shardingsphere.transaction.ShardingSphereTransactionManagerEngine;
-import org.apache.shardingsphere.transaction.api.TransactionType;
 import org.apache.shardingsphere.transaction.config.TransactionRuleConfiguration;
-import org.apache.shardingsphere.transaction.constant.TransactionOrder;
+import org.apache.shardingsphere.transaction.api.TransactionType;
 
 import javax.sql.DataSource;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Transaction rule.
  */
 @Getter
 @Slf4j
-public final class TransactionRule implements GlobalRule, AutoCloseable {
+public final class TransactionRule implements GlobalRule, ResourceHeldRule<ShardingSphereTransactionManagerEngine> {
     
     private final TransactionRuleConfiguration configuration;
     
@@ -56,100 +49,91 @@ public final class TransactionRule implements GlobalRule, AutoCloseable {
     
     private final Properties props;
     
-    @Getter(AccessLevel.NONE)
-    private final AtomicReference<ShardingSphereTransactionManagerEngine> resource;
+    private final Map<String, ShardingSphereDatabase> databases;
     
-    private final RuleAttributes attributes;
+    private volatile ShardingSphereTransactionManagerEngine resource;
     
-    public TransactionRule(final TransactionRuleConfiguration ruleConfig, final Collection<ShardingSphereDatabase> databases) {
+    public TransactionRule(final TransactionRuleConfiguration ruleConfig, final Map<String, ShardingSphereDatabase> databases) {
         configuration = ruleConfig;
         defaultType = TransactionType.valueOf(ruleConfig.getDefaultType().toUpperCase());
         providerType = ruleConfig.getProviderType();
         props = ruleConfig.getProps();
-        resource = new AtomicReference<>(createTransactionManagerEngine(databases));
-        attributes = new RuleAttributes();
+        this.databases = new ConcurrentHashMap<>(databases);
+        resource = createTransactionManagerEngine(this.databases);
     }
     
-    private synchronized ShardingSphereTransactionManagerEngine createTransactionManagerEngine(final Collection<ShardingSphereDatabase> databases) {
-        ShardingSphereTransactionManagerEngine result = new ShardingSphereTransactionManagerEngine(defaultType);
+    private synchronized ShardingSphereTransactionManagerEngine createTransactionManagerEngine(final Map<String, ShardingSphereDatabase> databases) {
         if (databases.isEmpty()) {
-            return result;
+            return new ShardingSphereTransactionManagerEngine();
         }
-        Map<String, DatabaseType> databaseTypes = new LinkedHashMap<>(databases.size(), 1F);
-        Map<String, DataSource> dataSourceMap = new LinkedHashMap<>(databases.size(), 1F);
-        for (ShardingSphereDatabase each : databases) {
-            each.getResourceMetaData().getStorageUnits().forEach((key, value) -> {
-                databaseTypes.put(each.getName() + "." + key, value.getStorageType());
-                dataSourceMap.put(each.getName() + "." + key, value.getDataSource());
-            });
+        Map<String, DataSource> dataSourceMap = new LinkedHashMap<>(databases.size(), 1);
+        Map<String, DatabaseType> databaseTypes = new LinkedHashMap<>(databases.size(), 1);
+        for (Entry<String, ShardingSphereDatabase> entry : databases.entrySet()) {
+            ShardingSphereDatabase database = entry.getValue();
+            database.getResourceMetaData().getDataSources().forEach((key, value) -> dataSourceMap.put(database.getName() + "." + key, value));
+            database.getResourceMetaData().getStorageTypes().forEach((key, value) -> databaseTypes.put(database.getName() + "." + key, value));
         }
+        if (dataSourceMap.isEmpty()) {
+            return new ShardingSphereTransactionManagerEngine();
+        }
+        ShardingSphereTransactionManagerEngine result = new ShardingSphereTransactionManagerEngine();
         result.init(databaseTypes, dataSourceMap, providerType);
         return result;
     }
     
-    /**
-     * Get resource.
-     *
-     * @return got resource
-     */
-    public ShardingSphereTransactionManagerEngine getResource() {
-        return resource.get();
-    }
-    
-    /**
-     * Judge whether to implicit commit transaction.
-     *
-     * @param executionContext execution context
-     * @param connectionTransaction connection transaction
-     * @param isAutoCommit is auto commit
-     * @return is implicit commit transaction or not
-     */
-    public boolean isImplicitCommitTransaction(final ExecutionContext executionContext, final ConnectionTransaction connectionTransaction, final boolean isAutoCommit) {
-        if (!isAutoCommit) {
-            return false;
-        }
-        if (!TransactionType.isDistributedTransaction(defaultType) || connectionTransaction.isInDistributedTransaction()) {
-            return false;
-        }
-        return isWriteDMLStatement(executionContext.getSqlStatementContext().getSqlStatement()) && executionContext.getExecutionUnits().size() > 1;
-    }
-    
-    private boolean isWriteDMLStatement(final SQLStatement sqlStatement) {
-        return sqlStatement instanceof DMLStatement && !(sqlStatement instanceof SelectStatement);
-    }
-    
     @Override
-    public void refresh(final Collection<ShardingSphereDatabase> databases, final GlobalRuleChangedType changedType) {
-        if (GlobalRuleChangedType.DATABASE_CHANGED != changedType) {
+    public synchronized void addResource(final ShardingSphereDatabase database) {
+        // TODO process null when for information_schema
+        if (null == database) {
             return;
         }
-        ShardingSphereTransactionManagerEngine previousEngine = resource.get();
-        close(previousEngine);
-        resource.set(createTransactionManagerEngine(databases));
+        databases.put(database.getName(), database);
+        rebuildEngine();
     }
     
     @Override
-    public void close() {
-        // TODO Consider shutting down the transaction manager gracefully
-        ShardingSphereTransactionManagerEngine engine = resource.get();
+    public synchronized void closeStaleResource(final String databaseName) {
+        if (!databases.containsKey(databaseName.toLowerCase())) {
+            return;
+        }
+        databases.remove(databaseName);
+        rebuildEngine();
+    }
+    
+    @Override
+    public synchronized void closeStaleResource() {
+        databases.clear();
+        closeEngine();
+    }
+    
+    private void rebuildEngine() {
+        ShardingSphereTransactionManagerEngine previousEngine = resource;
+        if (null != previousEngine) {
+            closeEngine(previousEngine);
+        }
+        resource = createTransactionManagerEngine(databases);
+    }
+    
+    private void closeEngine() {
+        ShardingSphereTransactionManagerEngine engine = resource;
         if (null != engine) {
-            close(engine);
-            resource.set(new ShardingSphereTransactionManagerEngine(defaultType));
+            closeEngine(engine);
+            resource = new ShardingSphereTransactionManagerEngine();
         }
     }
     
-    private void close(final ShardingSphereTransactionManagerEngine engine) {
+    private void closeEngine(final ShardingSphereTransactionManagerEngine engine) {
         try {
             engine.close();
             // CHECKSTYLE:OFF
-        } catch (final RuntimeException ex) {
+        } catch (final Exception ex) {
             // CHECKSTYLE:ON
-            log.error("Close transaction engine failed.", ex);
+            log.error("Close transaction engine failed", ex);
         }
     }
     
     @Override
-    public int getOrder() {
-        return TransactionOrder.ORDER;
+    public String getType() {
+        return TransactionRule.class.getSimpleName();
     }
 }

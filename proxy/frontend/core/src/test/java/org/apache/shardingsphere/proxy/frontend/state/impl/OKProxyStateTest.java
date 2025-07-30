@@ -18,20 +18,11 @@
 package org.apache.shardingsphere.proxy.frontend.state.impl;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.util.concurrent.EventExecutor;
 import lombok.SneakyThrows;
-import org.apache.shardingsphere.infra.config.mode.ModeConfiguration;
+import org.apache.shardingsphere.infra.config.props.BackendExecutorType;
 import org.apache.shardingsphere.infra.config.props.ConfigurationPropertyKey;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.instance.ComputeNodeInstanceContext;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
-import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.metadata.statistics.ShardingSphereStatistics;
-import org.apache.shardingsphere.infra.metadata.statistics.builder.ShardingSphereStatisticsFactory;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.mode.manager.ContextManager;
-import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.proxy.frontend.command.CommandExecutorTask;
@@ -40,14 +31,10 @@ import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngi
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
 import org.apache.shardingsphere.test.mock.StaticMockSettings;
 import org.apache.shardingsphere.transaction.api.TransactionType;
-import org.apache.shardingsphere.transaction.rule.TransactionRule;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.internal.configuration.plugins.Plugins;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -59,46 +46,64 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(AutoMockExtension.class)
 @StaticMockSettings(ProxyContext.class)
-class OKProxyStateTest {
-    
-    private ChannelHandlerContext context;
-    
-    @BeforeEach
-    void setup() {
-        context = mock(ChannelHandlerContext.class);
-        when(context.channel()).thenReturn(new EmbeddedChannel());
-    }
-    
-    @AfterEach
-    void tearDown() {
-        context.channel().close().syncUninterruptibly();
-    }
+public final class OKProxyStateTest {
     
     @Test
-    void assertExecuteWithDistributedTransaction() {
-        ContextManager contextManager = mockContextManager();
+    public void assertExecuteWithProxyHintEnabled() {
+        ContextManager contextManager = mock(ContextManager.class, RETURNS_DEEP_STUBS);
+        when(contextManager.getMetaDataContexts().getMetaData().getProps().<Boolean>getValue(ConfigurationPropertyKey.PROXY_HINT_ENABLED)).thenReturn(true);
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
         ConnectionSession connectionSession = mock(ConnectionSession.class, RETURNS_DEEP_STUBS);
         when(connectionSession.getConnectionId()).thenReturn(1);
         ExecutorService executorService = registerMockExecutorService(1);
-        new OKProxyState().execute(context, null, mock(DatabaseProtocolFrontendEngine.class), connectionSession);
+        new OKProxyState().execute(mock(ChannelHandlerContext.class), null, mock(DatabaseProtocolFrontendEngine.class), connectionSession);
         verify(executorService).execute(any(CommandExecutorTask.class));
         ConnectionThreadExecutorGroup.getInstance().unregisterAndAwaitTermination(1);
     }
     
-    private ContextManager mockContextManager() {
-        ShardingSphereMetaData metaData = mock(ShardingSphereMetaData.class, RETURNS_DEEP_STUBS);
-        when(metaData.getDatabase("foo_db")).thenReturn(mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS));
-        when(metaData.getAllDatabases()).thenReturn(Collections.singleton(mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS)));
-        when(metaData.getAllDatabases().iterator().next().getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "FIXTURE"));
-        when(metaData.getProps().<Integer>getValue(ConfigurationPropertyKey.KERNEL_EXECUTOR_SIZE)).thenReturn(0);
-        when(metaData.getProps().<Boolean>getValue(ConfigurationPropertyKey.PERSIST_SCHEMAS_TO_REPOSITORY_ENABLED)).thenReturn(true);
-        TransactionRule transactionRule = mock(TransactionRule.class);
-        when(transactionRule.getDefaultType()).thenReturn(TransactionType.XA);
-        when(metaData.getGlobalRuleMetaData()).thenReturn(new RuleMetaData(Collections.singletonList(transactionRule)));
-        ComputeNodeInstanceContext computeNodeInstanceContext = mock(ComputeNodeInstanceContext.class);
-        when(computeNodeInstanceContext.getModeConfiguration()).thenReturn(mock(ModeConfiguration.class));
-        return new ContextManager(new MetaDataContexts(metaData, ShardingSphereStatisticsFactory.create(metaData, new ShardingSphereStatistics())), computeNodeInstanceContext, mock(), mock());
+    @Test
+    public void assertExecuteWithDistributedTransaction() {
+        ContextManager contextManager = mock(ContextManager.class, RETURNS_DEEP_STUBS);
+        when(contextManager.getMetaDataContexts().getMetaData().getProps().<Boolean>getValue(ConfigurationPropertyKey.PROXY_HINT_ENABLED)).thenReturn(false);
+        when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
+        ConnectionSession connectionSession = mock(ConnectionSession.class, RETURNS_DEEP_STUBS);
+        when(connectionSession.getTransactionStatus().getTransactionType()).thenReturn(TransactionType.XA);
+        when(connectionSession.getConnectionId()).thenReturn(1);
+        ExecutorService executorService = registerMockExecutorService(1);
+        new OKProxyState().execute(mock(ChannelHandlerContext.class), null, mock(DatabaseProtocolFrontendEngine.class), connectionSession);
+        verify(executorService).execute(any(CommandExecutorTask.class));
+        ConnectionThreadExecutorGroup.getInstance().unregisterAndAwaitTermination(1);
+    }
+    
+    @Test
+    public void assertExecuteWithProxyBackendExecutorSuitableForOLTP() {
+        ContextManager contextManager = mock(ContextManager.class, RETURNS_DEEP_STUBS);
+        when(contextManager.getMetaDataContexts().getMetaData().getProps().<Boolean>getValue(ConfigurationPropertyKey.PROXY_HINT_ENABLED)).thenReturn(false);
+        when(contextManager.getMetaDataContexts().getMetaData().getProps().<BackendExecutorType>getValue(
+                ConfigurationPropertyKey.PROXY_BACKEND_EXECUTOR_SUITABLE)).thenReturn(BackendExecutorType.OLTP);
+        when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
+        EventExecutor eventExecutor = mock(EventExecutor.class);
+        ChannelHandlerContext context = mock(ChannelHandlerContext.class);
+        when(context.executor()).thenReturn(eventExecutor);
+        new OKProxyState().execute(context, null, mock(DatabaseProtocolFrontendEngine.class), mock(ConnectionSession.class, RETURNS_DEEP_STUBS));
+        verify(eventExecutor).execute(any(CommandExecutorTask.class));
+    }
+    
+    @Test
+    public void assertExecuteWithProxyBackendExecutorSuitableForOLAPAndRequiredSameThreadForConnection() {
+        ContextManager contextManager = mock(ContextManager.class, RETURNS_DEEP_STUBS);
+        when(contextManager.getMetaDataContexts().getMetaData().getProps().<Boolean>getValue(ConfigurationPropertyKey.PROXY_HINT_ENABLED)).thenReturn(false);
+        when(contextManager.getMetaDataContexts().getMetaData().getProps().<BackendExecutorType>getValue(
+                ConfigurationPropertyKey.PROXY_BACKEND_EXECUTOR_SUITABLE)).thenReturn(BackendExecutorType.OLAP);
+        when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
+        ConnectionSession connectionSession = mock(ConnectionSession.class, RETURNS_DEEP_STUBS);
+        when(connectionSession.getConnectionId()).thenReturn(1);
+        DatabaseProtocolFrontendEngine frontendEngine = mock(DatabaseProtocolFrontendEngine.class, RETURNS_DEEP_STUBS);
+        when(frontendEngine.getFrontendContext().isRequiredSameThreadForConnection(null)).thenReturn(true);
+        ExecutorService executorService = registerMockExecutorService(1);
+        new OKProxyState().execute(mock(ChannelHandlerContext.class), null, frontendEngine, connectionSession);
+        verify(executorService).execute(any(CommandExecutorTask.class));
+        ConnectionThreadExecutorGroup.getInstance().unregisterAndAwaitTermination(1);
     }
     
     @SuppressWarnings({"unchecked", "SameParameterValue"})

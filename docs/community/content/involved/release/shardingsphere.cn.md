@@ -6,8 +6,6 @@ chapter = true
 
 ## 准备工作
 
-准备工作在 **代码冻结前 7 天** 进行，以便于贡献者根据发布计划控制研发进度。
-
 ### 1. 检查并更新 LICENSE 和 NOTICE
 
 检查并更新 LICENSE 文件中的依赖版本号。
@@ -23,13 +21,7 @@ Release Note 需提供中文/英文两种版本，确认中英文描述是否明
 1. 功能增强
 1. 漏洞修复
 
-### 3. 新建下一版本 Milestone
-
-1. 新建 [Github Milestone](https://github.com/apache/shardingsphere/milestones)；
-1. 指定下一版本号；
-1. **设置截至日期为下一版本代码冻结日期** 。
-
-### 4. 确认 Issue 列表
+### 3. 确认 Issue 列表
 
 打开 [Github Issues](https://github.com/apache/shardingsphere/issues)，过滤 Milestone 为 `${RELEASE.VERSION}` 且状态为打开的 Issue:
 
@@ -37,7 +29,7 @@ Release Note 需提供中文/英文两种版本，确认中英文描述是否明
 1. 未完成的 Issue 与负责人进行沟通，如果不影响本次发版，修改 Milestone 为下一个版本；
 1. 确认发布版本的 Milestone 下没有打开状态的 Issue。
 
-### 5. 确认 Pull Request 列表
+### 4. 确认 Pull Request 列表
 
 打开 [Github Pull requests](https://github.com/apache/shardingsphere/pulls)，过滤 Milestone 为 `${RELEASE.VERSION}` 且状态为打开的 Pull Request:
 
@@ -45,11 +37,18 @@ Release Note 需提供中文/英文两种版本，确认中英文描述是否明
 1. 无法 Merge 且不影响本次发版的 Pull Request，修改 Milestone 为下一个版本；
 1. 确认发布版本的 Milestone 下没有打开状态的 Pull Request。
 
-### 6. 发起发布讨论
+### 5. 发送讨论邮件
 
-1. 创建 [GitHub Discussion](https://github.com/apache/shardingsphere/discussions) 并在讨论内容中列出 Release Note，并 **明确具体代码冻结日期** ；
-1. 发送邮件至 [dev@shardingsphere.apache.org](mailto:dev@shardingsphere.apache.org)，在邮件正文中链接 GitHub Discussion，并 **明确具体代码冻结日期** ；
-1. 关注 Discussion 与邮件列表，确认社区开发者对 Release Note 没有任何疑问。
+1. 创建 [GitHub Discussion](https://github.com/apache/shardingsphere/discussions) 并在讨论内容中列出 Release Note；
+1. 发送邮件至 [dev@shardingsphere.apache.org](mailto:dev@shardingsphere.apache.org)，在邮件正文中链接 GitHub Discussion；
+1. 关注邮件列表，确认社区开发者对 Release Note 没有任何疑问。
+
+### 6. 关闭 Milestone
+
+打开 [Github Milestone](https://github.com/apache/shardingsphere/milestones) 
+
+1. 确认 `${RELEASE.VERSION}` 的 Milestone 完成状态为 100%；
+1. 点击 `Close` 关闭 Milestone。
 
 ## GPG 设置
 
@@ -104,7 +103,7 @@ Please specify how long the key should be valid.
      <n>w = key expires in n weeks
      <n>m = key expires in n months
      <n>y = key expires in n years
-Key is valid for? (0)
+Key is valid for? (0) 
 Key does not expire at all
 Is this correct? (y/N) y
 
@@ -150,20 +149,12 @@ gpg --keyserver hkp://keyserver.ubuntu.com --send-key 700E6065
 
 ## 准备发布分支
 
-### 1. 关闭发布版本 Milestone
-
-打开 [Github Milestone](https://github.com/apache/shardingsphere/milestones)
-
-1. 确认 `${RELEASE.VERSION}` 的 Milestone 完成状态为 100%；
-1. 点击 `Close` 关闭 Milestone。
-
-### 2. 确认发布 commit 并创建发布分支
+### 1. 创建发布分支
 
 假设从 GitHub 下载的 ShardingSphere 源代码在 `~/open_source/shardingsphere/`，从本地重新克隆一份到 `~/shardingsphere/` 目录。
 
 假设即将发布的版本为 `${RELEASE.VERSION}`，创建 `${RELEASE.VERSION}-release` 分支，接下来的操作都在该分支进行。
 
-参考命令：
 ```shell
 cd ~
 git clone ~/open_source/shardingsphere
@@ -176,7 +167,7 @@ git checkout -b ${RELEASE.VERSION}-release
 git push origin ${RELEASE.VERSION}-release
 ```
 
-### 3. 更新版本说明和示例版本
+### 2. 更新版本说明和示例版本
 
 在发布分支上更新如下文件，并提交 PR 到发布分支：
 
@@ -186,7 +177,7 @@ https://github.com/apache/shardingsphere/blob/${RELEASE.VERSION}-release/RELEASE
 
 更新 `examples` 模块的 pom，将版本由 `${DEVELOPMENT.VERSION}` 替换为 `${RELEASE.VERSION}`，并提交 PR 到发布分支。
 
-### 4. 更新下载页面
+### 3. 更新下载页面
 
 更新如下页面：
 * <https://shardingsphere.apache.org/document/current/en/downloads/>
@@ -194,13 +185,9 @@ https://github.com/apache/shardingsphere/blob/${RELEASE.VERSION}-release/RELEASE
 
 GPG 签名文件和哈希校验文件的下载连接应该使用这个前缀：`https://downloads.apache.org/shardingsphere/`。
 
-### 5. 修改 README 文件
+### 4. 修改 README 文件
 
 更新 `README.md` 和 `README_ZH.md` 里的 `${RELEASE.VERSION}` 和 `${NEXT.RELEASE.VERSION}`。
-
-### 6. 修改 ShardingSphereDriver
-
-更新 `ShardingSphereDriver.java` 里的 `MAJOR_DRIVER_VERSION` 和 `MINOR_DRIVER_VERSION`。
 
 ## 发布 Apache Maven 中央仓库
 
@@ -233,10 +220,10 @@ export GPG_TTY=$(tty)
 ```
 
 ```shell
-./mvnw release:prepare -Prelease,default-dep -Darguments="-DskipTests" -DautoVersionSubmodules=true -DdryRun=true -Dusername=${Github用户名}
+mvn release:prepare -Prelease -Darguments="-DskipTests -Dspotless.apply.skip=true" -DautoVersionSubmodules=true -DdryRun=true -Dusername=${Github用户名}
 ```
 
--Prelease,default-dep：选择 release 的 profile，这个 profile 会打包默认依赖源码、jar 文件以及 ShardingSphere-Proxy 的可执行二进制包。
+-Prelease：选择 release 的 profile，这个 profile 会打包所有源码、jar 文件以及 ShardingSphere-Proxy 的可执行二进制包。
 
 -DautoVersionSubmodules=true：作用是发布过程中版本号只需要输入一次，不必为每个子模块都输入一次。
 
@@ -247,11 +234,11 @@ export GPG_TTY=$(tty)
 首先清理发布预校验本地信息。
 
 ```shell
-./mvnw release:clean
+mvn release:clean
 ```
 
 ```shell
-./mvnw release:prepare -Prelease,default-dep -Darguments="-DskipTests" -DautoVersionSubmodules=true -DpushChanges=false -Dusername=${Github 用户名}
+mvn release:prepare -Prelease -Darguments="-DskipTests -Dspotless.apply.skip=true" -DautoVersionSubmodules=true -DpushChanges=false -Dusername=${Github 用户名}
 ```
 
 和上一步演练的命令基本相同，去掉了 -DdryRun=true 参数。
@@ -270,7 +257,7 @@ git push origin ${RELEASE.VERSION}
 使用稳定的网络环境，本过程可能持续`1`个小时以上。
 
 ```shell
-./mvnw release:perform -Prelease,default-dep -Darguments="-DskipTests" -DautoVersionSubmodules=true -DlocalCheckout=true -Dusername=${Github 用户名}
+mvn release:perform -Prelease -Darguments="-DskipTests -Dspotless.apply.skip=true" -DautoVersionSubmodules=true -DlocalCheckout=true -Dusername=${Github 用户名}
 ```
 
 -DlocalCheckout=true：从本地 checkout 代替从远程仓库拉取代码。
@@ -477,13 +464,13 @@ The vote will be open for at least 72 hours or until necessary number of votes a
 
 Please vote accordingly:
 
-[ ] +1 approve
+[ ] +1 approve 
 
 [ ] +0 no opinion
-
+ 
 [ ] -1 disapprove with the reason
 
-PMC vote is "+1 binding", all others is "+1 non-binding".
+PMC vote is +1 binding, all others is +1 non-binding.
 
 Checklist for reference:
 
@@ -500,7 +487,7 @@ Checklist for reference:
 [ ] No compiled archives bundled in source archive.
 ```
 
-> 注意：`Release Commit ID` 使用发布分支上与 `prepare release ${RELEASE.VERSION}` 日志对应的 commit id。
+> 注意：`Release Commit ID` 使用发布分支上与 `prepare release ${RELEASE.VERSION}` 日志对应的 commit id。 
 
 2. 宣布投票结果模板：
 
@@ -513,7 +500,7 @@ Checklist for reference:
 正文：
 
 ```
-We’ve received 3 "+1 binding" votes and one "+1 non-binding" vote:
+We’ve received 3 +1 binding votes and one +1 non-binding vote:
 
 +1 binding, xxx
 +1 binding, xxx
@@ -521,7 +508,7 @@ We’ve received 3 "+1 binding" votes and one "+1 non-binding" vote:
 
 +1 non-binding, xxx
 
-Thank you everyone for taking the time to review the release and help us.
+Thank you everyone for taking the time to review the release and help us. 
 I will process to publish the release and send ANNOUNCE.
 ```
 
@@ -529,7 +516,7 @@ I will process to publish the release and send ANNOUNCE.
 
 ### 1. 将源码、二进制包以及 KEYS 从 svn 的 dev 目录移动到 release 目录
 
-> 注意：该步骤需要 PMC 帮忙操作。
+需要 PMC 帮忙操作。
 
 将发布内容移动到发布区：
 ```shell
@@ -568,34 +555,12 @@ docker login
 ```shell
 cd ~/shardingsphere
 git checkout ${RELEASE.VERSION}
-./mvnw -pl distribution/proxy -B -Prelease,default-dep,docker.buildx.push clean package
+./mvnw -pl distribution/proxy -B -Prelease,docker.buildx.push clean package
 ```
 
 3.4 确认发布成功
 
 查看 [Docker Hub](https://hub.docker.com/r/apache/shardingsphere-proxy/) 是否有发布的镜像，确保镜像同时支持 `linux/amd64` 和 `linux/arm64`。
-
-```shell
-docker logout
-```
-
-3.5 登录 GitHub Packages Container Registry
-
-```shell
-docker login ghcr.io/apache/shardingsphere
-```
-
-3.6 构建并推送 ShardingSphere Agent Docker image
-
-```shell
-cd ~/shardingsphere
-git checkout ${RELEASE.VERSION}
-./mvnw -am -pl distribution/agent -Prelease,default-dep,docker.buildx.push -T 1C -DskipTests clean package
-```
-
-3.7 确认发布成功
-
-查看 [GitHub Packages](https://github.com/apache/shardingsphere/pkgs/container/shardingsphere-agent) 是否有发布的镜像，确保镜像同时支持 `linux/amd64` 和 `linux/arm64`。
 
 ```shell
 docker logout
@@ -608,8 +573,6 @@ docker logout
 编辑版本号及版本说明，选择 `Set as the latest release`，并点击 `Publish release`。
 
 ### 5. 从发布区移除上一版本内容
-
-> 注意：该步骤需要 PMC 帮忙操作。
 
 [**发布区**](https://dist.apache.org/repos/dist/release/shardingsphere/) 中仅保留一个最新的版本。
 确认 [Archive repository](https://archive.apache.org/dist/shardingsphere/) 中存在上一版本后，从 [**发布区**](https://dist.apache.org/repos/dist/release/shardingsphere/) 删除上一版本：
@@ -625,8 +588,8 @@ svn del -m "Archiving release ${PREVIOUS.RELEASE.VERSION}" https://dist.apache.o
 参考：[Release Download Pages for Projects](https://infra.apache.org/release-download-pages.html)。
 
 ### 6. 官网首页增加发布版本文档入口
-更新 `shardingsphere-doc` 仓库下 index.html、index_zh.html、learning.html、legacy.html、legacy_zh.html 几处文件中的版本号为当前版本。[参考提交](https://github.com/apache/shardingsphere-doc/commit/9fdf438d1170129d2690b5dee316403984579430)
-更新 `shardingsphere` 仓库下的 language.html(docs/document/themes/hugo-theme-learn/layouts/partials/language.html)，增加当前版本号用于页面导航。[参考提交](https://github.com/apache/shardingsphere/pull/29017/files)
+
+参考 commit：https://github.com/apache/shardingsphere-doc/commit/9fdf438d1170129d2690b5dee316403984579430
 
 ### 7. 更新示例版本
 

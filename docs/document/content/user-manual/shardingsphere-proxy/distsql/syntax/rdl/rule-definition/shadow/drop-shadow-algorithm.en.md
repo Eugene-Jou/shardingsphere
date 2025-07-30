@@ -1,6 +1,6 @@
 +++
 title = "DROP SHADOW ALGORITHM"
-weight = 7
+weight = 8
 +++
 
 ## Description
@@ -13,12 +13,12 @@ The `DROP SHADOW ALGORITHM` syntax is used to drop shadow algorithm for specifie
 {{% tab name="Grammar" %}}
 ```sql
 DropShadowAlgorithm ::=
-  'DROP' 'SHADOW' 'ALGORITHM' ifExists? algorithmName (',' algorithmName)* ('FROM' databaseName)?
+  'DROP' 'SHADOW' 'ALGORITHM' ifExists? shadowAlgorithmName (',' shadowAlgorithmName)* ('FROM' databaseName)?
 
 ifExists ::=
   'IF' 'EXISTS'
 
-algorithmName ::=
+shadowAlgorithmName ::=
   identifier
 
 databaseName ::=

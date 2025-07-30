@@ -19,7 +19,6 @@ package org.apache.shardingsphere.mask.rule;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.mask.spi.MaskAlgorithm;
 
 /**
  * Mask column.
@@ -28,7 +27,7 @@ import org.apache.shardingsphere.mask.spi.MaskAlgorithm;
 @Getter
 public final class MaskColumn {
     
-    private final String name;
+    private final String logicColumn;
     
-    private final MaskAlgorithm<?, ?> maskAlgorithm;
+    private final String maskAlgorithm;
 }

@@ -30,13 +30,13 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class PostgreSQLComExecutePacketTest {
+public final class PostgreSQLComExecutePacketTest {
     
     @Mock
     private PostgreSQLPacketPayload payload;
     
     @Test
-    void assertNewInstance() {
+    public void assertNewInstance() {
         PostgreSQLComExecutePacket actual = new PostgreSQLComExecutePacket(payload);
         verify(payload, atLeast(2)).readInt4();
         verify(payload).readStringNul();

@@ -63,13 +63,13 @@ helm uninstall shardingsphere-proxy
 ### Governance-Node parameters
 
 | Name                 | Description                                           | Value  |
-|----------------------|-------------------------------------------------------|--------|
+| -------------------- | ----------------------------------------------------- | ------ |
 | `governance.enabled` | Switch to enable or disable the governance helm chart | `true` |
 
 ### Governance-Node ZooKeeper parameters
 
 | Name                                             | Description                                          | Value               |
-|--------------------------------------------------|------------------------------------------------------|---------------------|
+| ------------------------------------------------ | ---------------------------------------------------- | ------------------- |
 | `governance.zookeeper.enabled`                   | Switch to enable or disable the ZooKeeper helm chart | `true`              |
 | `governance.zookeeper.replicaCount`              | Number of ZooKeeper nodes                            | `1`                 |
 | `governance.zookeeper.persistence.enabled`       | Enable persistence on ZooKeeper using PVC(s)         | `false`             |
@@ -83,7 +83,7 @@ helm uninstall shardingsphere-proxy
 ### Compute-Node ShardingSphere-Proxy parameters
 
 | Name                                | Description                                                  | Value                         |
-|-------------------------------------|--------------------------------------------------------------|-------------------------------|
+| ----------------------------------- | ------------------------------------------------------------ |-------------------------------|
 | `compute.image.repository`          | Image name of ShardingSphere-Proxy.                          | `apache/shardingsphere-proxy` |
 | `compute.image.pullPolicy`          | The policy for pulling ShardingSphere-Proxy image            | `IfNotPresent`                |
 | `compute.image.tag`                 | ShardingSphere-Proxy image tag                               | `5.1.2`                       |
@@ -96,7 +96,7 @@ helm uninstall shardingsphere-proxy
 | `compute.service.port`              | ShardingSphere-Proxy expose port                             | `3307`                        |
 | `compute.mysqlConnector.version`    | MySQL connector version                                      | `5.1.49`                      |
 | `compute.startPort`                 | ShardingSphere-Proxy start port                              | `3307`                        |
-| `compute.serverConfig`              | Server Configuration file for ShardingSphere-Proxy           | `""`                          |
+| `compute.serverConfig`              | Server Configuration file for ShardingSphere-Proxy            | `""`                          |
 
 ## Sample
 
@@ -216,8 +216,8 @@ compute:
   ## @section Compute-Node ShardingSphere-Proxy ServerConfiguration parameters
   ## NOTE: If you use the sub-charts to deploy Zookeeper, the server-lists field must be "{{ printf \"%s-zookeeper.%s:2181\" .Release.Name .Release.Namespace }}",
   ## otherwise please fill in the correct zookeeper address
-  ## The global.yaml is auto-generated based on this parameter.
-  ## If it is empty, the global.yaml is also empty.
+  ## The server.yaml is auto-generated based on this parameter.
+  ## If it is empty, the server.yaml is also empty.
   ## ref: https://shardingsphere.apache.org/document/current/en/user-manual/shardingsphere-jdbc/yaml-config/mode/
   ## ref: https://shardingsphere.apache.org/document/current/en/user-manual/common-config/builtin-algorithm/metadata-repository/
   ##

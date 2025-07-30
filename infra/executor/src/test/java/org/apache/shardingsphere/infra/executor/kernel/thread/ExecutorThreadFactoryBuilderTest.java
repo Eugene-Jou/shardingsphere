@@ -24,10 +24,10 @@ import java.util.concurrent.ThreadFactory;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class ExecutorThreadFactoryBuilderTest {
+public final class ExecutorThreadFactoryBuilderTest {
     
     @Test
-    void assertBuildWithNameFormat() {
+    public void assertBuildWithNameFormat() {
         ThreadFactory threadFactory = ExecutorThreadFactoryBuilder.build("test");
         Thread thread = threadFactory.newThread(() -> {
         });

@@ -17,13 +17,11 @@
 
 package org.apache.shardingsphere.transaction.distsql.handler.query;
 
-import lombok.Setter;
-import org.apache.shardingsphere.distsql.handler.aware.DistSQLExecutorRuleAware;
-import org.apache.shardingsphere.distsql.handler.engine.query.DistSQLQueryExecutor;
+import org.apache.shardingsphere.distsql.handler.ral.query.MetaDataRequiredQueryableRALExecutor;
 import org.apache.shardingsphere.infra.merge.result.impl.local.LocalDataQueryResultRow;
-import org.apache.shardingsphere.mode.manager.ContextManager;
-import org.apache.shardingsphere.transaction.config.TransactionRuleConfiguration;
-import org.apache.shardingsphere.transaction.distsql.statement.queryable.ShowTransactionRuleStatement;
+import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
+import org.apache.shardingsphere.infra.util.props.PropertiesConverter;
+import org.apache.shardingsphere.transaction.distsql.parser.statement.queryable.ShowTransactionRuleStatement;
 import org.apache.shardingsphere.transaction.rule.TransactionRule;
 
 import java.util.Arrays;
@@ -33,29 +31,22 @@ import java.util.Collections;
 /**
  * Show transaction rule executor.
  */
-@Setter
-public final class ShowTransactionRuleExecutor implements DistSQLQueryExecutor<ShowTransactionRuleStatement>, DistSQLExecutorRuleAware<TransactionRule> {
-    
-    private TransactionRule rule;
+public final class ShowTransactionRuleExecutor implements MetaDataRequiredQueryableRALExecutor<ShowTransactionRuleStatement> {
     
     @Override
-    public Collection<String> getColumnNames(final ShowTransactionRuleStatement sqlStatement) {
+    public Collection<LocalDataQueryResultRow> getRows(final ShardingSphereMetaData metaData, final ShowTransactionRuleStatement sqlStatement) {
+        TransactionRule rule = metaData.getGlobalRuleMetaData().getSingleRule(TransactionRule.class);
+        return Collections.singleton(new LocalDataQueryResultRow(rule.getDefaultType().name(), null != rule.getProviderType() ? rule.getProviderType() : "",
+                !rule.getProps().isEmpty() ? PropertiesConverter.convert(rule.getProps()) : ""));
+    }
+    
+    @Override
+    public Collection<String> getColumnNames() {
         return Arrays.asList("default_type", "provider_type", "props");
     }
     
     @Override
-    public Collection<LocalDataQueryResultRow> getRows(final ShowTransactionRuleStatement sqlStatement, final ContextManager contextManager) {
-        TransactionRuleConfiguration ruleConfig = rule.getConfiguration();
-        return Collections.singleton(new LocalDataQueryResultRow(ruleConfig.getDefaultType(), ruleConfig.getProviderType(), ruleConfig.getProps()));
-    }
-    
-    @Override
-    public Class<TransactionRule> getRuleClass() {
-        return TransactionRule.class;
-    }
-    
-    @Override
-    public Class<ShowTransactionRuleStatement> getType() {
-        return ShowTransactionRuleStatement.class;
+    public String getType() {
+        return ShowTransactionRuleStatement.class.getName();
     }
 }

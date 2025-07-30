@@ -1,11 +1,11 @@
 +++
 title = "CREATE SHARDING TABLE RULE"
-weight = 1
+weight = 2
 +++
 
 ## 描述
 
-`CREATE SHARDING TABLE RULE` 语法用于为当前所选逻辑库添加分片规则。
+`CREATE SHARDING TABLE RULE` 语法用于为当前所选逻辑库添加分片规则
 
 ### 语法定义
 
@@ -13,16 +13,16 @@ weight = 1
 {{% tab name="语法" %}}
 ```sql
 CreateShardingTableRule ::=
-  'CREATE' 'SHARDING' 'TABLE' 'RULE' ifNotExists? (tableRuleDefinition | autoTableRuleDefinition) (',' (tableRuleDefinition | autoTableRuleDefinition))*
+  'CREATE' 'SHARDING' 'TABLE' 'RULE' ifNotExists? (tableDefinition | autoTableDefinition) (',' (tableDefinition | autoTableDefinition))*
 
 ifNotExists ::=
   'IF' 'NOT' 'EXISTS'
 
-tableRuleDefinition ::= 
-  ruleName '(' 'DATANODES' '(' dataNode (',' dataNode)* ')' (','  'DATABASE_STRATEGY' '(' strategyDefinition ')')? (','  'TABLE_STRATEGY' '(' strategyDefinition ')')? (','  'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
+tableDefinition ::= 
+  tableName '(' 'DATANODES' '(' dataNode (',' dataNode)* ')' (','  'DATABASE_STRATEGY' '(' strategyDefinition ')')? (','  'TABLE_STRATEGY' '(' strategyDefinition ')')? (','  'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
 
-autoTableRuleDefinition ::=
-  ruleName '(' 'STORAGE_UNITS' '(' storageUnitName (',' storageUnitName)*  ')' ',' 'SHARDING_COLUMN' '=' columnName ',' algorithmDefinition (',' 'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
+autoTableDefinition ::=
+  tableName '(' 'STORAGE_UNITS' '(' storageUnitName (',' storageUnitName)*  ')' ',' 'SHARDING_COLUMN' '=' columnName ',' algorithmDefinition (',' 'KEY_GENERATE_STRATEGY' '(' keyGenerateStrategyDefinition ')')? (',' 'AUDIT_STRATEGY' '(' auditStrategyDefinition ')')? ')'
 
 strategyDefinition ::=
   'TYPE' '=' strategyType ',' ('SHARDING_COLUMN' | 'SHARDING_COLUMNS') '=' columnName ',' algorithmDefinition
@@ -45,7 +45,7 @@ key ::=
 value ::=
   literal
 
-ruleName ::=
+tableName ::=
   identifier
 
 dataNode ::=
@@ -57,10 +57,10 @@ storageUnitName ::=
 columnName ::=
   identifier
 
-strategyType ::=
-  string
-
 algorithmType ::=
+  identifier
+
+strategyType ::=
   string
 ```
 {{% /tab %}}
@@ -71,19 +71,19 @@ algorithmType ::=
 
 ### 补充说明
 
-- `tableRuleDefinition` 为标准分片规则定义；`autoTableRuleDefinition`
+- `tableDefinition` 为标准分片规则定义；`autoTableDefinition`
   为自动分片规则定义。标准分片规则和自动分片规则可参考[数据分片](/cn/user-manual/shardingsphere-jdbc/yaml-config/rules/sharding/)；
 - 当使用标准分片时：
     - `DATANODES` 只能使用已经添加到当前逻辑库的资源，且只能使用 INLINE 表达式指定需要的资源；
     - `DATABASE_STRATEGY`、`TABLE_STRATEGY` 表示分库和分表策略，均为可选项，未配置时使用默认策略；
-    - `strategyDefinition` 中属性 `TYPE` 用于指定[分片算法](/cn/user-manual/common-config/builtin-algorithm/sharding/#自定义类分片算法)的类型，目前仅支持 `STANDARD`
+    - `strategyDefinition` 中属性 `TYPE` 用于指定[分片算法](/cn/features/sharding/concept/sharding/#自定义分片算法)的类型，目前仅支持 `STANDARD`
       、`COMPLEX`。使用 `COMPLEX` 时需要用 `SHARDING_COLUMNS` 指定多个分片键。
 - 当使用自动分片时：
     - `STORAGE_UNITS` 只能使用已经添加到当前逻辑库的资源，可通过枚举或 INLINE 表达式指定需要的资源；
     - 只能使用自动分片算法，可参考[自动分片算法](/cn/user-manual/common-config/builtin-algorithm/sharding/#自动分片算法)。
 - `algorithmType` 为分片算法类型，分片算法类型请参考[分片算法](/cn/user-manual/common-config/builtin-algorithm/sharding/)；
 - 自动生成的算法命名规则为  `tableName` _ `strategyType` _ `algorithmType`；
-- 自动生成的主键策略命名规则为 `tableName` _ `strategyType`；
+- 自动生成的主键策略命名规则为 `tableName` _ `strategyType；
 - `KEY_GENERATE_STRATEGY`
   用于指定主键生成策略，为可选项，关于主键生成策略可参考[分布式主键](/cn/user-manual/common-config/builtin-algorithm/keygen/)；
 - `AUDIT_STRATEGY`
@@ -147,4 +147,4 @@ AUDIT_STRATEGY (TYPE(NAME="DML_SHARDING_CONDITIONS"),ALLOW_HINT_DISABLE=true)
 ### 相关链接
 
 - [保留字](/cn/user-manual/shardingsphere-proxy/distsql/syntax/reserved-word/)
-- [CREATE DEFAULT_SHARDING STRATEGY](/cn/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/sharding/create-default-sharding-strategy/)
+- [CREATE DEFAULT_SHARDING STRATEGY](/cn/user-manual/shardingsphere-proxy/distsql/syntax/rdl/rule-definition/create-default-sharding-strategy/)

@@ -291,7 +291,7 @@ masterSlaveRule:
 # 5.0.0 GA Read/Write Splitting API
 rules:
 - !READWRITE_SPLITTING
-  dataSourceGroups:
+  dataSources:
     pr_ds:
       writeDataSourceName: write_ds
       readDataSourceNames:
@@ -303,7 +303,7 @@ Additionally, the High Availability function developed in the pluggable architec
 
 + **Encryption & Decryption API**
 
-There are no changes in the 5.0.0 version API.
+We add `queryWithCipherColumn` property at the `table` level into Encryption & Decryption API, making it convenient for users to switch plaintext and ciphertext of encrypted/decrypted fields in a table. There are no other changes in the 5.0.0 version API.
 
 ```
 - !ENCRYPT
@@ -318,11 +318,14 @@ There are no changes in the 5.0.0 version API.
     t_encrypt:
       columns:
         user_id:
+          plainColumn: user_plain
           cipherColumn: user_cipher
           encryptorName: aes_encryptor
         order_id:
           cipherColumn: order_cipher
           encryptorName: md5_encryptor
+      queryWithCipherColumn: true
+  queryWithCipherColumn: false
 ```
       
 + **Shadow Database Stress Testing API**
@@ -433,11 +436,13 @@ shardingRule:
       t_order:
         columns:
           content:
+            plainColumn: content_plain
             cipherColumn: content_cipher
             encryptor: aes_encryptor
       t_user:
         columns:
           telephone:
+            plainColumn: telephone_plain
             cipherColumn: telephone_cipher
             encryptor: aes_encryptor
 ```
@@ -564,7 +569,7 @@ rules:
         algorithm-expression: t_order_item_${order_id % 2}
 
 - !READWRITE_SPLITTING
-  dataSourceGroups:
+  dataSources:
     ms_ds_0:
       writeDataSourceName: ds_0
       readDataSourceNames:
@@ -588,11 +593,13 @@ rules:
     t_order:
       columns:
         content:
+          plainColumn: content_plain
           cipherColumn: content_cipher
           encryptor: aes_encryptor
     t_user:
       columns:
         telephone:
+          plainColumn: telephone_plain
           cipherColumn: telephone_cipher
           encryptor: aes_encryptor
 ```  

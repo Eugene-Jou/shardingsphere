@@ -17,48 +17,57 @@
 
 package org.apache.shardingsphere.sqlfederation.rule;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
-import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.rule.scope.GlobalRule;
-import org.apache.shardingsphere.sqlfederation.config.SQLFederationRuleConfiguration;
-import org.apache.shardingsphere.sqlfederation.constant.SQLFederationOrder;
-import org.apache.shardingsphere.sqlfederation.compiler.context.CompilerContext;
-import org.apache.shardingsphere.sqlfederation.compiler.context.CompilerContextFactory;
-
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
+import org.apache.shardingsphere.infra.config.props.ConfigurationPropertyKey;
+import org.apache.shardingsphere.infra.executor.sql.execute.engine.driver.jdbc.JDBCExecutor;
+import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
+import org.apache.shardingsphere.infra.metadata.data.ShardingSphereData;
+import org.apache.shardingsphere.infra.rule.identifier.scope.GlobalRule;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.sqlfederation.api.config.SQLFederationRuleConfiguration;
+import org.apache.shardingsphere.sqlfederation.enums.SQLFederationTypeEnum;
+import org.apache.shardingsphere.sqlfederation.spi.SQLFederationExecutor;
 
 /**
  * SQL federation rule.
  */
-@Getter
 public final class SQLFederationRule implements GlobalRule {
     
+    @Getter
     private final SQLFederationRuleConfiguration configuration;
     
-    private final AtomicReference<CompilerContext> compilerContext;
+    private SQLFederationExecutor sqlFederationExecutor;
     
-    public SQLFederationRule(final SQLFederationRuleConfiguration ruleConfig, final Collection<ShardingSphereDatabase> databases) {
+    public SQLFederationRule(final SQLFederationRuleConfiguration ruleConfig) {
         configuration = ruleConfig;
-        compilerContext = new AtomicReference<>(CompilerContextFactory.create(databases));
-    }
-    
-    @Override
-    public void refresh(final Collection<ShardingSphereDatabase> databases, final GlobalRuleChangedType changedType) {
-        compilerContext.set(CompilerContextFactory.create(databases));
+        sqlFederationExecutor = TypedSPILoader.getService(SQLFederationExecutor.class, configuration.getSqlFederationType());
     }
     
     /**
-     * Get compiler context.
+     * Get SQL federation executor.
      *
-     * @return compiler context
+     * @param databaseName database name
+     * @param schemaName schema name
+     * @param metaData ShardingSphere meta data
+     * @param shardingSphereData ShardingSphere data
+     * @param jdbcExecutor jdbc executor
+     * @return created instance
      */
-    public CompilerContext getCompilerContext() {
-        return compilerContext.get();
+    public SQLFederationExecutor getSQLFederationExecutor(final String databaseName, final String schemaName, final ShardingSphereMetaData metaData, final ShardingSphereData shardingSphereData,
+                                                          final JDBCExecutor jdbcExecutor) {
+        String sqlFederationType = metaData.getProps().getValue(ConfigurationPropertyKey.SQL_FEDERATION_TYPE);
+        Preconditions.checkArgument(SQLFederationTypeEnum.isValidSQLFederationType(sqlFederationType), "%s is not a valid sqlFederationType.", sqlFederationType);
+        if (!configuration.getSqlFederationType().equals(sqlFederationType)) {
+            configuration.setSqlFederationType(sqlFederationType);
+            sqlFederationExecutor = TypedSPILoader.getService(SQLFederationExecutor.class, configuration.getSqlFederationType());
+        }
+        sqlFederationExecutor.init(databaseName, schemaName, metaData, shardingSphereData, jdbcExecutor);
+        return sqlFederationExecutor;
     }
     
     @Override
-    public int getOrder() {
-        return SQLFederationOrder.ORDER;
+    public String getType() {
+        return SQLFederationRule.class.getSimpleName();
     }
 }

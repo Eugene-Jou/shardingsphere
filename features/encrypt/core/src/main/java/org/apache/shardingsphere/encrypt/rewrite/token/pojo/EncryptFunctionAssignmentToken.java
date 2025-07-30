@@ -18,22 +18,20 @@
 package org.apache.shardingsphere.encrypt.rewrite.token.pojo;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.metadata.database.enums.QuoteCharacter;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 /**
  * Function assignment token for encrypt.
  */
 public final class EncryptFunctionAssignmentToken extends EncryptAssignmentToken {
     
-    private final StringBuilder builder = new StringBuilder();
-    
     private final Collection<FunctionAssignment> assignments = new LinkedList<>();
     
-    public EncryptFunctionAssignmentToken(final int startIndex, final int stopIndex, final QuoteCharacter quoteCharacter) {
-        super(startIndex, stopIndex, quoteCharacter);
+    public EncryptFunctionAssignmentToken(final int startIndex, final int stopIndex) {
+        super(startIndex, stopIndex);
     }
     
     /**
@@ -43,23 +41,20 @@ public final class EncryptFunctionAssignmentToken extends EncryptAssignmentToken
      * @param value assignment value
      */
     public void addAssignment(final String columnName, final Object value) {
-        FunctionAssignment functionAssignment = new FunctionAssignment(columnName, value, getQuoteCharacter());
-        assignments.add(functionAssignment);
-        builder.append(functionAssignment).append(", ");
+        assignments.add(new FunctionAssignment(columnName, value));
     }
     
     /**
-     * Judge whether assignments is empty or not.
-     *
-     * @return whether assignments is empty or not
+     * Get assignments.
+     * @return FunctionAssignment collection
      */
-    public boolean isAssignmentsEmpty() {
-        return assignments.isEmpty();
+    public Collection<FunctionAssignment> getAssignment() {
+        return assignments;
     }
     
     @Override
     public String toString() {
-        return builder.substring(0, builder.length() - 2);
+        return assignments.stream().map(FunctionAssignment::toString).collect(Collectors.joining(", "));
     }
     
     @RequiredArgsConstructor
@@ -69,11 +64,13 @@ public final class EncryptFunctionAssignmentToken extends EncryptAssignmentToken
         
         private final Object value;
         
-        private final QuoteCharacter quoteCharacter;
-        
         @Override
         public String toString() {
-            return quoteCharacter.wrap(columnName) + " = " + value;
+            return String.format("%s = %s", columnName, toString(value));
+        }
+        
+        private String toString(final Object value) {
+            return String.class == value.getClass() ? String.format("%s", value) : value.toString();
         }
     }
 }

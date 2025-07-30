@@ -17,15 +17,14 @@ rules:
     <table_name> (+): # Encrypt table name
       columns:
         <column_name> (+): # Encrypt logic column name
-          cipher:
-            name: # Cipher column name
-            encryptorName: # Cipher encrypt algorithm name
-          assistedQuery (?):
-            name: # Assisted query column name
-            encryptorName:  # Assisted query encrypt algorithm name
-          likeQuery (?):
-            name: # Like query column name
-            encryptorName:  # Like query encrypt algorithm name 
+          plainColumn (?): # Plain column name
+          cipherColumn: # Cipher column name
+          encryptorName: # Cipher encrypt algorithm name
+          assistedQueryColumn (?):  # Assisted query column name
+          assistedQueryEncryptorName:  # Assisted query encrypt algorithm name
+          likeQueryColumn (?):  # Like query column name
+          likeQueryEncryptorName:  # Like query encrypt algorithm name
+      queryWithCipherColumn(?): # The current table whether query with cipher column for data encrypt. 
     
   # Encrypt algorithm configuration
   encryptors:
@@ -33,6 +32,8 @@ rules:
       type: # Encrypt algorithm type
       props: # Encrypt algorithm properties
         # ...
+
+  queryWithCipherColumn: # Whether query with cipher column for data encrypt. User you can use plaintext to query if have
 ```
 
 Please refer to [Built-in Encrypt Algorithm List](/en/user-manual/common-config/builtin-algorithm/encrypt) for more details about type of algorithm.
@@ -61,32 +62,32 @@ rules:
     t_user:
       columns:
         username:
-          cipher:
-            name: username
-            encryptorName: aes_encryptor
-          assistedQuery:
-            name: assisted_query_username
-            encryptorName: assisted_encryptor
-          likeQuery:
-            name: like_query_username
-            encryptorName: like_encryptor
+          plainColumn: username_plain
+          cipherColumn: username
+          encryptorName: name_encryptor
+          assistedQueryColumn: assisted_query_username
+          assistedQueryEncryptorName: assisted_encryptor
+          likeQueryColumn: like_query_username
+          likeQueryEncryptorName: like_encryptor
         pwd:
-          cipher:
-            name: pwd
-            encryptorName: aes_encryptor
-          assistedQuery:
-            name: assisted_query_pwd
-            encryptorName: assisted_encryptor
+          cipherColumn: pwd
+          encryptorName: pwd_encryptor
+          assistedQueryColumn: assisted_query_pwd
+          assistedQueryEncryptorName: assisted_encryptor
+      queryWithCipherColumn: true
   encryptors:
-    aes_encryptor:
+    name_encryptor:
       type: AES
       props:
         aes-key-value: 123456abc
-        digest-algorithm-name: SHA-1
     assisted_encryptor:
-      type: MD5
+      type: AES
+      props:
+        aes-key-value: 123456abc
     like_encryptor:
       type: CHAR_DIGEST_LIKE
+    pwd_encryptor:
+      type: MD5
 ```
 
 Read the YAML configuration to create a data source according to the createDataSource method of YamlShardingSphereDataSourceFactory.

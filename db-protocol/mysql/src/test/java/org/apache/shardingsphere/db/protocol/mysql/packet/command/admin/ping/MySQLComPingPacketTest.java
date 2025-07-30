@@ -27,13 +27,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLComPingPacketTest {
+public final class MySQLComPingPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         MySQLComPingPacket actual = new MySQLComPingPacket();
         actual.write(payload);
         verify(payload).writeInt1(MySQLCommandPacketType.COM_PING.getValue());

@@ -20,18 +20,18 @@ package org.apache.shardingsphere.db.protocol.mysql.packet.command;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.db.protocol.mysql.packet.MySQLPacket;
 import org.apache.shardingsphere.db.protocol.mysql.payload.MySQLPacketPayload;
-import org.apache.shardingsphere.db.protocol.packet.command.CommandPacket;
+import org.apache.shardingsphere.db.protocol.packet.CommandPacket;
 
 /**
  * Command packet for MySQL.
  */
 @RequiredArgsConstructor
-public abstract class MySQLCommandPacket extends MySQLPacket implements CommandPacket {
+public abstract class MySQLCommandPacket implements MySQLPacket, CommandPacket {
     
     private final MySQLCommandPacketType type;
     
     @Override
-    protected final void write(final MySQLPacketPayload payload) {
+    public final void write(final MySQLPacketPayload payload) {
         payload.writeInt1(type.getValue());
         doWrite(payload);
     }

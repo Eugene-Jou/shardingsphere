@@ -19,14 +19,12 @@ package org.apache.shardingsphere.proxy.backend.connector.jdbc.transaction;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
-import org.apache.shardingsphere.proxy.backend.connector.ProxyDatabaseConnectionManager;
+import org.apache.shardingsphere.proxy.backend.connector.BackendConnection;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.proxy.backend.session.transaction.TransactionStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -42,19 +40,16 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class LocalTransactionManagerTest {
+public final class LocalTransactionManagerTest {
     
     @Mock
     private ConnectionSession connectionSession;
     
     @Mock
-    private ProxyDatabaseConnectionManager databaseConnectionManager;
+    private BackendConnection backendConnection;
     
     @Mock
     private TransactionStatus transactionStatus;
-    
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private ConnectionContext connectionContext;
     
     @Mock
     private Connection connection;
@@ -62,13 +57,12 @@ class LocalTransactionManagerTest {
     private LocalTransactionManager localTransactionManager;
     
     @BeforeEach
-    void setUp() {
-        when(connectionSession.getConnectionContext()).thenReturn(connectionContext);
+    public void setUp() {
         when(connectionSession.getTransactionStatus()).thenReturn(transactionStatus);
-        when(databaseConnectionManager.getConnectionSession()).thenReturn(connectionSession);
-        when(databaseConnectionManager.getCachedConnections()).thenReturn(setCachedConnections());
+        when(backendConnection.getConnectionSession()).thenReturn(connectionSession);
+        when(backendConnection.getCachedConnections()).thenReturn(setCachedConnections());
         when(transactionStatus.isInTransaction()).thenReturn(true);
-        localTransactionManager = new LocalTransactionManager(databaseConnectionManager);
+        localTransactionManager = new LocalTransactionManager(backendConnection);
     }
     
     private Multimap<String, Connection> setCachedConnections() {
@@ -80,20 +74,20 @@ class LocalTransactionManagerTest {
     }
     
     @Test
-    void assertBegin() {
+    public void assertBegin() {
         localTransactionManager.begin();
-        verify(databaseConnectionManager).getConnectionPostProcessors();
+        verify(backendConnection).getConnectionPostProcessors();
     }
     
     @Test
-    void assertCommit() throws SQLException {
+    public void assertCommit() throws SQLException {
         localTransactionManager.commit();
-        verify(connectionContext.getTransactionContext()).isExceptionOccur();
+        verify(transactionStatus).isRollbackOnly();
         verify(connection).commit();
     }
     
     @Test
-    void assertRollback() throws SQLException {
+    public void assertRollback() throws SQLException {
         localTransactionManager.rollback();
         verify(transactionStatus).isInTransaction();
         verify(connection).rollback();

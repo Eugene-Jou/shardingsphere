@@ -18,63 +18,58 @@
 package org.apache.shardingsphere.data.pipeline.mysql.datasource;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shardingsphere.data.pipeline.mysql.ingest.incremental.client.MySQLServerVersion;
-import org.apache.shardingsphere.data.pipeline.spi.JdbcQueryPropertiesExtension;
+import org.apache.shardingsphere.data.pipeline.mysql.ingest.client.ServerVersion;
+import org.apache.shardingsphere.data.pipeline.spi.datasource.JdbcQueryPropertiesExtension;
 
 import java.util.Properties;
 
 /**
- * JDBC query properties extension of MySQL.
+ * MySQL JDBC query properties extension.
  */
 @Slf4j
 public final class MySQLJdbcQueryPropertiesExtension implements JdbcQueryPropertiesExtension {
     
-    private static final String MYSQL_CONNECTOR_VERSION = initMySQLConnectorVersion();
+    private static final String MYSQL_CONNECTOR_VERSION = initMysqlConnectorVersion();
     
-    private final Properties toBeOverrideQueryProps = new Properties();
-    
-    private final Properties completeIfMissedQueryProps = new Properties();
+    private final Properties queryProps = new Properties();
     
     public MySQLJdbcQueryPropertiesExtension() {
-        toBeOverrideQueryProps.setProperty("useSSL", Boolean.FALSE.toString());
-        toBeOverrideQueryProps.setProperty("useServerPrepStmts", Boolean.FALSE.toString());
-        toBeOverrideQueryProps.setProperty("rewriteBatchedStatements", Boolean.TRUE.toString());
-        toBeOverrideQueryProps.setProperty("yearIsDateType", Boolean.FALSE.toString());
-        toBeOverrideQueryProps.setProperty("zeroDateTimeBehavior", getZeroDateTimeBehavior());
-        toBeOverrideQueryProps.setProperty("noDatetimeStringSync", Boolean.TRUE.toString());
-        toBeOverrideQueryProps.setProperty("jdbcCompliantTruncation", Boolean.FALSE.toString());
-        completeIfMissedQueryProps.setProperty("netTimeoutForStreamingResults", "600");
+        queryProps.setProperty("useSSL", Boolean.FALSE.toString());
+        queryProps.setProperty("useServerPrepStmts", Boolean.FALSE.toString());
+        queryProps.setProperty("rewriteBatchedStatements", Boolean.TRUE.toString());
+        queryProps.setProperty("yearIsDateType", Boolean.FALSE.toString());
+        queryProps.setProperty("zeroDateTimeBehavior", getZeroDateTimeBehavior());
+        queryProps.setProperty("noDatetimeStringSync", Boolean.TRUE.toString());
+        queryProps.setProperty("jdbcCompliantTruncation", Boolean.FALSE.toString());
+        queryProps.setProperty("netTimeoutForStreamingResults", "600");
     }
     
     private String getZeroDateTimeBehavior() {
         // refer https://bugs.mysql.com/bug.php?id=91065
-        return null != MYSQL_CONNECTOR_VERSION && new MySQLServerVersion(MYSQL_CONNECTOR_VERSION).greaterThanOrEqualTo(8, 0, 0) ? "CONVERT_TO_NULL" : "convertToNull";
+        String zeroDateTimeBehavior = "convertToNull";
+        if (null != MYSQL_CONNECTOR_VERSION) {
+            zeroDateTimeBehavior = new ServerVersion(MYSQL_CONNECTOR_VERSION).greaterThanOrEqualTo(8, 0, 0) ? "CONVERT_TO_NULL" : zeroDateTimeBehavior;
+        }
+        return zeroDateTimeBehavior;
     }
     
-    private static String initMySQLConnectorVersion() {
+    private static String initMysqlConnectorVersion() {
         try {
-            Class<?> driverClass = Thread.currentThread().getContextClassLoader().loadClass("com.mysql.jdbc.Driver");
-            return driverClass.getPackage().getImplementationVersion();
+            Class<?> mysqlDriverClass = MySQLJdbcQueryPropertiesExtension.class.getClassLoader().loadClass("com.mysql.jdbc.Driver");
+            return mysqlDriverClass.getPackage().getImplementationVersion();
         } catch (final ClassNotFoundException ex) {
-            log.warn("Can not find `com.mysql.jdbc.Driver` class.");
+            log.warn("not find com.mysql.jdbc.Driver class");
             return null;
         }
     }
     
     @Override
-    public void extendQueryProperties(final Properties props) {
-        for (String each : toBeOverrideQueryProps.stringPropertyNames()) {
-            props.setProperty(each, toBeOverrideQueryProps.getProperty(each));
-        }
-        for (String each : completeIfMissedQueryProps.stringPropertyNames()) {
-            if (!props.containsKey(each)) {
-                props.setProperty(each, completeIfMissedQueryProps.getProperty(each));
-            }
-        }
+    public Properties extendQueryProperties() {
+        return queryProps;
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "MySQL";
     }
 }

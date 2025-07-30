@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class OpenGaussFrontendEngineTest {
+public final class OpenGaussFrontendEngineTest {
     
     private final OpenGaussFrontendEngine openGaussFrontendEngine = new OpenGaussFrontendEngine();
     
@@ -43,27 +43,33 @@ class OpenGaussFrontendEngineTest {
     private PostgreSQLFrontendEngine mockPostgreSQLFrontendEngine;
     
     @BeforeEach
-    void setup() throws ReflectiveOperationException {
-        Plugins.getMemberAccessor().set(OpenGaussFrontendEngine.class.getDeclaredField("postgresqlFrontendEngine"), openGaussFrontendEngine, mockPostgreSQLFrontendEngine);
+    public void setup() throws ReflectiveOperationException {
+        Plugins.getMemberAccessor().set(OpenGaussFrontendEngine.class.getDeclaredField("postgreSQLFrontendEngine"), openGaussFrontendEngine, mockPostgreSQLFrontendEngine);
     }
     
     @Test
-    void assertGetCommandExecuteEngine() {
+    public void assertGetCommandExecuteEngine() {
         assertThat(openGaussFrontendEngine.getCommandExecuteEngine(), instanceOf(OpenGaussCommandExecuteEngine.class));
     }
     
     @Test
-    void assertGetCodecEngine() {
+    public void assertGetFrontendContext() {
+        openGaussFrontendEngine.getFrontendContext();
+        verify(mockPostgreSQLFrontendEngine).getFrontendContext();
+    }
+    
+    @Test
+    public void assertGetCodecEngine() {
         assertThat(openGaussFrontendEngine.getCodecEngine(), instanceOf(OpenGaussPacketCodecEngine.class));
     }
     
     @Test
-    void assertGetAuthenticationEngine() {
+    public void assertGetAuthenticationEngine() {
         assertThat(openGaussFrontendEngine.getAuthenticationEngine(), instanceOf(OpenGaussAuthenticationEngine.class));
     }
     
     @Test
-    void assertRelease() {
+    public void assertRelease() {
         ConnectionSession connection = mock(ConnectionSession.class);
         openGaussFrontendEngine.release(connection);
         verify(mockPostgreSQLFrontendEngine).release(connection);

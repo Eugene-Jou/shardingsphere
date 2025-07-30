@@ -30,12 +30,12 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class MemoryQueryResultRowTest {
+public final class MemoryQueryResultRowTest {
     
     private MemoryQueryResultRow memoryResultSetRow;
     
     @BeforeEach
-    void setUp() throws SQLException {
+    public void setUp() throws SQLException {
         QueryResult queryResult = mock(QueryResult.class, RETURNS_DEEP_STUBS);
         when(queryResult.getMetaData().getColumnCount()).thenReturn(1);
         when(queryResult.getValue(1, Object.class)).thenReturn("value");
@@ -43,33 +43,33 @@ class MemoryQueryResultRowTest {
     }
     
     @Test
-    void assertGetCell() {
+    public void assertGetCell() {
         assertThat(memoryResultSetRow.getCell(1).toString(), is("value"));
     }
     
     @Test
-    void assertGetCellWithNegativeColumnIndex() {
+    public void assertGetCellWithNegativeColumnIndex() {
         assertThrows(IllegalArgumentException.class, () -> memoryResultSetRow.getCell(-1));
     }
     
     @Test
-    void assertGetCellWithColumnIndexOutOfRange() {
+    public void assertGetCellWithColumnIndexOutOfRange() {
         assertThrows(IllegalArgumentException.class, () -> memoryResultSetRow.getCell(2));
     }
     
     @Test
-    void assertSetCell() {
+    public void assertSetCell() {
         memoryResultSetRow.setCell(1, "new");
         assertThat(memoryResultSetRow.getCell(1).toString(), is("new"));
     }
     
     @Test
-    void assertSetCellWithNegativeColumnIndex() {
+    public void assertSetCellWithNegativeColumnIndex() {
         assertThrows(IllegalArgumentException.class, () -> memoryResultSetRow.setCell(-1, "new"));
     }
     
     @Test
-    void assertSetCellWithColumnIndexOutOfRange() {
+    public void assertSetCellWithColumnIndexOutOfRange() {
         assertThrows(IllegalArgumentException.class, () -> memoryResultSetRow.setCell(2, "new"));
     }
 }

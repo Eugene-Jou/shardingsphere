@@ -30,10 +30,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CDCServerHandlerInitializerTest {
+public final class CDCServerHandlerInitializerTest {
     
     @Test
-    void assertInitChannel() {
+    public void assertInitChannel() {
         SocketChannel channel = mock(SocketChannel.class);
         ChannelPipeline pipeline = mock(ChannelPipeline.class);
         when(channel.pipeline()).thenReturn(pipeline);

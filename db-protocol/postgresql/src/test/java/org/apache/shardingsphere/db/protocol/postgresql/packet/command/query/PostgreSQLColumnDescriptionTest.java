@@ -24,34 +24,22 @@ import java.sql.Types;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLColumnDescriptionTest {
+public final class PostgreSQLColumnDescriptionTest {
     
     @Test
-    void assertIntegerTypeOid() {
+    public void assertIntegerTypeOid() {
         PostgreSQLColumnDescription description = new PostgreSQLColumnDescription("age", 1, Types.INTEGER, 4, null);
         assertThat(description.getTypeOID(), is(23));
     }
     
     @Test
-    void assertStringTypeOid() {
+    public void assertStringTypeOid() {
         PostgreSQLColumnDescription description = new PostgreSQLColumnDescription("name", 1, Types.VARCHAR, 4, null);
         assertThat(description.getTypeOID(), is(1043));
     }
     
     @Test
-    void assertBitTypeOid() {
-        PostgreSQLColumnDescription description = new PostgreSQLColumnDescription("gender", 1, Types.BIT, 1, "bit");
-        assertThat(description.getTypeOID(), is(1560));
-    }
-    
-    @Test
-    void assertBoolTypeOid() {
-        PostgreSQLColumnDescription description = new PostgreSQLColumnDescription("married", 1, Types.BIT, 1, "bool");
-        assertThat(description.getTypeOID(), is(16));
-    }
-    
-    @Test
-    void assertIntegerArrayTypeOid() {
+    public void assertIntegerArrayTypeOid() {
         PostgreSQLColumnDescription description = new PostgreSQLColumnDescription("ages", 2, Types.ARRAY, 12, "_int4");
         assertThat(description.getTypeOID(), is(1007));
     }

@@ -20,6 +20,8 @@ package org.apache.shardingsphere.agent.core.plugin;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.agent.api.PluginConfiguration;
+import org.apache.shardingsphere.agent.core.log.AgentLogger;
+import org.apache.shardingsphere.agent.core.log.AgentLoggerFactory;
 import org.apache.shardingsphere.agent.core.spi.AgentServiceLoader;
 import org.apache.shardingsphere.agent.spi.PluginLifecycleService;
 
@@ -29,8 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Plugin lifecycle service manager.
@@ -40,11 +40,11 @@ public final class PluginLifecycleServiceManager {
     
     private static final AtomicBoolean STARTED_FLAG = new AtomicBoolean(false);
     
-    private static final Logger LOGGER = Logger.getLogger(PluginLifecycleServiceManager.class.getName());
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(PluginLifecycleServiceManager.class);
     
     /**
      * Initialize all plugins.
-     *
+     * 
      * @param pluginConfigs plugin configuration map
      * @param pluginJars plugin jars
      * @param pluginClassLoader plugin class loader
@@ -52,8 +52,8 @@ public final class PluginLifecycleServiceManager {
      */
     public static void init(final Map<String, PluginConfiguration> pluginConfigs, final Collection<JarFile> pluginJars, final ClassLoader pluginClassLoader, final boolean isEnhancedForProxy) {
         if (STARTED_FLAG.compareAndSet(false, true)) {
-            start(pluginConfigs, pluginClassLoader, isEnhancedForProxy);
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> close(pluginJars)));
+            PluginLifecycleServiceManager.start(pluginConfigs, pluginClassLoader, isEnhancedForProxy);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> PluginLifecycleServiceManager.close(pluginJars)));
         }
     }
     
@@ -72,22 +72,30 @@ public final class PluginLifecycleServiceManager {
     
     private static void start(final PluginConfiguration pluginConfig, final PluginLifecycleService pluginLifecycleService, final boolean isEnhancedForProxy) {
         try {
-            LOGGER.log(Level.INFO, "Start plugin: {0}", new String[]{pluginLifecycleService.getType()});
+            LOGGER.info("Start plugin: {}", pluginLifecycleService.getType());
             pluginLifecycleService.start(pluginConfig, isEnhancedForProxy);
             // CHECKSTYLE:OFF
         } catch (final Throwable ex) {
             // CHECKSTYLE:ON
-            LOGGER.log(Level.SEVERE, "Failed to start service {0}.", new String[]{ex.getMessage()});
+            LOGGER.error("Failed to start service.", ex);
         }
     }
     
     private static void close(final Collection<JarFile> pluginJars) {
-        AgentServiceLoader.getServiceLoader(PluginLifecycleService.class).getServices().forEach(PluginLifecycleService::close);
+        AgentServiceLoader.getServiceLoader(PluginLifecycleService.class).getServices().forEach(each -> {
+            try {
+                each.close();
+                // CHECKSTYLE:OFF
+            } catch (final Throwable ex) {
+                // CHECKSTYLE:ON
+                LOGGER.error("Failed to close service.", ex);
+            }
+        });
         pluginJars.forEach(each -> {
             try {
                 each.close();
             } catch (final IOException ex) {
-                LOGGER.log(Level.SEVERE, "Failed to close jar file {0}.", new String[]{ex.getMessage()});
+                LOGGER.error("Failed to close jar file.", ex);
             }
         });
     }

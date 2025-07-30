@@ -24,7 +24,7 @@ import org.apache.shardingsphere.infra.util.yaml.YamlConfiguration;
 import java.util.Collection;
 
 /**
- * Sharding audit strategy configuration for YAML.
+ * Sharing audit strategy configuration for YAML.
  */
 @Getter
 @Setter

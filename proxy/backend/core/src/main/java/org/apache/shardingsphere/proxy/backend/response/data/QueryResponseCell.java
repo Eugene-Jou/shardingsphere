@@ -18,32 +18,16 @@
 package org.apache.shardingsphere.proxy.backend.response.data;
 
 import lombok.Getter;
-
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Query response cell.
  */
+@RequiredArgsConstructor
 @Getter
 public final class QueryResponseCell {
     
     private final int jdbcType;
     
     private final Object data;
-    
-    private final String columnTypeName;
-    
-    public QueryResponseCell(final int jdbcType, final Object data) {
-        this(jdbcType, data, null);
-    }
-    
-    public QueryResponseCell(final int jdbcType, final Object data, final String columnTypeName) {
-        this.jdbcType = jdbcType;
-        this.data = data;
-        this.columnTypeName = columnTypeName;
-    }
-    
-    public Optional<String> getColumnTypeName() {
-        return Optional.ofNullable(columnTypeName);
-    }
 }

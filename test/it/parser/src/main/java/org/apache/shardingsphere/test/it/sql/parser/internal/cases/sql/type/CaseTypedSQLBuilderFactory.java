@@ -30,16 +30,15 @@ public final class CaseTypedSQLBuilderFactory {
     
     /**
      * Create new instance of case typed SQL builder.
-     *
+     * 
      * @param caseType SQL case type
      * @return created instance
-     * @throws UnsupportedOperationException unsupported operation exception
      */
     public static CaseTypedSQLBuilder newInstance(final SQLCaseType caseType) {
         switch (caseType) {
-            case LITERAL:
+            case Literal:
                 return new LiteralSQLBuilder();
-            case PLACEHOLDER:
+            case Placeholder:
                 return new PlaceholderSQLBuilder();
             default:
                 throw new UnsupportedOperationException(caseType.name());

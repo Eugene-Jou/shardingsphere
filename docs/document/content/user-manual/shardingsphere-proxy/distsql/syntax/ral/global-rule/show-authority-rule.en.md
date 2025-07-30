@@ -1,6 +1,6 @@
 +++
 title = "SHOW AUTHORITY RULE"
-weight = 1
+weight = 2
 +++
 
 ### Description
@@ -23,7 +23,7 @@ ShowAuthorityRule ::=
 
 ### Return Value Description
 
-| Column      | Description             |
+| Colume      | Description             |
 |-------------|-------------------------|
 | users       | users                   |
 | provider    | privilege provider type |

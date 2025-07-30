@@ -21,7 +21,7 @@ import io.netty.buffer.ByteBuf;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.ByteBufTestUtils;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.bind.PostgreSQLTypeUnspecifiedSQLParameter;
 import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacketPayload;
-import org.apache.shardingsphere.infra.exception.generic.UnsupportedSQLOperationException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.type.generic.UnsupportedSQLOperationException;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -32,15 +32,15 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-class PostgreSQLUnspecifiedBinaryProtocolValueTest {
+public final class PostgreSQLUnspecifiedBinaryProtocolValueTest {
     
     @Test
-    void assertGetColumnLength() {
-        assertThrows(UnsupportedSQLOperationException.class, () -> new PostgreSQLUnspecifiedBinaryProtocolValue().getColumnLength(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), "val"));
+    public void assertGetColumnLength() {
+        assertThrows(UnsupportedSQLOperationException.class, () -> new PostgreSQLUnspecifiedBinaryProtocolValue().getColumnLength("val"));
     }
     
     @Test
-    void assertRead() {
+    public void assertRead() {
         String timestampStr = "2020-08-23 15:57:03+08";
         int expectedLength = 4 + timestampStr.length();
         ByteBuf byteBuf = ByteBufTestUtils.createByteBuf(expectedLength);
@@ -48,14 +48,14 @@ class PostgreSQLUnspecifiedBinaryProtocolValueTest {
         byteBuf.writeCharSequence(timestampStr, StandardCharsets.ISO_8859_1);
         byteBuf.readInt();
         PostgreSQLPacketPayload payload = new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8);
-        Object actual = new PostgreSQLUnspecifiedBinaryProtocolValue().read(payload, timestampStr.length());
-        assertThat(actual, instanceOf(PostgreSQLTypeUnspecifiedSQLParameter.class));
-        assertThat(actual.toString(), is(timestampStr));
+        Object result = new PostgreSQLUnspecifiedBinaryProtocolValue().read(payload, timestampStr.length());
+        assertThat(result, instanceOf(PostgreSQLTypeUnspecifiedSQLParameter.class));
+        assertThat(result.toString(), is(timestampStr));
         assertThat(byteBuf.readerIndex(), is(expectedLength));
     }
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         assertThrows(UnsupportedSQLOperationException.class, () -> new PostgreSQLUnspecifiedBinaryProtocolValue().write(mock(PostgreSQLPacketPayload.class), "val"));
     }
 }

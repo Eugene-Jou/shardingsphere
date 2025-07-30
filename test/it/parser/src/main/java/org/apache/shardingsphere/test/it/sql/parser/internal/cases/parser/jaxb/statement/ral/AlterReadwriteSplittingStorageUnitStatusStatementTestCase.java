@@ -24,18 +24,18 @@ import org.apache.shardingsphere.test.it.sql.parser.internal.cases.parser.jaxb.s
 import javax.xml.bind.annotation.XmlAttribute;
 
 /**
- * Alter readwrite-splitting storage unit status statement test case.
+ * Alter readwrite splitting storage unit status statement test case.
  */
 @Getter
 @Setter
 public final class AlterReadwriteSplittingStorageUnitStatusStatementTestCase extends DatabaseContainedTestCase {
     
-    @XmlAttribute(name = "rule-name")
-    private String ruleName;
+    @XmlAttribute(name = "group-name")
+    private String groupName;
     
     @XmlAttribute(name = "storage-unit-name")
     private String storageUnitName;
     
-    @XmlAttribute(name = "enable")
-    private boolean enable;
+    @XmlAttribute(name = "status")
+    private String status;
 }

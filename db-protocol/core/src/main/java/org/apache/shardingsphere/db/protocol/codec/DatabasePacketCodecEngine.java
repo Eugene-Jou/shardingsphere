@@ -27,12 +27,14 @@ import java.util.List;
 
 /**
  * Database packet codec engine.
+ * 
+ * @param <T> type of database packet
  */
-public interface DatabasePacketCodecEngine {
+public interface DatabasePacketCodecEngine<T extends DatabasePacket<?>> {
     
     /**
      * Judge is valid header or not.
-     *
+     * 
      * @param readableBytes readable bytes
      * @return is valid header or not
      */
@@ -49,12 +51,12 @@ public interface DatabasePacketCodecEngine {
     
     /**
      * Encode.
-     *
+     * 
      * @param context channel handler context
      * @param message message of database packet
      * @param out output
      */
-    void encode(ChannelHandlerContext context, DatabasePacket message, ByteBuf out);
+    void encode(ChannelHandlerContext context, T message, ByteBuf out);
     
     /**
      * Create packet payload.

@@ -102,7 +102,7 @@ MAIN_CLASS=org.apache.shardingsphere.proxy.Bootstrap
 unset -v PORT
 unset -v ADDRESSES
 unset -v CONF_PATH
-unset -v SOCKET_FILE
+unset -v FORCE
 
 print_usage() {
     echo "usage:"
@@ -110,15 +110,15 @@ print_usage() {
     echo "  port: proxy listen port, default is 3307"
     echo "  config_dir: proxy config directory, default is 'conf'"
     echo ""
-    echo "start.sh [-a addresses] [-p port] [-c /path/to/conf] [-g] [-s /path/to/socket]"
+    echo "start.sh [-a addresses] [-p port] [-c /path/to/conf]"
     echo "The options are unordered."
     echo "-a  Bind addresses, can be IPv4, IPv6, hostname. In"
     echo "    case more than one address is specified in a"
     echo "    comma-separated list. The default value is '0.0.0.0'."
-    echo "-p  Bind port, default is '3307', which could be changed in global.yaml"
+    echo "-p  Bind port, default is '3307', which could be changed in server.yaml"
     echo "-c  Path to config directory of ShardingSphere-Proxy, default is 'conf'"
+    echo "-f  Force start ShardingSphere-Proxy"
     echo "-g  Enable agent if shardingsphere-agent deployed in 'agent' directory"
-    echo "-s  The socket file to use for connection."
     exit 0
 }
 
@@ -170,8 +170,8 @@ if [ $# == 0 ]; then
     CLASS_PATH=${DEPLOY_DIR}/conf:${CLASS_PATH}
 fi
 
-if [[ $1 == -a ]] || [[ $1 == -p ]] || [[ $1 == -c ]] || [[ $1 == -s ]]; then
-    while getopts ":a:p:c:s:" opt
+if [[ $1 == -a ]] || [[ $1 == -p ]] || [[ $1 == -c ]] || [[ $1 == -f ]] ; then
+    while getopts ":a:p:c:f" opt
     do
         case $opt in
         a)
@@ -183,9 +183,9 @@ if [[ $1 == -a ]] || [[ $1 == -p ]] || [[ $1 == -c ]] || [[ $1 == -s ]]; then
         c)
           echo "The configuration path is $OPTARG"
           CONF_PATH=$OPTARG;;
-        s)
-          echo "The socket file is $OPTARG"
-          SOCKET_FILE=$OPTARG;;
+        f)
+          echo "The force param is true"
+          FORCE=true;;
         ?)
           print_usage;;
         esac
@@ -214,18 +214,18 @@ if [ -z "$ADDRESSES" ]; then
     ADDRESSES="0.0.0.0"
 fi
 
-if [ "$SOCKET_FILE" ]; then
-    ADDRESSES="${ADDRESSES},${SOCKET_FILE}"
+if [ -z "$FORCE" ]; then
+    FORCE=false
 fi
 
 CLASS_PATH=${CONF_PATH}:${CLASS_PATH}
-MAIN_CLASS="${MAIN_CLASS} ${PORT} ${CONF_PATH} ${ADDRESSES}"
+MAIN_CLASS="${MAIN_CLASS} ${PORT} ${CONF_PATH} ${ADDRESSES} ${FORCE}"
 
 echo "The classpath is ${CLASS_PATH}"
 echo "main class ${MAIN_CLASS}"
 
 if [ -n "${IS_DOCKER}" ]; then
-  exec $JAVA ${JAVA_OPTS} ${JAVA_MEM_OPTS} -classpath ${CLASS_PATH} ${AGENT_PARAM} ${MAIN_CLASS}
+  exec $JAVA ${JAVA_OPTS} ${JAVA_MEM_OPTS} -classpath ${CLASS_PATH} ${MAIN_CLASS}
   exit 0
 fi
 

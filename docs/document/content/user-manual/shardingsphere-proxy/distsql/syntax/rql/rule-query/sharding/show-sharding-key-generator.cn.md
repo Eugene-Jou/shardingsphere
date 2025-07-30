@@ -1,6 +1,6 @@
 +++
 title = "SHOW SHARDING KEY GENERATORS"
-weight = 5
+weight = 6
 +++
 
 ### 描述
@@ -30,11 +30,11 @@ databaseName ::=
 
 ### 返回值说明
 
-| 列     | 说明         |
-|-------|------------|
-| name  | 分布式主键生成器名称 |
-| type  | 分布式主键生成器类型 |
-| props | 分布式主键生成器参数 |
+| 列                      | 说明                 |
+| -----------------------| ---------------------|
+| name                   | 分布式主键生成器名称    |
+| type                   | 分布式主键生成器类型    |
+| props                  | 分布式主键生成器参数    |
 
 ### 示例
 
@@ -49,7 +49,7 @@ mysql> SHOW SHARDING KEY GENERATORS FROM sharding_db;
 +-------------------------+-----------+-------+
 | name                    | type      | props |
 +-------------------------+-----------+-------+
-| snowflake_key_generator | snowflake |       |
+| snowflake_key_generator | snowflake | {}    |
 +-------------------------+-----------+-------+
 1 row in set (0.00 sec)
 ```
@@ -65,7 +65,7 @@ mysql> SHOW SHARDING KEY GENERATORS;
 +-------------------------+-----------+-------+
 | name                    | type      | props |
 +-------------------------+-----------+-------+
-| snowflake_key_generator | snowflake |       |
+| snowflake_key_generator | snowflake | {}    |
 +-------------------------+-----------+-------+
 1 row in set (0.00 sec)
 ```

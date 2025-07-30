@@ -18,17 +18,17 @@
 package org.apache.shardingsphere.transaction.distsql.handler.fixture;
 
 import lombok.Setter;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.transaction.api.TransactionType;
-import org.apache.shardingsphere.transaction.spi.ShardingSphereDistributedTransactionManager;
+import org.apache.shardingsphere.transaction.spi.ShardingSphereTransactionManager;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.Map;
 
-@Setter
-public class ShardingSphereTransactionManagerFixture implements ShardingSphereDistributedTransactionManager {
+public class ShardingSphereTransactionManagerFixture implements ShardingSphereTransactionManager {
     
+    @Setter
     private Runnable caller;
     
     @Override
@@ -70,16 +70,6 @@ public class ShardingSphereTransactionManagerFixture implements ShardingSphereDi
     }
     
     @Override
-    public boolean containsProviderType(final String providerType) {
-        return !"Invalid".equals(providerType);
-    }
-    
-    @Override
     public void close() {
-    }
-    
-    @Override
-    public String getType() {
-        return TransactionType.XA.name();
     }
 }

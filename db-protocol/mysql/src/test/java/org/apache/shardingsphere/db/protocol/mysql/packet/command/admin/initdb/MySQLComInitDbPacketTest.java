@@ -30,20 +30,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLComInitDbPacketTest {
+public final class MySQLComInitDbPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
     
     @Test
-    void assertNew() {
+    public void assertNew() {
         when(payload.readStringEOF()).thenReturn("logic_db");
         MySQLComInitDbPacket actual = new MySQLComInitDbPacket(payload);
         assertThat(actual.getSchema(), is("logic_db"));
     }
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         when(payload.readStringEOF()).thenReturn("logic_db");
         MySQLComInitDbPacket actual = new MySQLComInitDbPacket(payload);
         actual.write(payload);

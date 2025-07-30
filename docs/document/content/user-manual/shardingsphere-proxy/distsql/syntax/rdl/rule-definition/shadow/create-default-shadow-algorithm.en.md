@@ -1,6 +1,6 @@
 +++
 title = "CREATE DEFAULT SHADOW ALGORITHM"
-weight = 4
+weight = 5
 +++
 
 ## Description
@@ -19,9 +19,9 @@ ifNotExists ::=
   'IF' 'NOT' 'EXISTS'
 
 shadowAlgorithm ::=
-  'TYPE' '(' 'NAME' '=' algorithmType ',' propertiesDefiinition ')'
+  'TYPE' '(' 'NAME' '=' shadowAlgorithmType ',' propertiesDefiinition ')'
     
-algorithmType ::=
+shadowAlgorithmType ::=
   string
 
 propertiesDefinition ::=
@@ -41,7 +41,7 @@ value ::=
 
 ### Supplement
 
-- `algorithmType` currently supports `VALUE_MATCH`, `REGEX_MATCH` and `SQL_HINT`;
+- `shadowAlgorithmType` currently supports `VALUE_MATCH`, `REGEX_MATCH` and `SQL_HINT`;
 - `ifNotExists` clause is used for avoid `Duplicate default shadow algorithm` error.
 
 ### Example

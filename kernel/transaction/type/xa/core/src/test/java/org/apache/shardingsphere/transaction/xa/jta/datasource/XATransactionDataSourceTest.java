@@ -19,8 +19,8 @@ package org.apache.shardingsphere.transaction.xa.jta.datasource;
 
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.transaction.xa.fixture.DataSourceUtils;
 import org.apache.shardingsphere.transaction.xa.spi.SingleXAResource;
 import org.apache.shardingsphere.transaction.xa.spi.XATransactionManagerProvider;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class XATransactionDataSourceTest {
+public final class XATransactionDataSourceTest {
     
     @Mock
     private XATransactionManagerProvider xaTransactionManagerProvider;
@@ -62,13 +62,13 @@ class XATransactionDataSourceTest {
     private Transaction transaction;
     
     @BeforeEach
-    void setUp() throws SystemException {
+    public void setUp() throws SystemException {
         when(xaTransactionManagerProvider.getTransactionManager()).thenReturn(transactionManager);
         when(transactionManager.getTransaction()).thenReturn(transaction);
     }
     
     @Test
-    void assertGetAtomikosConnection() throws SQLException, RollbackException, SystemException {
+    public void assertGetAtomikosConnection() throws SQLException, RollbackException, SystemException {
         DataSource dataSource = DataSourceUtils.build(AtomikosDataSourceBean.class, TypedSPILoader.getService(DatabaseType.class, "H2"), "ds1");
         XATransactionDataSource transactionDataSource = new XATransactionDataSource(TypedSPILoader.getService(DatabaseType.class, "H2"), "ds1", dataSource, xaTransactionManagerProvider);
         try (Connection ignored = transactionDataSource.getConnection()) {
@@ -77,7 +77,7 @@ class XATransactionDataSourceTest {
     }
     
     @Test
-    void assertGetHikariConnection() throws SQLException, RollbackException, SystemException {
+    public void assertGetHikariConnection() throws SQLException, RollbackException, SystemException {
         DataSource dataSource = DataSourceUtils.build(HikariDataSource.class, TypedSPILoader.getService(DatabaseType.class, "H2"), "ds1");
         XATransactionDataSource transactionDataSource = new XATransactionDataSource(TypedSPILoader.getService(DatabaseType.class, "H2"), "ds1", dataSource, xaTransactionManagerProvider);
         try (Connection ignored = transactionDataSource.getConnection()) {
@@ -85,13 +85,13 @@ class XATransactionDataSourceTest {
             verify(transaction).registerSynchronization(any(Synchronization.class));
         }
         try (Connection ignored = transactionDataSource.getConnection()) {
-            verify(transaction, times(2)).enlistResource(any(SingleXAResource.class));
-            verify(transaction, times(2)).registerSynchronization(any(Synchronization.class));
+            verify(transaction).enlistResource(any(SingleXAResource.class));
+            verify(transaction).registerSynchronization(any(Synchronization.class));
         }
     }
     
     @Test
-    void assertCloseAtomikosDataSourceBean() {
+    public void assertCloseAtomikosDataSourceBean() {
         DataSource dataSource = DataSourceUtils.build(AtomikosDataSourceBean.class, TypedSPILoader.getService(DatabaseType.class, "H2"), "ds11");
         XATransactionDataSource transactionDataSource = new XATransactionDataSource(TypedSPILoader.getService(DatabaseType.class, "H2"), "ds11", dataSource, xaTransactionManagerProvider);
         transactionDataSource.close();
@@ -99,7 +99,7 @@ class XATransactionDataSourceTest {
     }
     
     @Test
-    void assertCloseHikariDataSource() {
+    public void assertCloseHikariDataSource() {
         DataSource dataSource = DataSourceUtils.build(HikariDataSource.class, TypedSPILoader.getService(DatabaseType.class, "H2"), "ds1");
         XATransactionDataSource transactionDataSource = new XATransactionDataSource(TypedSPILoader.getService(DatabaseType.class, "H2"), "ds1", dataSource, xaTransactionManagerProvider);
         transactionDataSource.close();

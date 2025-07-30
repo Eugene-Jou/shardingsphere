@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLBinlogRotateEventPacketTest {
+public final class MySQLBinlogRotateEventPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -41,7 +41,7 @@ class MySQLBinlogRotateEventPacketTest {
     private MySQLBinlogEventHeader binlogEventHeader;
     
     @Test
-    void assertNew() {
+    public void assertNew() {
         when(payload.readInt8()).thenReturn(4L);
         when(payload.readStringFix(anyInt())).thenReturn("binlog-000001");
         when(payload.getByteBuf()).thenReturn(Unpooled.buffer());
@@ -52,8 +52,9 @@ class MySQLBinlogRotateEventPacketTest {
     }
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         new MySQLBinlogRotateEventPacket(binlogEventHeader, 4L, "binlog-000001").write(payload);
+        verify(binlogEventHeader).write(payload);
         verify(payload).writeInt8(4L);
         verify(payload).writeStringEOF("binlog-000001");
     }

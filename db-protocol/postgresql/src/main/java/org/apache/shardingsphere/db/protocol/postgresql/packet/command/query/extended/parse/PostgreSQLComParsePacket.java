@@ -17,16 +17,13 @@
 
 package org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.parse;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import org.apache.shardingsphere.db.protocol.packet.sql.SQLReceivedPacket;
+import lombok.ToString;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.PostgreSQLCommandPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.PostgreSQLCommandPacketType;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.PostgreSQLColumnType;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.identifier.PostgreSQLIdentifierTag;
 import org.apache.shardingsphere.db.protocol.postgresql.payload.PostgreSQLPacketPayload;
-import org.apache.shardingsphere.infra.hint.HintValueContext;
-import org.apache.shardingsphere.infra.hint.SQLHintUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,29 +32,25 @@ import java.util.List;
  * Command parse packet for PostgreSQL.
  */
 @Getter
-public final class PostgreSQLComParsePacket extends PostgreSQLCommandPacket implements SQLReceivedPacket {
+@ToString
+public final class PostgreSQLComParsePacket extends PostgreSQLCommandPacket {
     
     private final PostgreSQLPacketPayload payload;
     
     private final String statementId;
     
-    @Getter(AccessLevel.NONE)
     private final String sql;
-    
-    private final HintValueContext hintValueContext;
     
     public PostgreSQLComParsePacket(final PostgreSQLPacketPayload payload) {
         this.payload = payload;
         payload.readInt4();
         statementId = payload.readStringNul();
-        String originSQL = payload.readStringNul();
-        hintValueContext = SQLHintUtils.extractHint(originSQL);
-        sql = SQLHintUtils.removeHint(originSQL);
+        sql = payload.readStringNul();
     }
     
     /**
      * Read parameter types from Parse message.
-     *
+     * 
      * @return types of parameters
      */
     public List<PostgreSQLColumnType> readParameterTypes() {
@@ -70,12 +63,7 @@ public final class PostgreSQLComParsePacket extends PostgreSQLCommandPacket impl
     }
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
-    }
-    
-    @Override
-    public String getSQL() {
-        return sql;
+    public void write(final PostgreSQLPacketPayload payload) {
     }
     
     @Override

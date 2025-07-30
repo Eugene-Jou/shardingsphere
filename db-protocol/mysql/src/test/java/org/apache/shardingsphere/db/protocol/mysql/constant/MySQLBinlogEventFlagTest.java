@@ -17,15 +17,15 @@
 
 package org.apache.shardingsphere.db.protocol.mysql.constant;
 
-import org.junit.jupiter.api.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class MySQLBinlogEventFlagTest {
+import org.junit.jupiter.api.Test;
+
+public final class MySQLBinlogEventFlagTest {
     
     @Test
-    void assertGetValue() {
+    public void assertGetValue() {
         assertThat(MySQLBinlogEventFlag.LOG_EVENT_MTS_ISOLATE_F.getValue(), is(0x0200));
     }
 }

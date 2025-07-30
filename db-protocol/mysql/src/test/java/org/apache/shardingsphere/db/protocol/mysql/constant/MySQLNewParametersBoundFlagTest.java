@@ -24,15 +24,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class MySQLNewParametersBoundFlagTest {
+public final class MySQLNewParametersBoundFlagTest {
     
     @Test
-    void assertValueOf() {
+    public void assertValueOf() {
         assertThat(MySQLNewParametersBoundFlag.valueOf(MySQLNewParametersBoundFlag.PARAMETER_TYPE_EXIST.getValue()), is(MySQLNewParametersBoundFlag.PARAMETER_TYPE_EXIST));
     }
     
     @Test
-    void assertValueOfWithIllegalArgument() {
+    public void assertValueOfWithIllegalArgument() {
         assertThrows(MySQLProtocolException.class, () -> MySQLNewParametersBoundFlag.valueOf(-1));
     }
 }

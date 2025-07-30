@@ -30,7 +30,7 @@ import java.util.Map.Entry;
 /**
  * Error response packet for openGauss.
  */
-public final class OpenGaussErrorResponsePacket extends PostgreSQLIdentifierPacket {
+public final class OpenGaussErrorResponsePacket implements PostgreSQLIdentifierPacket {
     
     public static final char FIELD_TYPE_SEVERITY = 'S';
     
@@ -56,18 +56,18 @@ public final class OpenGaussErrorResponsePacket extends PostgreSQLIdentifierPack
     
     public static final char FIELD_TYPE_ROUTINE = 'R';
     
-    public static final char FIELD_TYPE_ERROR_CODE = 'c';
+    public static final char FIELD_TYPE_ERRORCODE = 'c';
     
     private final Map<Character, String> fields;
     
     public OpenGaussErrorResponsePacket(final ServerErrorMessage serverErrorMessage) {
-        fields = new LinkedHashMap<>(13, 1F);
+        fields = new LinkedHashMap<>(13, 1);
         fillFieldsByServerErrorMessage(serverErrorMessage);
         fillRequiredFieldsIfNecessary();
     }
     
     public OpenGaussErrorResponsePacket(final String severityLevel, final String sqlState, final String message) {
-        fields = new LinkedHashMap<>(4, 1F);
+        fields = new LinkedHashMap<>(4, 1);
         fields.put(FIELD_TYPE_SEVERITY, severityLevel);
         fields.put(FIELD_TYPE_CODE, sqlState);
         fields.put(FIELD_TYPE_MESSAGE, message);
@@ -85,7 +85,7 @@ public final class OpenGaussErrorResponsePacket extends PostgreSQLIdentifierPack
             fields.put(FIELD_TYPE_MESSAGE, serverErrorMessage.getMessage());
         }
         if (null != serverErrorMessage.getERRORCODE()) {
-            fields.put(FIELD_TYPE_ERROR_CODE, serverErrorMessage.getERRORCODE());
+            fields.put(FIELD_TYPE_ERRORCODE, serverErrorMessage.getERRORCODE());
         }
         if (null != serverErrorMessage.getDetail()) {
             fields.put(FIELD_TYPE_DETAIL, serverErrorMessage.getDetail());
@@ -94,10 +94,10 @@ public final class OpenGaussErrorResponsePacket extends PostgreSQLIdentifierPack
             fields.put(FIELD_TYPE_HINT, serverErrorMessage.getHint());
         }
         if (serverErrorMessage.getPosition() > 0) {
-            fields.put(FIELD_TYPE_POSITION, String.valueOf(serverErrorMessage.getPosition()));
+            fields.put(FIELD_TYPE_POSITION, serverErrorMessage.getPosition() + "");
         }
         if (serverErrorMessage.getInternalPosition() > 0) {
-            fields.put(FIELD_TYPE_INTERNAL_POSITION, String.valueOf(serverErrorMessage.getInternalPosition()));
+            fields.put(FIELD_TYPE_INTERNAL_POSITION, serverErrorMessage.getInternalPosition() + "");
         }
         if (null != serverErrorMessage.getInternalQuery()) {
             fields.put(FIELD_TYPE_INTERNAL_QUERY, serverErrorMessage.getInternalQuery());
@@ -109,7 +109,7 @@ public final class OpenGaussErrorResponsePacket extends PostgreSQLIdentifierPack
             fields.put(FIELD_TYPE_FILE, serverErrorMessage.getFile());
         }
         if (serverErrorMessage.getLine() > 0) {
-            fields.put(FIELD_TYPE_LINE, String.valueOf(serverErrorMessage.getLine()));
+            fields.put(FIELD_TYPE_LINE, serverErrorMessage.getLine() + "");
         }
         if (null != serverErrorMessage.getRoutine()) {
             fields.put(FIELD_TYPE_ROUTINE, serverErrorMessage.getRoutine());
@@ -117,11 +117,11 @@ public final class OpenGaussErrorResponsePacket extends PostgreSQLIdentifierPack
     }
     
     private void fillRequiredFieldsIfNecessary() {
-        fields.putIfAbsent(FIELD_TYPE_ERROR_CODE, "0");
+        fields.putIfAbsent(FIELD_TYPE_ERRORCODE, "0");
     }
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
         for (Entry<Character, String> entry : fields.entrySet()) {
             payload.writeInt1(entry.getKey());
             payload.writeStringNul(entry.getValue());

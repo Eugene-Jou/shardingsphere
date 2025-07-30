@@ -20,14 +20,12 @@ package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 import org.apache.shardingsphere.authority.rule.AuthorityRule;
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
-import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.metadata.statistics.ShardingSphereStatistics;
-import org.apache.shardingsphere.infra.metadata.statistics.builder.ShardingSphereStatisticsFactory;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
 import org.apache.shardingsphere.infra.metadata.user.ShardingSphereUser;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
+import org.apache.shardingsphere.mode.metadata.persist.MetaDataPersistService;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
@@ -37,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -48,12 +47,12 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(AutoMockExtension.class)
 @StaticMockSettings(ProxyContext.class)
-class ShowCurrentUserExecutorTest {
+public final class ShowCurrentUserExecutorTest {
     
-    private static final Grantee GRANTEE = new Grantee("root");
+    private static final Grantee GRANTEE = new Grantee("root", "");
     
     @Test
-    void assertExecute() throws SQLException {
+    public void assertExecute() throws SQLException {
         ShowCurrentUserExecutor executor = new ShowCurrentUserExecutor();
         ContextManager contextManager = mockContextManager();
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
@@ -66,23 +65,23 @@ class ShowCurrentUserExecutorTest {
     
     private ContextManager mockContextManager() {
         ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
-        ShardingSphereMetaData metaData = new ShardingSphereMetaData(Collections.emptyList(), mock(ResourceMetaData.class), mockRuleMetaData(), new ConfigurationProperties(new Properties()));
-        MetaDataContexts metaDataContexts = new MetaDataContexts(metaData, ShardingSphereStatisticsFactory.create(metaData, new ShardingSphereStatistics()));
+        MetaDataContexts metaDataContexts = new MetaDataContexts(mock(MetaDataPersistService.class),
+                new ShardingSphereMetaData(new HashMap<>(), mockShardingSphereRuleMetaData(), new ConfigurationProperties(new Properties())));
         when(result.getMetaDataContexts()).thenReturn(metaDataContexts);
         return result;
     }
     
-    private RuleMetaData mockRuleMetaData() {
+    private ShardingSphereRuleMetaData mockShardingSphereRuleMetaData() {
         AuthorityRule authorityRule = mock(AuthorityRule.class);
-        ShardingSphereUser user = mock(ShardingSphereUser.class);
-        when(user.getGrantee()).thenReturn(new Grantee("root", "%"));
-        when(authorityRule.findUser(GRANTEE)).thenReturn(Optional.of(user));
-        return new RuleMetaData(Collections.singletonList(authorityRule));
+        ShardingSphereUser shardingSphereUser = mock(ShardingSphereUser.class);
+        when(shardingSphereUser.getGrantee()).thenReturn(new Grantee("root", "%"));
+        when(authorityRule.findUser(GRANTEE)).thenReturn(Optional.of(shardingSphereUser));
+        return new ShardingSphereRuleMetaData(Collections.singletonList(authorityRule));
     }
     
     private ConnectionSession mockConnectionSession() {
-        ConnectionSession result = mock(ConnectionSession.class, RETURNS_DEEP_STUBS);
-        when(result.getConnectionContext().getGrantee()).thenReturn(GRANTEE);
+        ConnectionSession result = mock(ConnectionSession.class);
+        when(result.getGrantee()).thenReturn(GRANTEE);
         return result;
     }
 }

@@ -17,9 +17,5 @@
   -->
 
 <sql-parser-test-cases>
-    <create-diskgroup sql-case-id="create_diskgroup_with_external_redundancy" />
-    <create-diskgroup sql-case-id="create_diskgroup_with_single_attribute" />
-    <create-diskgroup sql-case-id="create_diskgroup_with_multi_attribute" />
-    <create-diskgroup sql-case-id="create_diskgroup_with_multi_failgroup" />
-    <create-diskgroup sql-case-id="create_diskgroup_with_single_failgroup" />
+    <create-diskgroup sql-case-id="create_diskgroup" />
 </sql-parser-test-cases>

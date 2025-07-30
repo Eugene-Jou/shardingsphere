@@ -17,8 +17,8 @@
 
 package org.apache.shardingsphere.transaction.base.seata.at;
 
-import org.apache.seata.core.context.RootContext;
-import org.apache.shardingsphere.infra.database.core.connector.ConnectionProperties;
+import io.seata.core.context.RootContext;
+import org.apache.shardingsphere.infra.database.metadata.DataSourceMetaData;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,38 +33,38 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-class SeataTransactionalSQLExecutionHookTest {
+public final class SeataTransactionalSQLExecutionHookTest {
     
     private final SeataTransactionalSQLExecutionHook executionHook = new SeataTransactionalSQLExecutionHook();
     
     @Mock
-    private ConnectionProperties connectionProps;
+    private DataSourceMetaData dataSourceMetaData;
     
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
         RootContext.unbind();
     }
     
     @Test
-    void assertTrunkThreadExecute() {
+    public void assertTrunkThreadExecute() {
         RootContext.bind("xid");
-        executionHook.start("ds", "SELECT 1", Collections.emptyList(), connectionProps, true);
+        executionHook.start("ds", "SELECT 1", Collections.emptyList(), dataSourceMetaData, true);
         assertThat(SeataXIDContext.get(), is(RootContext.getXID()));
         executionHook.finishSuccess();
         assertTrue(RootContext.inGlobalTransaction());
     }
     
     @Test
-    void assertChildThreadExecute() {
-        executionHook.start("ds", "SELECT 1", Collections.emptyList(), connectionProps, false);
+    public void assertChildThreadExecute() {
+        executionHook.start("ds", "SELECT 1", Collections.emptyList(), dataSourceMetaData, false);
         assertTrue(RootContext.inGlobalTransaction());
         executionHook.finishSuccess();
         assertFalse(RootContext.inGlobalTransaction());
     }
     
     @Test
-    void assertChildThreadExecuteFailed() {
-        executionHook.start("ds", "SELECT 1", Collections.emptyList(), connectionProps, false);
+    public void assertChildThreadExecuteFailed() {
+        executionHook.start("ds", "SELECT 1", Collections.emptyList(), dataSourceMetaData, false);
         assertTrue(RootContext.inGlobalTransaction());
         executionHook.finishFailure(new RuntimeException(""));
         assertFalse(RootContext.inGlobalTransaction());

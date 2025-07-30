@@ -17,7 +17,6 @@
 
 package org.apache.shardingsphere.proxy.backend.distsql.export;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +32,6 @@ public class ExportedSnapshotInfo {
     
     private String csn;
     
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonProperty("create_time")
     private LocalDateTime createTime;
 }

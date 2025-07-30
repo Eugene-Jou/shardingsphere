@@ -18,7 +18,7 @@
 package org.apache.shardingsphere.infra.util.yaml.constructor;
 
 import com.google.common.base.Preconditions;
-import org.apache.shardingsphere.infra.spi.ShardingSphereServiceLoader;
+import org.apache.shardingsphere.infra.util.spi.ShardingSphereServiceLoader;
 import org.apache.shardingsphere.infra.util.yaml.shortcuts.ShardingSphereYamlShortcuts;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
@@ -39,24 +39,17 @@ public class ShardingSphereYamlConstructor extends Constructor {
     private final Class<?> rootClass;
     
     public ShardingSphereYamlConstructor(final Class<?> rootClass) {
-        super(rootClass, createLoaderOptions());
+        super(rootClass, new LoaderOptions() {
+            
+            {
+                setCodePointLimit(Integer.MAX_VALUE);
+            }
+        });
         ShardingSphereServiceLoader.getServiceInstances(ShardingSphereYamlConstruct.class).forEach(each -> typeConstructs.put(each.getType(), each));
         Map<String, Class<?>> yamlShortcuts = new HashMap<>();
         ShardingSphereServiceLoader.getServiceInstances(ShardingSphereYamlShortcuts.class).stream().map(ShardingSphereYamlShortcuts::getYamlShortcuts).forEach(yamlShortcuts::putAll);
         yamlShortcuts.forEach((key, value) -> addTypeDescription(new TypeDescription(value, key)));
         this.rootClass = rootClass;
-    }
-    
-    /**
-     * Create loader options.
-     *
-     * @return loader options
-     */
-    public static LoaderOptions createLoaderOptions() {
-        LoaderOptions result = new LoaderOptions();
-        result.setMaxAliasesForCollections(1000);
-        result.setCodePointLimit(Integer.MAX_VALUE);
-        return result;
     }
     
     @Override

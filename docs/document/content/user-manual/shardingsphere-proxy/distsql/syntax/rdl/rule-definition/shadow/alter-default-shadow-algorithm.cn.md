@@ -1,6 +1,6 @@
 +++
 title = "ALTER DEFAULT SHADOW ALGORITHM"
-weight = 5
+weight = 6
 +++
 
 ## 描述
@@ -16,9 +16,9 @@ AlterDefaultShadowAlgorithm ::=
   'ALTER' 'DEFAULT' 'SHADOW' 'ALGORITHM' shadowAlgorithm 
 
 shadowAlgorithm ::=
-  'TYPE' '(' 'NAME' '=' algorithmType ',' propertiesDefiinition ')'
+  'TYPE' '(' 'NAME' '=' shadowAlgorithmType ',' propertiesDefiinition ')'
     
-algorithmType ::=
+shadowAlgorithmType ::=
   string
 
 propertiesDefinition ::=
@@ -38,7 +38,7 @@ value ::=
 
 ### 补充说明
 
-- `algorithmType` 目前支持 `VALUE_MATCH`、`REGEX_MATCH` 和 `SQL_HINT`。
+- `shadowAlgorithmType` 目前支持 `VALUE_MATCH`、`REGEX_MATCH` 和 `SQL_HINT`。
 
 ### 示例
 

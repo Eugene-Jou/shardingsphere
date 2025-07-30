@@ -23,12 +23,12 @@ import org.apache.shardingsphere.infra.instance.metadata.InstanceMetaDataBuilder
 import java.util.UUID;
 
 /**
- * Proxy instance meta data builder.
+ * Proxy instance definition builder.
  */
 public final class ProxyInstanceMetaDataBuilder implements InstanceMetaDataBuilder {
     
     @Override
-    public InstanceMetaData build(final int port, final String databaseName) {
+    public InstanceMetaData build(final int port) {
         return new ProxyInstanceMetaData(UUID.randomUUID().toString(), port);
     }
     

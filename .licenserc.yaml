@@ -29,7 +29,6 @@ header:
     - 'docs/**'
     - '**/*.md'
     - '**/*.json'
-    - '**/*.data'
     - '**/*.iml'
     - '**/*.ini'
     - 'LICENSE'

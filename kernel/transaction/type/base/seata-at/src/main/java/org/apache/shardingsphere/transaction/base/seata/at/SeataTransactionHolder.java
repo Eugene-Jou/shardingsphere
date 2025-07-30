@@ -17,7 +17,7 @@
 
 package org.apache.shardingsphere.transaction.base.seata.at;
 
-import org.apache.seata.tm.api.GlobalTransaction;
+import io.seata.tm.api.GlobalTransaction;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
  * Seata transaction holder.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SeataTransactionHolder {
+final class SeataTransactionHolder {
     
     private static final ThreadLocal<GlobalTransaction> CONTEXT = new ThreadLocal<>();
     
@@ -34,7 +34,7 @@ public final class SeataTransactionHolder {
      *
      * @param transaction global transaction context
      */
-    public static void set(final GlobalTransaction transaction) {
+    static void set(final GlobalTransaction transaction) {
         CONTEXT.set(transaction);
     }
     
@@ -43,14 +43,14 @@ public final class SeataTransactionHolder {
      *
      * @return global transaction
      */
-    public static GlobalTransaction get() {
+    static GlobalTransaction get() {
         return CONTEXT.get();
     }
     
     /**
      * Clear global transaction.
      */
-    public static void clear() {
+    static void clear() {
         CONTEXT.remove();
     }
 }

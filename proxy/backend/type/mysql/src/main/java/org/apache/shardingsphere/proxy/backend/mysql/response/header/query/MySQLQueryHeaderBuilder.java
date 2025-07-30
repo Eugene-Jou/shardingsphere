@@ -21,7 +21,7 @@ import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryRe
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereColumn;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereSchema;
-import org.apache.shardingsphere.infra.rule.attribute.datanode.DataNodeRuleAttribute;
+import org.apache.shardingsphere.infra.rule.identifier.type.DataNodeContainedRule;
 import org.apache.shardingsphere.proxy.backend.response.header.query.QueryHeader;
 import org.apache.shardingsphere.proxy.backend.response.header.query.QueryHeaderBuilder;
 
@@ -47,7 +47,7 @@ public final class MySQLQueryHeaderBuilder implements QueryHeaderBuilder {
             tableName = getLogicTableName(database, actualTableName);
             ShardingSphereSchema schema = database.getSchema(schemaName);
             primaryKey = null != schema
-                    && Optional.ofNullable(schema.getTable(tableName)).map(optional -> optional.getColumn(columnName)).map(ShardingSphereColumn::isPrimaryKey).orElse(false);
+                    && Optional.ofNullable(schema.getTable(tableName)).map(optional -> optional.getColumns().get(columnName.toLowerCase())).map(ShardingSphereColumn::isPrimaryKey).orElse(false);
         }
         int columnType = queryResultMetaData.getColumnType(columnIndex);
         String columnTypeName = queryResultMetaData.getColumnTypeName(columnIndex);
@@ -60,7 +60,7 @@ public final class MySQLQueryHeaderBuilder implements QueryHeaderBuilder {
     }
     
     private String getLogicTableName(final ShardingSphereDatabase database, final String actualTableName) {
-        for (DataNodeRuleAttribute each : database.getRuleMetaData().getAttributes(DataNodeRuleAttribute.class)) {
+        for (DataNodeContainedRule each : database.getRuleMetaData().findRules(DataNodeContainedRule.class)) {
             Optional<String> logicTable = each.findLogicTableByActualTable(actualTableName);
             if (logicTable.isPresent()) {
                 return logicTable.get();
@@ -70,7 +70,7 @@ public final class MySQLQueryHeaderBuilder implements QueryHeaderBuilder {
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "MySQL";
     }
     

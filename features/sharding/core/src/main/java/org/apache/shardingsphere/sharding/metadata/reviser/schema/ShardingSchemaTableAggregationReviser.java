@@ -18,10 +18,10 @@
 package org.apache.shardingsphere.sharding.metadata.reviser.schema;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.metadata.data.model.TableMetaData;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
-import org.apache.shardingsphere.infra.exception.kernel.metadata.RuleAndStorageMetaDataMismatchedException;
 import org.apache.shardingsphere.infra.metadata.database.schema.reviser.schema.SchemaTableAggregationReviser;
+import org.apache.shardingsphere.infra.metadata.database.schema.loader.model.TableMetaData;
+import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
+import org.apache.shardingsphere.sharding.exception.metadata.InconsistentShardingTableMetaDataException;
 import org.apache.shardingsphere.sharding.metadata.TableMetaDataViolation;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 
@@ -62,16 +62,7 @@ public final class ShardingSchemaTableAggregationReviser implements SchemaTableA
     private void checkUniformed(final String logicTableName, final Collection<TableMetaData> tableMetaDataList) {
         TableMetaData sample = tableMetaDataList.iterator().next();
         Collection<TableMetaDataViolation> violations = tableMetaDataList.stream()
-                .filter(each -> !sample.toString().equals(each.toString())).map(each -> new TableMetaDataViolation(each.getName(), each)).collect(Collectors.toList());
-        ShardingSpherePreconditions.checkMustEmpty(violations, () -> new RuleAndStorageMetaDataMismatchedException(createErrorReason(logicTableName, violations)));
-    }
-    
-    private String createErrorReason(final String logicTableName, final Collection<TableMetaDataViolation> violations) {
-        StringBuilder result = new StringBuilder(
-                "Can not get uniformed table structure for logic table '%s', it has different meta data of actual tables are as follows: ").append(System.lineSeparator());
-        for (TableMetaDataViolation each : violations) {
-            result.append("actual table: ").append(each.getActualTableName()).append(", meta data: ").append(each.getTableMetaData()).append(System.lineSeparator());
-        }
-        return String.format(result.toString(), logicTableName);
+                .filter(each -> !sample.equals(each)).map(each -> new TableMetaDataViolation(each.getName(), each)).collect(Collectors.toList());
+        ShardingSpherePreconditions.checkState(violations.isEmpty(), () -> new InconsistentShardingTableMetaDataException(logicTableName, violations));
     }
 }

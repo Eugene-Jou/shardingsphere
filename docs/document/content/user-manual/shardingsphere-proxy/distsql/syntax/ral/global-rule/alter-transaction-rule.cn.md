@@ -1,11 +1,11 @@
 +++
 title = "ALTER TRANSACTION RULE"
-weight = 3
+weight = 5
 +++
 
 ### 描述
 
-`ALTER TRANSACTION RULE` 语法用于修改事务规则。
+`ALTER TRANSACTION RULE` 语法用于修改事务规则
 
 ### 语法
 
@@ -40,7 +40,7 @@ value ::=
 
 - `defaultTransactionType` 支持 `LOCAL`、`XA`、`BASE`
 
-- `transactionManager` 支持  `Atomikos` 和 `Narayana`
+- `transactionManager` 支持  `Atomikos`、`Narayana` 和 `Bitronix`
 
 ### 示例
 
@@ -48,7 +48,7 @@ value ::=
 
 ```sql
 ALTER TRANSACTION RULE(
-  DEFAULT="XA", TYPE(NAME="Narayana")
+  DEFAULT="XA", TYPE(NAME="Narayana", PROPERTIES("databaseName"="jbossts", "host"="127.0.0.1"))
 );
 ```
 

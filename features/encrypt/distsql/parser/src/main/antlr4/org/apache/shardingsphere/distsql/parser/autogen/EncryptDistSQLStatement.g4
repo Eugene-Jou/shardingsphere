@@ -17,7 +17,7 @@
 
 grammar EncryptDistSQLStatement;
 
-import Symbol, RDLStatement, RQLStatement, RALStatement;
+import Symbol, RDLStatement, RQLStatement;
 
 execute
     : (createEncryptRule
@@ -25,6 +25,5 @@ execute
     | dropEncryptRule
     | showEncryptRules
     | countEncryptRule
-    | showEncryptAlgorithmPlugins
-    ) SEMI_? EOF
+    ) SEMI?
     ;

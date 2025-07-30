@@ -33,7 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLDateBinlogProtocolValueTest {
+public final class MySQLDateBinlogProtocolValueTest {
     
     @Mock
     private MySQLPacketPayload payload;
@@ -45,7 +45,7 @@ class MySQLDateBinlogProtocolValueTest {
     private MySQLBinlogColumnDef columnDef;
     
     @Test
-    void assertRead() {
+    public void assertRead() {
         when(payload.getByteBuf()).thenReturn(byteBuf);
         when(byteBuf.readUnsignedMediumLE()).thenReturn(1901 * 16 * 32 + 32 + 1);
         Date expected = Date.valueOf(LocalDate.of(1901, 1, 1));
@@ -53,9 +53,9 @@ class MySQLDateBinlogProtocolValueTest {
     }
     
     @Test
-    void assertReadNullDate() {
+    public void assertReadNullDate() {
         when(payload.getByteBuf()).thenReturn(byteBuf);
         when(byteBuf.readUnsignedMediumLE()).thenReturn(0);
-        assertThat(new MySQLDateBinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtils.ZERO_OF_DATE));
+        assertThat(new MySQLDateBinlogProtocolValue().read(columnDef, payload), is(MySQLTimeValueUtil.ZERO_OF_DATE));
     }
 }

@@ -17,46 +17,35 @@
 
 package org.apache.shardingsphere.sharding.merge.ddl.fetch;
 
-import org.apache.shardingsphere.infra.binder.context.statement.type.ddl.CursorHeldSQLStatementContext;
-import org.apache.shardingsphere.infra.binder.context.statement.type.ddl.CursorStatementContext;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.binder.statement.ddl.CursorStatementContext;
+import org.apache.shardingsphere.infra.binder.statement.ddl.FetchStatementContext;
+import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
+import org.apache.shardingsphere.infra.context.ConnectionContext;
+import org.apache.shardingsphere.infra.context.cursor.CursorConnectionContext;
+import org.apache.shardingsphere.infra.database.DefaultDatabase;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
-import org.apache.shardingsphere.infra.session.connection.cursor.CursorConnectionContext;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.sharding.merge.ddl.ShardingDDLResultMerger;
-import org.apache.shardingsphere.sql.parser.statement.core.enums.DirectionType;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.ddl.cursor.CursorNameSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.ddl.cursor.DirectionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.ProjectionsSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.table.SimpleTableSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.table.TableNameSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.CursorStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.FetchStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dml.SelectStatement;
-import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.sql.parser.sql.common.enums.DirectionType;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.cursor.CursorNameSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.cursor.DirectionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ProjectionsSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.TableNameSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.opengauss.ddl.OpenGaussCursorStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.opengauss.ddl.OpenGaussFetchStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.opengauss.dml.OpenGaussSelectStatement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,74 +53,77 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-class FetchStreamMergedResultTest {
+public final class FetchStreamMergedResultTest {
     
-    private static final DatabaseType DATABASE_TYPE = TypedSPILoader.getService(DatabaseType.class, "FIXTURE");
+    private FetchStatementContext fetchCountStatementContext;
     
-    private CursorHeldSQLStatementContext fetchCountStatementContext;
-    
-    private CursorHeldSQLStatementContext fetchAllStatementContext;
+    private FetchStatementContext fetchAllStatementContext;
     
     private ShardingDDLResultMerger resultMerger;
     
-    @Mock
     private ShardingSphereDatabase database;
     
     private ConnectionContext connectionContext;
     
     @BeforeEach
-    void setUp() {
-        fetchCountStatementContext = createCursorHeldSQLStatementContext(false);
-        fetchAllStatementContext = createCursorHeldSQLStatementContext(true);
+    public void setUp() {
+        fetchCountStatementContext = new FetchStatementContext(createFetchStatement(false));
+        fetchCountStatementContext.setUpCursorDefinition(createCursorStatementContext());
+        fetchAllStatementContext = new FetchStatementContext(createFetchStatement(true));
+        fetchAllStatementContext.setUpCursorDefinition(createCursorStatementContext());
         resultMerger = new ShardingDDLResultMerger();
+        database = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
+        when(database.getName()).thenReturn(DefaultDatabase.LOGIC_NAME);
         connectionContext = mock(ConnectionContext.class);
-        when(connectionContext.getCursorContext()).thenReturn(new CursorConnectionContext());
+        when(connectionContext.getCursorConnectionContext()).thenReturn(new CursorConnectionContext());
     }
     
-    private static CursorHeldSQLStatementContext createCursorHeldSQLStatementContext(final boolean containsAllDirectionType) {
-        CursorHeldSQLStatementContext result = new CursorHeldSQLStatementContext(createFetchStatement(containsAllDirectionType));
-        result.setCursorStatementContext(mockCursorStatementContext());
+    private OpenGaussFetchStatement createFetchStatement(final boolean containsAllDirectionType) {
+        OpenGaussFetchStatement result = new OpenGaussFetchStatement();
+        result.setCursorName(new CursorNameSegment(0, 0, new IdentifierValue("t_order_cursor")));
+        if (containsAllDirectionType) {
+            DirectionSegment direction = new DirectionSegment(0, 0);
+            direction.setDirectionType(DirectionType.ALL);
+            result.setDirection(direction);
+        }
         return result;
     }
     
-    private static FetchStatement createFetchStatement(final boolean containsAllDirectionType) {
-        return new FetchStatement(DATABASE_TYPE, new CursorNameSegment(0, 0, new IdentifierValue("foo_cursor")), containsAllDirectionType ? new DirectionSegment(0, 0, DirectionType.ALL) : null);
-    }
-    
-    private static CursorStatementContext mockCursorStatementContext() {
-        SelectStatement selectStatement = mockSelectStatement();
-        CursorStatement cursorStatement = new CursorStatement(DATABASE_TYPE, null, selectStatement);
+    private CursorStatementContext createCursorStatementContext() {
         ShardingSphereDatabase database = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
-        when(database.getName()).thenReturn("foo_db");
-        return new CursorStatementContext(new ShardingSphereMetaData(Collections.singleton(database), mock(), mock(), mock()), Collections.emptyList(), cursorStatement, "foo_db");
+        when(database.getName()).thenReturn(DefaultDatabase.LOGIC_NAME);
+        OpenGaussCursorStatement cursorStatement = new OpenGaussCursorStatement();
+        cursorStatement.setSelect(createSelectStatement());
+        return new CursorStatementContext(createShardingSphereMetaData(database), Collections.emptyList(), cursorStatement, DefaultDatabase.LOGIC_NAME);
     }
     
-    private static SelectStatement mockSelectStatement() {
-        SelectStatement result = mock(SelectStatement.class);
-        when(result.getDatabaseType()).thenReturn(DATABASE_TYPE);
-        when(result.getProjections()).thenReturn(new ProjectionsSegment(0, 0));
-        when(result.getFrom()).thenReturn(Optional.of(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("foo_tbl")))));
+    private ShardingSphereMetaData createShardingSphereMetaData(final ShardingSphereDatabase database) {
+        return new ShardingSphereMetaData(Collections.singletonMap(DefaultDatabase.LOGIC_NAME, database), mock(ShardingSphereRuleMetaData.class), mock(ConfigurationProperties.class));
+    }
+    
+    private OpenGaussSelectStatement createSelectStatement() {
+        OpenGaussSelectStatement result = new OpenGaussSelectStatement();
+        result.setProjections(new ProjectionsSegment(0, 0));
+        result.setFrom(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order"))));
         return result;
     }
     
     @Test
-    void assertNextForResultSetsAllEmpty() throws SQLException {
+    public void assertNextForResultSetsAllEmpty() throws SQLException {
         List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
         MergedResult actual = resultMerger.merge(queryResults, fetchCountStatementContext, database, connectionContext);
         assertFalse(actual.next());
     }
     
     @Test
-    void assertNextForResultSetsAllEmptyWhenConfigAllDirectionType() throws SQLException {
+    public void assertNextForResultSetsAllEmptyWhenConfigAllDirectionType() throws SQLException {
         List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
         MergedResult actual = resultMerger.merge(queryResults, fetchAllStatementContext, database, connectionContext);
         assertFalse(actual.next());
     }
     
     @Test
-    void assertNextForResultSetsAllNotEmpty() throws SQLException {
+    public void assertNextForResultSetsAllNotEmpty() throws SQLException {
         List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
         for (QueryResult each : queryResults) {
             when(each.next()).thenReturn(true, false);
@@ -144,7 +136,7 @@ class FetchStreamMergedResultTest {
     }
     
     @Test
-    void assertNextForResultSetsAllNotEmptyWhenConfigAllDirectionType() throws SQLException {
+    public void assertNextForResultSetsAllNotEmptyWhenConfigAllDirectionType() throws SQLException {
         List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
         for (QueryResult each : queryResults) {
             when(each.next()).thenReturn(true, false);
@@ -156,27 +148,57 @@ class FetchStreamMergedResultTest {
         assertFalse(actual.next());
     }
     
-    @ParameterizedTest(name = "{0}")
-    @ArgumentsSource(TestCaseArgumentsProvider.class)
-    void assertNextForNotEmpty(final String name, final int index, final CursorHeldSQLStatementContext sqlStatementContext) throws SQLException {
+    @Test
+    public void assertNextForFirstResultSetsNotEmptyOnly() throws SQLException {
         List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
-        when(queryResults.get(index).next()).thenReturn(true, false);
-        MergedResult actual = resultMerger.merge(queryResults, sqlStatementContext, database, connectionContext);
+        when(queryResults.get(0).next()).thenReturn(true, false);
+        MergedResult actual = resultMerger.merge(queryResults, fetchCountStatementContext, database, connectionContext);
         assertTrue(actual.next());
         assertFalse(actual.next());
     }
     
-    private static class TestCaseArgumentsProvider implements ArgumentsProvider {
-        
-        @Override
-        public Stream<? extends Arguments> provideArguments(final ExtensionContext extensionContext) {
-            return Stream.of(
-                    Arguments.of("first", 0, createCursorHeldSQLStatementContext(false)),
-                    Arguments.of("middle", 1, createCursorHeldSQLStatementContext(false)),
-                    Arguments.of("last", 2, createCursorHeldSQLStatementContext(false)),
-                    Arguments.of("firstWithAllDirection", 0, createCursorHeldSQLStatementContext(true)),
-                    Arguments.of("middleWithAllDirection", 1, createCursorHeldSQLStatementContext(true)),
-                    Arguments.of("lastWithAllDirection", 2, createCursorHeldSQLStatementContext(true)));
-        }
+    @Test
+    public void assertNextForFirstResultSetsNotEmptyOnlyWhenConfigAllDirectionType() throws SQLException {
+        List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
+        when(queryResults.get(0).next()).thenReturn(true, false);
+        MergedResult actual = resultMerger.merge(queryResults, fetchAllStatementContext, database, connectionContext);
+        assertTrue(actual.next());
+        assertFalse(actual.next());
+    }
+    
+    @Test
+    public void assertNextForMiddleResultSetsNotEmpty() throws SQLException {
+        List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
+        when(queryResults.get(1).next()).thenReturn(true, false);
+        MergedResult actual = resultMerger.merge(queryResults, fetchCountStatementContext, database, connectionContext);
+        assertTrue(actual.next());
+        assertFalse(actual.next());
+    }
+    
+    @Test
+    public void assertNextForMiddleResultSetsNotEmptyWhenConfigAllDirectionType() throws SQLException {
+        List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
+        when(queryResults.get(1).next()).thenReturn(true, false);
+        MergedResult actual = resultMerger.merge(queryResults, fetchAllStatementContext, database, connectionContext);
+        assertTrue(actual.next());
+        assertFalse(actual.next());
+    }
+    
+    @Test
+    public void assertNextForLastResultSetsNotEmptyOnly() throws SQLException {
+        List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
+        when(queryResults.get(2).next()).thenReturn(true, false);
+        MergedResult actual = resultMerger.merge(queryResults, fetchCountStatementContext, database, connectionContext);
+        assertTrue(actual.next());
+        assertFalse(actual.next());
+    }
+    
+    @Test
+    public void assertNextForLastResultSetsNotEmptyOnlyWhenConfigAllDirectionType() throws SQLException {
+        List<QueryResult> queryResults = Arrays.asList(mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS), mock(QueryResult.class, RETURNS_DEEP_STUBS));
+        when(queryResults.get(2).next()).thenReturn(true, false);
+        MergedResult actual = resultMerger.merge(queryResults, fetchAllStatementContext, database, connectionContext);
+        assertTrue(actual.next());
+        assertFalse(actual.next());
     }
 }

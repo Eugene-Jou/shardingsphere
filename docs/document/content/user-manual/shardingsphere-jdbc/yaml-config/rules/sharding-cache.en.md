@@ -1,6 +1,6 @@
 +++
 title = "Cache for Sharding Route"
-weight = 11
+weight = 10
 +++
 
 ## Background
@@ -20,11 +20,7 @@ If the above conditions are not met, the execution delay of SQL may not be signi
 
 ```yaml
 rules:
-- !SHARDING
-  tables:
-  shardingAlgorithms:
-  # ...
-  shardingCache:
+  - !SHARDING_CACHE
     allowedMaxSqlLength: 512 # Allow cached SQL length limit
     routeCache:
       initialCapacity: 65536 # Initial capacity

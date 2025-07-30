@@ -17,26 +17,10 @@
 
 package org.apache.shardingsphere.infra.state.instance;
 
-import java.util.Optional;
-
 /**
  * Instance state.
  */
 public enum InstanceState {
     
-    OK, CIRCUIT_BREAK;
-    
-    /**
-     * Get instance state enum by state.
-     *
-     * @param state state
-     * @return instance state enum
-     */
-    public static Optional<InstanceState> get(final String state) {
-        try {
-            return Optional.ofNullable(state).isPresent() ? Optional.of(valueOf(state)) : Optional.empty();
-        } catch (final IllegalArgumentException ignore) {
-            return Optional.empty();
-        }
-    }
+    OK, CIRCUIT_BREAK, LOCK
 }

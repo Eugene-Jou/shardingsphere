@@ -19,18 +19,14 @@ package org.apache.shardingsphere.test.e2e.env.container.atomic.adapter;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.config.AdaptorContainerConfiguration;
-import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.impl.ShardingSphereJdbcEmbeddedContainer;
-import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.impl.ShardingSphereMultiProxyClusterContainer;
+import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.impl.ShardingSphereJdbcContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.impl.ShardingSphereProxyClusterContainer;
-import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.impl.ShardingSphereProxyEmbeddedContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.adapter.impl.ShardingSphereProxyStandaloneContainer;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.enums.AdapterMode;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.enums.AdapterType;
 import org.apache.shardingsphere.test.e2e.env.container.atomic.storage.StorageContainer;
-import org.apache.shardingsphere.test.e2e.env.runtime.cluster.ClusterEnvironment;
-import org.apache.shardingsphere.test.e2e.env.runtime.scenario.path.ScenarioCommonPath;
 
 /**
  * Adapter container factory.
@@ -44,27 +40,20 @@ public final class AdapterContainerFactory {
      * @param mode adapter mode
      * @param adapter adapter type
      * @param databaseType database type
+     * @param storageContainer storage container
      * @param scenario scenario
      * @param containerConfig adaptor container configuration
-     * @param storageContainer storage container
-     * @param envType environment type
      * @return created instance
-     * @throws RuntimeException runtime exception
      */
-    public static AdapterContainer newInstance(final AdapterMode mode, final AdapterType adapter, final DatabaseType databaseType, final String scenario,
-                                               final AdaptorContainerConfiguration containerConfig, final StorageContainer storageContainer, final String envType) {
+    public static AdapterContainer newInstance(final AdapterMode mode, final AdapterType adapter, final DatabaseType databaseType,
+                                               final StorageContainer storageContainer, final String scenario, final AdaptorContainerConfiguration containerConfig) {
         switch (adapter) {
             case PROXY:
-                if (ClusterEnvironment.Type.NATIVE.name().equalsIgnoreCase(envType)) {
-                    return new ShardingSphereProxyEmbeddedContainer(databaseType, containerConfig);
-                }
                 return AdapterMode.CLUSTER == mode
                         ? new ShardingSphereProxyClusterContainer(databaseType, containerConfig)
                         : new ShardingSphereProxyStandaloneContainer(databaseType, containerConfig);
-            case PROXY_RANDOM:
-                return new ShardingSphereMultiProxyClusterContainer(databaseType, containerConfig);
             case JDBC:
-                return new ShardingSphereJdbcEmbeddedContainer(storageContainer, new ScenarioCommonPath(scenario).getRuleConfigurationFile(databaseType));
+                return new ShardingSphereJdbcContainer(storageContainer, scenario);
             default:
                 throw new RuntimeException(String.format("Unknown adapter `%s`.", adapter));
         }

@@ -1,24 +1,24 @@
 +++
 title = "DROP MASK RULE"
-weight = 3
+weight = 4
 +++
 
 ## 说明
 
-`DROP MASK RULE` 语法用于删除数据脱敏规则。
+`DROP MASK RULE` 语法用于删除数据脱敏规则
 
 ### 语法
 
 {{< tabs >}}
 {{% tab name="语法" %}}
 ```sql
-DropMaskRule ::=
-  'DROP' 'MASK' 'RULE' ifExists? ruleName (',' ruleName)*
+DropEncryptRule ::=
+  'DROP' 'MASK' 'RULE' ifExists? maskRuleName (',' maskRuleName)*
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+maskRuleName ::=
   identifier
 ```
 {{% /tab %}}

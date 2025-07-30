@@ -57,7 +57,7 @@ public interface ProxyBackendHandler {
     }
     
     /**
-     * Close.
+     * Close handler.
      *
      * @throws SQLException SQL exception
      */

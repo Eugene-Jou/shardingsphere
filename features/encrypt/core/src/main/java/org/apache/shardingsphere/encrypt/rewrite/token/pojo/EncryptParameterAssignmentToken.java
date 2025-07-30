@@ -17,8 +17,6 @@
 
 package org.apache.shardingsphere.encrypt.rewrite.token.pojo;
 
-import org.apache.shardingsphere.infra.database.core.metadata.database.enums.QuoteCharacter;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.StringJoiner;
@@ -30,13 +28,13 @@ public final class EncryptParameterAssignmentToken extends EncryptAssignmentToke
     
     private final Collection<String> columnNames = new LinkedList<>();
     
-    public EncryptParameterAssignmentToken(final int startIndex, final int stopIndex, final QuoteCharacter quoteCharacter) {
-        super(startIndex, stopIndex, quoteCharacter);
+    public EncryptParameterAssignmentToken(final int startIndex, final int stopIndex) {
+        super(startIndex, stopIndex);
     }
     
     /**
      * Add column name.
-     *
+     * 
      * @param columnName column name
      */
     public void addColumnName(final String columnName) {
@@ -47,7 +45,7 @@ public final class EncryptParameterAssignmentToken extends EncryptAssignmentToke
     public String toString() {
         StringJoiner result = new StringJoiner(", ");
         for (String each : columnNames) {
-            result.add(getQuoteCharacter().wrap(each) + " = ?");
+            result.add(each + " = ?");
         }
         return result.toString();
     }

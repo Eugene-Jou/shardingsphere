@@ -17,39 +17,20 @@
 
 package org.apache.shardingsphere.test.e2e.agent.file;
 
-import org.apache.shardingsphere.test.e2e.agent.engine.env.props.AgentE2ETestConfiguration;
-import org.apache.shardingsphere.test.e2e.agent.engine.env.AgentE2ETestEnvironment;
-import org.apache.shardingsphere.test.e2e.agent.engine.framework.AgentE2ETestActionExtension;
-import org.apache.shardingsphere.test.e2e.agent.engine.framework.AgentE2ETestCaseArgumentsProvider;
-import org.apache.shardingsphere.test.e2e.agent.file.asserts.LogContentAssert;
-import org.apache.shardingsphere.test.e2e.agent.file.cases.LogE2ETestCase;
-import org.apache.shardingsphere.test.e2e.agent.file.cases.LogE2ETestCases;
-import org.junit.jupiter.api.condition.EnabledIf;
+import org.apache.shardingsphere.test.e2e.agent.common.AgentTestActionExtension;
+import org.apache.shardingsphere.test.e2e.agent.file.asserts.ContentAssert;
+import org.apache.shardingsphere.test.e2e.agent.file.loader.LogLoader;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@ExtendWith(AgentE2ETestActionExtension.class)
-class FilePluginE2EIT {
+@ExtendWith(AgentTestActionExtension.class)
+public final class FilePluginE2EIT {
     
-    @EnabledIf("isEnabled")
-    @ParameterizedTest
-    @ArgumentsSource(TestCaseArgumentsProvider.class)
-    void assertLogAgent(final LogE2ETestCase testCase) {
-        assertFalse(AgentE2ETestEnvironment.getInstance().getContainerLogs().isEmpty(), "The actual log is empty");
-        LogContentAssert.assertIs(AgentE2ETestEnvironment.getInstance().getContainerLogs(), testCase.getLogRegex());
-    }
-    
-    private static boolean isEnabled() {
-        return AgentE2ETestConfiguration.getInstance().containsTestParameter();
-    }
-    
-    private static final class TestCaseArgumentsProvider extends AgentE2ETestCaseArgumentsProvider {
-        
-        private TestCaseArgumentsProvider() {
-            super(LogE2ETestCases.class);
-        }
+    @Test
+    public void assertProxyWithAgent() {
+        assertTrue(LogLoader.getLogFile().exists(), String.format("The file `%s` does not exist", LogLoader.getLogFilePath()));
+        ContentAssert.assertIs("Build meta data contexts finished, cost\\s(?=[1-9]+\\d*)");
     }
 }

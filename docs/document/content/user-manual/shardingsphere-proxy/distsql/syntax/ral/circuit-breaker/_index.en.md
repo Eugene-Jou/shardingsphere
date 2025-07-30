@@ -1,6 +1,6 @@
 +++
 title = "CIRCUIT BREAKER"
-weight = 2
+weight = 1
 chapter = true
 
 +++

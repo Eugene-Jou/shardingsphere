@@ -48,7 +48,7 @@ public final class CaseFileLoader {
     
     /**
      * Load test case file names from jar.
-     *
+     * 
      * @param jarFile jar file
      * @param rootDirectory root directory of test cases
      * @return test case file names
@@ -76,7 +76,7 @@ public final class CaseFileLoader {
      */
     @SneakyThrows({URISyntaxException.class, IOException.class})
     public static Collection<File> loadFilesFromDirectory(final String rootDirectory) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(rootDirectory);
+        URL url = CaseFileLoader.class.getClassLoader().getResource(rootDirectory);
         if (null == url) {
             return Collections.emptyList();
         }

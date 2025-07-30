@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 grammar BaseRule;
 
 import Symbol, Keyword, Literals;
@@ -28,10 +28,10 @@ algorithmDefinition
     ;
 
 algorithmTypeName
-    : STRING_ | buildInShadowAlgorithmType
+    : STRING_ | buildInAlgorithmTypeName
     ;
 
-buildInShadowAlgorithmType
+buildInAlgorithmTypeName
     : VALUE_MATCH
     | REGEX_MATCH
     | SQL_HINT
@@ -47,10 +47,6 @@ properties
 
 property
     : key=STRING_ EQ_ value=literal
-    ;
-
-tableName
-    : IDENTIFIER_
     ;
 
 ruleName

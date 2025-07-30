@@ -1,6 +1,6 @@
 +++
 title = "SHOW SHARDING TABLE RULE"
-weight = 1
+weight = 2
 +++
 
 ### Description
@@ -34,7 +34,7 @@ databaseName ::=
  ### Return value description
 
 | Column                            | Description                                               |
-|-----------------------------------|-----------------------------------------------------------|
+| --------------------------------- | --------------------------------------------------------- |
 | table                             | Logical table name                                        |
 | actual_data_nodes                 | Actual data node                                          |
 | actual_data_sources               | Actual data source (Displayed when creating rules by RDL) |

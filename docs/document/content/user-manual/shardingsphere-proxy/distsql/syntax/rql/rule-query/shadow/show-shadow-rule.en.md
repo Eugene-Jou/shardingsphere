@@ -1,6 +1,6 @@
 +++
 title = "SHOW SHADOW RULE"
-weight = 1
+weight = 2
 +++
 
 ### Description
@@ -12,7 +12,7 @@ The `SHOW SHADOW RULE` syntax is used to query shadow rules for specified databa
 {{< tabs >}}
 {{% tab name="Grammar" %}}
 ```sql
-ShowShadowRule::=
+ShowEncryptRule::=
   'SHOW' 'SHADOW' ('RULES' | 'RULE' shadowRuleName) ('FROM' databaseName)?
 
 shadowRuleName ::=
@@ -33,12 +33,12 @@ databaseName ::=
 
 ### Return value description
 
-| Column       | Description             |
-|--------------|-------------------------|
-| rule_name    | Shadow rule name        |
-| source_name  | Data source name        |
-| shadow_name  | Shadow data source name |
-| shadow_table | Shadow table            |
+| Column       | Description            |
+| ------------ | ---------------------- |
+| rule_name    | Shadow rule name       |
+| source_name  | Data source name       |
+| shadow_name  | Shadow data source name|
+| shadow_table | Shadow table           |
 
 
 

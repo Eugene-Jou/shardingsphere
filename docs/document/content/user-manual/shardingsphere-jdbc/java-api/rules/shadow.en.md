@@ -1,6 +1,6 @@
 +++
 title = "Shadow DB"
-weight = 7
+weight = 6
 +++
 
 ## Background
@@ -11,12 +11,12 @@ In the distributed application architecture based on microservices, businesses r
 
 ### Root Configuration
 
-Class name: org.apache.shardingsphere.shadow.config.ShadowRuleConfiguration
+Class name: org.apache.shardingsphere.shadow.api.config.ShadowRuleConfiguration
 
 Attributes:
 
 | *Name*                     | *Data Type*                                  | *Description*                                     |
-|----------------------------|----------------------------------------------|---------------------------------------------------|
+| -------------------------- | -------------------------------------------- | ------------------------------------------------- |
 | dataSources                | Map\<String, ShadowDataSourceConfiguration\> | shadow data source mapping name and configuration |
 | tables                     | Map\<String, ShadowTableConfiguration\>      | shadow table name and configuration               |
 | shadowAlgorithms           | Map\<String, AlgorithmConfiguration\>        | shadow algorithm name and configuration           |
@@ -24,36 +24,36 @@ Attributes:
 
 ### Shadow Data Source Configuration
 
-Class name: org.apache.shardingsphere.shadow.config.datasource.ShadowDataSourceConfiguration
+Class name: org.apache.shardingsphere.shadow.api.config.datasource.ShadowDataSourceConfiguration
 
 Attributes:
 
 | *Name*                   | *DataType* | *Description*               |
-|--------------------------|------------|-----------------------------|
+| ------------------------ | ---------- | --------------------------- |
 | productionDataSourceName | String     | Production data source name |
 | shadowDataSourceName     | String     | Shadow data source name     |
 
 ### Shadow Table Configuration
 
-Class name: org.apache.shardingsphere.shadow.config.table.ShadowTableConfiguration
+Class name: org.apache.shardingsphere.shadow.api.config.table.ShadowTableConfiguration
 
 Attributes:
 
-| *Name*               | *Data Type*          | *Description*                                                |
-|----------------------|----------------------|--------------------------------------------------------------|
-| dataSourceNames      | Collection\<String\> | shadow table associates shadow data source mapping name list |
-| shadowAlgorithmNames | Collection\<String\> | shadow table associates shadow algorithm name list           |
+| *Name*  | *Data Type* | *Description* |
+| ------- | ---------- | ------- |
+| dataSourceNames | Collection\<String\> | shadow table associates shadow data source mapping name list |
+| shadowAlgorithmNames | Collection\<String\> | shadow table associates shadow algorithm name list |
 
 ### Shadow Algorithm Configuration
 
-Class name：org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration
+Class name：org.apache.shardingsphere.infra.config.algorithm.AlgorithmConfiguration
 
 Attributes:
 
-| *Name* | *Data Type* | *Description*                  |
-|--------|-------------|--------------------------------|
-| type   | String      | shadow algorithm type          |
-| props  | Properties  | shadow algorithm configuration |
+| *Name*  | *Data Type* | *Description* |
+| ------- | ---------- | ------- |
+| type | String | shadow algorithm type |
+| props | Properties | shadow algorithm configuration |
 
 Please refer to [Built-in Shadow Algorithm List](/en/user-manual/common-config/builtin-algorithm/shadow).
 

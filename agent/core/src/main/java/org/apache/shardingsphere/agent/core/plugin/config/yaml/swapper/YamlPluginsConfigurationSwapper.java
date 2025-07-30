@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -58,11 +57,10 @@ public final class YamlPluginsConfigurationSwapper {
     private static Map<String, PluginConfiguration> swap(final Map<String, YamlPluginConfiguration> yamlConfigs) {
         return null == yamlConfigs
                 ? Collections.emptyMap()
-                : yamlConfigs.entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> swap(entry.getValue()), (oldValue, currentValue) -> oldValue, LinkedHashMap::new));
+                : yamlConfigs.entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> swap(entry.getValue()), (key, value) -> value, LinkedHashMap::new));
     }
     
     private static PluginConfiguration swap(final YamlPluginConfiguration yamlConfig) {
-        return null == yamlConfig ? new PluginConfiguration(null, 0, null, new Properties())
-                : new PluginConfiguration(yamlConfig.getHost(), yamlConfig.getPort(), yamlConfig.getPassword(), yamlConfig.getProps());
+        return new PluginConfiguration(yamlConfig.getHost(), yamlConfig.getPort(), yamlConfig.getPassword(), yamlConfig.getProps());
     }
 }

@@ -21,20 +21,20 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Pipeline job progress persist context.
  */
-@RequiredArgsConstructor
 @Getter
+@RequiredArgsConstructor
 public final class PipelineJobProgressPersistContext {
     
     private final String jobId;
     
     private final int shardingItem;
     
-    private final AtomicLong unhandledEventCount = new AtomicLong(0L);
+    private final AtomicBoolean hasNewEvents = new AtomicBoolean(false);
     
-    private final AtomicBoolean firstExceptionLogged = new AtomicBoolean(false);
+    private final AtomicReference<Long> beforePersistingProgressMillis = new AtomicReference<>(null);
 }

@@ -32,10 +32,10 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class HintShardingStrategyTest {
+public final class HintShardingStrategyTest {
     
     @Test
-    void assertDoSharding() {
+    public void assertDoSharding() {
         Collection<String> targets = new HashSet<>(Arrays.asList("1", "2", "3"));
         HintShardingStrategy hintShardingStrategy = new HintShardingStrategy(new CoreHintShardingAlgorithmFixture());
         DataNodeInfo dataNodeInfo = new DataNodeInfo("logicTable_", 1, '0');

@@ -1,6 +1,6 @@
 +++
 title = "ALTER DEFAULT SHARDING STRATEGY"
-weight = 5
+weight = 6
 +++
 
 ## Description

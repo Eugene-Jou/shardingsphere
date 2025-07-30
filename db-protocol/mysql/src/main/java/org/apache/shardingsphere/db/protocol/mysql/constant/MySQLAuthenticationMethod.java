@@ -38,9 +38,7 @@ public enum MySQLAuthenticationMethod implements AuthenticationMethod {
     
     WINDOWS_NATIVE("authentication_windows_client"),
     
-    SHA256("sha256_password"),
-    
-    CACHING_SHA2_PASSWORD("caching_sha2_password");
+    SHA256("sha256_password");
     
     private final String methodName;
 }

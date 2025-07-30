@@ -18,7 +18,6 @@
 package org.apache.shardingsphere.proxy.frontend.postgresql.command.query.extended;
 
 import org.apache.shardingsphere.db.protocol.packet.DatabasePacket;
-import org.apache.shardingsphere.db.protocol.postgresql.packet.PostgreSQLPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.PostgreSQLAggregatedResponsesPacket;
 import org.apache.shardingsphere.proxy.frontend.command.executor.CommandExecutor;
 import org.junit.jupiter.api.Test;
@@ -35,19 +34,20 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class PostgreSQLAggregatedCommandExecutorTest {
+public final class PostgreSQLAggregatedCommandExecutorTest {
     
     @Test
-    void assertExecute() throws SQLException {
+    public void assertExecute() throws SQLException {
         int commandCount = 16;
         List<CommandExecutor> executors = new ArrayList<>(commandCount);
         for (int i = 0; i < commandCount; i++) {
             CommandExecutor executor = mock(CommandExecutor.class);
-            when(executor.execute()).thenReturn(Collections.singleton(mock(PostgreSQLPacket.class)));
+            DatabasePacket<?> expectedPacket = mock(DatabasePacket.class);
+            when(executor.execute()).thenReturn(Collections.singleton(expectedPacket));
             executors.add(executor);
         }
         PostgreSQLAggregatedCommandExecutor actualExecutor = new PostgreSQLAggregatedCommandExecutor(executors);
-        Collection<DatabasePacket> actualPackets = actualExecutor.execute();
+        Collection<DatabasePacket<?>> actualPackets = actualExecutor.execute();
         assertThat(actualPackets.size(), is(1));
         assertThat(actualPackets.iterator().next(), instanceOf(PostgreSQLAggregatedResponsesPacket.class));
     }

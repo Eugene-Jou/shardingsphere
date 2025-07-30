@@ -18,7 +18,7 @@
 package org.apache.shardingsphere.test.e2e.env.runtime.scenario.authority;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
@@ -35,24 +35,28 @@ import java.util.Map;
  * Authority environment manager.
  */
 @Slf4j
-public final class AuthorityEnvironmentManager implements AutoCloseable {
+public final class AuthorityEnvironmentManager {
+    
+    private final AuthorityEnvironment authorityEnvironment;
     
     private final Map<String, DataSource> instanceDataSourceMap;
     
     private final DatabaseType databaseType;
     
-    private final AuthorityEnvironment authorityEnvironment;
-    
-    public AuthorityEnvironmentManager(final String path, final Map<String, DataSource> instanceDataSourceMap, final DatabaseType databaseType) throws IOException, JAXBException, SQLException {
-        this.instanceDataSourceMap = instanceDataSourceMap;
-        this.databaseType = databaseType;
+    public AuthorityEnvironmentManager(final String path, final Map<String, DataSource> instanceDataSourceMap, final DatabaseType databaseType) throws IOException, JAXBException {
         try (FileReader reader = new FileReader(path)) {
             authorityEnvironment = (AuthorityEnvironment) JAXBContext.newInstance(AuthorityEnvironment.class).createUnmarshaller().unmarshal(reader);
         }
-        init();
+        this.instanceDataSourceMap = instanceDataSourceMap;
+        this.databaseType = databaseType;
     }
     
-    private void init() throws SQLException {
+    /**
+     * Initialize data.
+     * 
+     * @throws SQLException SQL exception
+     */
+    public void initialize() throws SQLException {
         Collection<String> initSQLs = authorityEnvironment.getInitSQLs(databaseType);
         if (initSQLs.isEmpty()) {
             return;
@@ -62,8 +66,12 @@ public final class AuthorityEnvironmentManager implements AutoCloseable {
         }
     }
     
-    @Override
-    public void close() throws SQLException {
+    /**
+     * Clean data.
+     * 
+     * @throws SQLException SQL exception
+     */
+    public void clean() throws SQLException {
         Collection<String> cleanSQLs = authorityEnvironment.getCleanSQLs(databaseType);
         if (cleanSQLs.isEmpty()) {
             return;

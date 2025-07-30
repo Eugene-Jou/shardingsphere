@@ -1,12 +1,12 @@
 +++
 title = "SHOW SHARDING TABLE RULES USED AUDITOR"
-weight = 12
+weight = 13
 
 +++
 
 ### Description
 
-`SHOW SHARDING TABLE RULES USED AUDITOR` syntax is used to query sharding rules used specified sharding auditor in specified logical database
+`SHOW SHARDING TABLE RULES USED ALGORITHM` syntax is used to query sharding rules used specified sharding auditor in specified logical database
 
 ### Syntax
 
@@ -34,10 +34,10 @@ databaseName ::=
 
 ### Return value description
 
-| Columns | Descriptions       |
-|---------|--------------------|
-| type    | Sharding rule type |
-| name    | Sharding rule name |
+| Columns     | Descriptions       |
+| ------------| -------------------|
+| type        | Sharding rule type |
+| name        | Sharding rule name |
 
 ### Example
 

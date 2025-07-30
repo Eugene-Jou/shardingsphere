@@ -26,10 +26,10 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class ZookeeperPropertiesTest {
+public final class ZookeeperPropertiesTest {
     
     @Test
-    void assertGetValue() {
+    public void assertGetValue() {
         ZookeeperProperties actual = new ZookeeperProperties(createProperties());
         assertThat(actual.getValue(ZookeeperPropertyKey.RETRY_INTERVAL_MILLISECONDS), is(3000));
         assertThat(actual.getValue(ZookeeperPropertyKey.MAX_RETRIES), is(2));
@@ -48,7 +48,7 @@ class ZookeeperPropertiesTest {
     }
     
     @Test
-    void assertGetDefaultValue() {
+    public void assertGetDefaultValue() {
         ZookeeperProperties actual = new ZookeeperProperties(new Properties());
         assertThat(actual.getValue(ZookeeperPropertyKey.RETRY_INTERVAL_MILLISECONDS), is(500));
         assertThat(actual.getValue(ZookeeperPropertyKey.MAX_RETRIES), is(3));

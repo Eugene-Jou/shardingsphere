@@ -41,7 +41,7 @@ public final class DistinctSumAggregationUnit implements AggregationUnit {
         }
         if (this.values.add(values.get(0))) {
             if (null == result) {
-                result = BigDecimal.ZERO;
+                result = new BigDecimal("0");
             }
             result = result.add(new BigDecimal(values.get(0).toString()));
         }

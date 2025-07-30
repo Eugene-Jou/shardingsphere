@@ -1,6 +1,6 @@
 +++
 title = "DROP SHARDING TABLE RULE"
-weight = 3
+weight = 4
 +++
 
 ## Description
@@ -13,12 +13,12 @@ The `DROP SHARDING TABLE RULE` syntax is used to drop sharding table rule for sp
 {{% tab name="Grammar" %}}
 ```sql
 DropShardingTableRule ::=
-  'DROP' 'SHARDING' 'TABLE' 'RULE' ifExists? ruleName (',' ruleName)*  ('FROM' databaseName)?
+  'DROP' 'SHARDING' 'TABLE' 'RULE' ifExists? shardingRuleName (',' shardingRuleName)*  ('FROM' databaseName)?
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+shardingRuleName ::=
   identifier
 
 databaseName ::=

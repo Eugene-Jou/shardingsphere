@@ -1,6 +1,6 @@
 +++
 title = "读写分离"
-weight = 4
+weight = 1
 chapter = true
 +++
 

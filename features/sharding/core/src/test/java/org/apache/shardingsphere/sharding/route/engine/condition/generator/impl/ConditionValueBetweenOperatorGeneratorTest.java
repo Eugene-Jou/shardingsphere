@@ -18,25 +18,23 @@
 package org.apache.shardingsphere.sharding.route.engine.condition.generator.impl;
 
 import com.google.common.collect.Range;
-import org.apache.shardingsphere.infra.metadata.database.schema.HashColumn;
+import org.apache.shardingsphere.sharding.route.engine.condition.Column;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.RangeShardingConditionValue;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.ShardingConditionValue;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.column.ColumnSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.BetweenExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.ExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.complex.CommonExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simple.LiteralExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simple.ParameterMarkerExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.util.SafeNumberOperationUtils;
-import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
-import org.apache.shardingsphere.timeservice.config.TimestampServiceRuleConfiguration;
-import org.apache.shardingsphere.timeservice.core.rule.TimestampServiceRule;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.ColumnSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.BetweenExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.ExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.complex.CommonExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.LiteralExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.ParameterMarkerExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.util.SafeNumberOperationUtil;
+import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
+import org.apache.shardingsphere.timeservice.api.config.TimeServiceRuleConfiguration;
+import org.apache.shardingsphere.timeservice.core.rule.TimeServiceRule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -52,23 +50,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
-class ConditionValueBetweenOperatorGeneratorTest {
+public final class ConditionValueBetweenOperatorGeneratorTest {
     
     private final ConditionValueBetweenOperatorGenerator generator = new ConditionValueBetweenOperatorGenerator();
     
-    private final HashColumn column = new HashColumn("id", "tbl");
+    private final Column column = new Column("id", "tbl");
     
-    private final TimestampServiceRule timestampServiceRule = new TimestampServiceRule(new TimestampServiceRuleConfiguration("System", new Properties()));
+    private final TimeServiceRule timeServiceRule = new TimeServiceRule(new TimeServiceRuleConfiguration("System", new Properties()));
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValue() {
+    public void assertGenerateConditionValue() {
         int between = 1;
         int and = 2;
         ExpressionSegment betweenSegment = new LiteralExpressionSegment(0, 0, between);
         ExpressionSegment andSegment = new LiteralExpressionSegment(0, 0, and);
         BetweenExpression value = new BetweenExpression(0, 0, null, betweenSegment, andSegment, false);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timestampServiceRule);
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timeServiceRule);
         assertTrue(shardingConditionValue.isPresent());
         RangeShardingConditionValue<Integer> rangeShardingConditionValue = (RangeShardingConditionValue<Integer>) shardingConditionValue.get();
         assertThat(rangeShardingConditionValue.getColumnName(), is(column.getName()));
@@ -80,57 +78,57 @@ class ConditionValueBetweenOperatorGeneratorTest {
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValueWithDifferentNumericType() {
+    public void assertGenerateConditionValueWithDifferentNumericType() {
         int between = 3;
         long and = 3147483647L;
         ExpressionSegment betweenSegment = new LiteralExpressionSegment(0, 0, between);
         ExpressionSegment andSegment = new LiteralExpressionSegment(0, 0, and);
         BetweenExpression value = new BetweenExpression(0, 0, null, betweenSegment, andSegment, false);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timestampServiceRule);
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timeServiceRule);
         assertTrue(shardingConditionValue.isPresent());
         RangeShardingConditionValue<Comparable<?>> rangeShardingConditionValue = (RangeShardingConditionValue<Comparable<?>>) shardingConditionValue.get();
         assertThat(rangeShardingConditionValue.getColumnName(), is(column.getName()));
         assertThat(rangeShardingConditionValue.getTableName(), is(column.getTableName()));
-        assertTrue(SafeNumberOperationUtils.safeContains(rangeShardingConditionValue.getValueRange(), between));
-        assertTrue(SafeNumberOperationUtils.safeContains(rangeShardingConditionValue.getValueRange(), and));
+        assertTrue(SafeNumberOperationUtil.safeContains(rangeShardingConditionValue.getValueRange(), between));
+        assertTrue(SafeNumberOperationUtil.safeContains(rangeShardingConditionValue.getValueRange(), and));
         assertTrue(rangeShardingConditionValue.getParameterMarkerIndexes().isEmpty());
     }
     
     @Test
-    void assertGenerateErrorConditionValue() {
+    public void assertGenerateErrorConditionValue() {
         int between = 1;
         ExpressionSegment betweenSegment = new LiteralExpressionSegment(0, 0, between);
         ExpressionSegment andSegment = new CommonExpressionSegment(0, 0, "now()");
         BetweenExpression value = new BetweenExpression(0, 0, null, betweenSegment, andSegment, false);
-        assertThrows(ClassCastException.class, () -> generator.generate(value, column, new LinkedList<>(), timestampServiceRule));
+        assertThrows(ClassCastException.class, () -> generator.generate(value, column, new LinkedList<>(), timeServiceRule));
     }
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateOneNowConditionValue() {
-        Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
-        ExpressionSegment betweenSegment = new LiteralExpressionSegment(0, 0, timestamp);
+    public void assertGenerateOneNowConditionValue() {
+        Date date = new Date();
+        ExpressionSegment betweenSegment = new LiteralExpressionSegment(0, 0, date);
         ExpressionSegment andSegment = new CommonExpressionSegment(0, 0, "now()");
         BetweenExpression value = new BetweenExpression(0, 0, null, betweenSegment, andSegment, false);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timestampServiceRule);
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timeServiceRule);
         assertTrue(shardingConditionValue.isPresent());
         RangeShardingConditionValue<Date> rangeShardingConditionValue = (RangeShardingConditionValue<Date>) shardingConditionValue.get();
         assertThat(rangeShardingConditionValue.getColumnName(), is(column.getName()));
         assertThat(rangeShardingConditionValue.getTableName(), is(column.getTableName()));
-        assertThat(rangeShardingConditionValue.getValueRange().lowerEndpoint(), is(timestamp));
+        assertThat(rangeShardingConditionValue.getValueRange().lowerEndpoint(), is(date));
         assertTrue(rangeShardingConditionValue.getParameterMarkerIndexes().isEmpty());
     }
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateNowConditionValue() {
+    public void assertGenerateNowConditionValue() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, 1);
         final Date after = calendar.getTime();
         ExpressionSegment betweenSegment = new CommonExpressionSegment(0, 0, "now()");
         ExpressionSegment andSegment = new CommonExpressionSegment(0, 0, "now()");
         BetweenExpression value = new BetweenExpression(0, 0, null, betweenSegment, andSegment, false);
-        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timestampServiceRule);
+        Optional<ShardingConditionValue> shardingConditionValue = generator.generate(value, column, new LinkedList<>(), timeServiceRule);
         assertTrue(shardingConditionValue.isPresent());
         RangeShardingConditionValue<Date> rangeShardingConditionValue = (RangeShardingConditionValue<Date>) shardingConditionValue.get();
         assertThat(rangeShardingConditionValue.getColumnName(), is(column.getName()));
@@ -141,12 +139,12 @@ class ConditionValueBetweenOperatorGeneratorTest {
     
     @SuppressWarnings("unchecked")
     @Test
-    void assertGenerateConditionValueWithParameter() {
+    public void assertGenerateConditionValueWithParameter() {
         ColumnSegment left = new ColumnSegment(0, 0, new IdentifierValue("id"));
         ParameterMarkerExpressionSegment between = new ParameterMarkerExpressionSegment(0, 0, 0);
         ParameterMarkerExpressionSegment and = new ParameterMarkerExpressionSegment(0, 0, 1);
         BetweenExpression predicate = new BetweenExpression(0, 0, left, between, and, false);
-        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, Arrays.asList(1, 2), timestampServiceRule);
+        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, Arrays.asList(1, 2), timeServiceRule);
         assertTrue(actual.isPresent());
         assertThat(actual.get(), instanceOf(RangeShardingConditionValue.class));
         RangeShardingConditionValue<Integer> conditionValue = (RangeShardingConditionValue<Integer>) actual.get();
@@ -157,12 +155,12 @@ class ConditionValueBetweenOperatorGeneratorTest {
     }
     
     @Test
-    void assertGenerateConditionValueWithoutParameter() {
+    public void assertGenerateConditionValueWithoutParameter() {
         ColumnSegment left = new ColumnSegment(0, 0, new IdentifierValue("id"));
         ParameterMarkerExpressionSegment between = new ParameterMarkerExpressionSegment(0, 0, 0);
         ParameterMarkerExpressionSegment and = new ParameterMarkerExpressionSegment(0, 0, 1);
         BetweenExpression predicate = new BetweenExpression(0, 0, left, between, and, false);
-        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, new LinkedList<>(), timestampServiceRule);
+        Optional<ShardingConditionValue> actual = generator.generate(predicate, column, new LinkedList<>(), timeServiceRule);
         assertFalse(actual.isPresent());
     }
 }

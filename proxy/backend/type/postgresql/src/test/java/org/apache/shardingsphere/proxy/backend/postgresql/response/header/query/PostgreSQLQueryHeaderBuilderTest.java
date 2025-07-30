@@ -29,10 +29,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class PostgreSQLQueryHeaderBuilderTest {
+public final class PostgreSQLQueryHeaderBuilderTest {
     
     @Test
-    void assertBuildPostgreSQLQueryHeader() throws SQLException {
+    public void assertBuildPostgreSQLQueryHeader() throws SQLException {
         final int columnIndex = 1;
         QueryResultMetaData queryResultMetaData = mock(QueryResultMetaData.class);
         when(queryResultMetaData.getColumnLabel(columnIndex)).thenReturn("label");

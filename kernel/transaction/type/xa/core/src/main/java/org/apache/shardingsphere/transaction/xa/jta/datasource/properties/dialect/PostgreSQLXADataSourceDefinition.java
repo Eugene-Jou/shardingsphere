@@ -33,7 +33,7 @@ public final class PostgreSQLXADataSourceDefinition implements XADataSourceDefin
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "PostgreSQL";
     }
 }

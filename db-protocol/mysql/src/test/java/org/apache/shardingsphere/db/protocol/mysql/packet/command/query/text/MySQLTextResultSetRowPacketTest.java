@@ -35,23 +35,23 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MySQLTextResultSetRowPacketTest {
+public final class MySQLTextResultSetRowPacketTest {
     
     @Mock
     private MySQLPacketPayload payload;
     
     @Test
-    void assertNew() {
+    public void assertNew() {
         when(payload.readStringLenenc()).thenReturn("value_a", null, "value_c");
-        new MySQLTextResultSetRowPacket(payload, 3);
+        MySQLTextResultSetRowPacket actual = new MySQLTextResultSetRowPacket(payload, 3);
         verify(payload, times(3)).readStringLenenc();
     }
     
     @Test
-    void assertWrite() {
+    public void assertWrite() {
         long now = System.currentTimeMillis();
         Timestamp timestamp = new Timestamp(now);
-        MySQLTextResultSetRowPacket actual = new MySQLTextResultSetRowPacket(Arrays.asList(null, "value", BigDecimal.ONE, new byte[]{}, timestamp, Boolean.TRUE));
+        MySQLTextResultSetRowPacket actual = new MySQLTextResultSetRowPacket(Arrays.asList(null, "value", BigDecimal.ONE, new byte[]{}, timestamp));
         actual.write(payload);
         verify(payload).writeInt1(0xfb);
         verify(payload).writeStringLenenc("value");
@@ -61,12 +61,11 @@ class MySQLTextResultSetRowPacketTest {
         } else {
             verify(payload).writeStringLenenc(timestamp.toString());
         }
-        verify(payload).writeBytesLenenc(new byte[]{1});
     }
     
     @Test
-    void assertTimestampWithoutNanos() {
-        long now = System.currentTimeMillis() / 1000L * 1000L;
+    public void assertTimestampWithoutNanos() {
+        long now = System.currentTimeMillis() / 1000 * 1000;
         Timestamp timestamp = new Timestamp(now);
         MySQLTextResultSetRowPacket actual = new MySQLTextResultSetRowPacket(Arrays.asList(null, "value", BigDecimal.ONE, new byte[]{}, timestamp));
         actual.write(payload);
@@ -77,10 +76,10 @@ class MySQLTextResultSetRowPacketTest {
     }
     
     @Test
-    void assertLocalDateTime() {
+    public void assertLocalDateTime() {
         String localDateTimeStr = "2021-08-23T17:30:30";
-        LocalDateTime dateTime = LocalDateTime.parse(localDateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-        MySQLTextResultSetRowPacket actual = new MySQLTextResultSetRowPacket(Collections.singletonList(dateTime));
+        LocalDateTime time = LocalDateTime.parse(localDateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        MySQLTextResultSetRowPacket actual = new MySQLTextResultSetRowPacket(Collections.singletonList(time));
         actual.write(payload);
         verify(payload).writeStringLenenc(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.parse(localDateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))));
     }

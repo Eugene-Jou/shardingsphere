@@ -21,11 +21,11 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.apache.shardingsphere.agent.api.advice.TargetAdviceMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,12 +33,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 
-class MetaDataContextsFactoryAdviceTest {
+public final class MetaDataContextsFactoryAdviceTest {
     
     private ListAppender<ILoggingEvent> listAppender;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         Logger logger = (Logger) LoggerFactory.getLogger(MetaDataContextsFactoryAdvice.class);
         listAppender = new ListAppender<>();
         listAppender.start();
@@ -46,9 +46,9 @@ class MetaDataContextsFactoryAdviceTest {
     }
     
     @Test
-    void assertLog() {
+    public void assertLog() {
         MetaDataContextsFactoryAdvice advice = new MetaDataContextsFactoryAdvice();
-        TargetAdviceMethod method = mock(TargetAdviceMethod.class);
+        Method method = mock(Method.class);
         advice.beforeMethod(null, method, new Object[]{}, "FIXTURE");
         advice.afterMethod(null, method, new Object[]{}, null, "FIXTURE");
         List<ILoggingEvent> logsList = listAppender.list;

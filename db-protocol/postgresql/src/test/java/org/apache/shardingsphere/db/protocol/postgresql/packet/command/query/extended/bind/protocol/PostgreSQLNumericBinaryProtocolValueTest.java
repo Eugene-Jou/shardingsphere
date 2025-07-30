@@ -33,33 +33,33 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class PostgreSQLNumericBinaryProtocolValueTest {
+public final class PostgreSQLNumericBinaryProtocolValueTest {
     
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(TestCaseArgumentsProvider.class)
-    void assertGetColumnLength(final BigDecimal bigDecimal, final byte[] expected) {
+    public void assertGetColumnLength(final BigDecimal bigDecimal, final byte[] expected) {
         PostgreSQLNumericBinaryProtocolValue binaryProtocolValue = new PostgreSQLNumericBinaryProtocolValue();
-        assertThat(binaryProtocolValue.getColumnLength(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), bigDecimal), is(expected.length));
+        assertThat(binaryProtocolValue.getColumnLength(bigDecimal), is(expected.length));
     }
     
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(TestCaseArgumentsProvider.class)
-    void assertRead(final BigDecimal bigDecimal, final byte[] expected) {
+    public void assertRead(final BigDecimal bigDecimal, final byte[] expected) {
         PostgreSQLNumericBinaryProtocolValue binaryProtocolValue = new PostgreSQLNumericBinaryProtocolValue();
         int expectedLength = expected.length;
         ByteBuf byteBuf = ByteBufTestUtils.createByteBuf(expectedLength);
         byteBuf.writeBytes(expected);
         PostgreSQLPacketPayload payload = new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8);
-        Object actual = binaryProtocolValue.read(payload, expectedLength);
-        assertThat(actual, is(bigDecimal));
+        Object result = binaryProtocolValue.read(payload, expectedLength);
+        assertThat(result, is(bigDecimal));
         assertThat(byteBuf.readerIndex(), is(expectedLength));
     }
     
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(TestCaseArgumentsProvider.class)
-    void assertWrite(final BigDecimal bigDecimal, final byte[] expected) {
+    public void assertWrite(final BigDecimal bigDecimal, final byte[] expected) {
         PostgreSQLNumericBinaryProtocolValue binaryProtocolValue = new PostgreSQLNumericBinaryProtocolValue();
-        int columnLength = binaryProtocolValue.getColumnLength(new PostgreSQLPacketPayload(null, StandardCharsets.UTF_8), bigDecimal);
+        int columnLength = binaryProtocolValue.getColumnLength(bigDecimal);
         ByteBuf byteBuf = ByteBufTestUtils.createByteBuf(columnLength);
         PostgreSQLPacketPayload payload = new PostgreSQLPacketPayload(byteBuf, StandardCharsets.UTF_8);
         binaryProtocolValue.write(payload, bigDecimal);

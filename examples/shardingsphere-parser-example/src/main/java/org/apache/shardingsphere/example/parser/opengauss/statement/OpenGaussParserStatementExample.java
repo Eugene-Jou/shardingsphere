@@ -19,12 +19,13 @@ package org.apache.shardingsphere.example.parser.opengauss.statement;
 
 import org.apache.shardingsphere.sql.parser.api.CacheOption;
 import org.apache.shardingsphere.sql.parser.api.SQLParserEngine;
-import org.apache.shardingsphere.sql.parser.api.SQLStatementVisitorEngine;
+import org.apache.shardingsphere.sql.parser.api.SQLVisitorEngine;
 import org.apache.shardingsphere.sql.parser.core.ParseASTNode;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.opengauss.OpenGaussStatement;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 public final class OpenGaussParserStatementExample {
     
@@ -45,18 +46,17 @@ public final class OpenGaussParserStatementExample {
     private static final List<String> OPEN_GAUSS_PARSER_STATEMENT_LIST;
     
     static {
-        OPEN_GAUSS_PARSER_STATEMENT_LIST = Arrays.asList(DML_SELECT_SQL, DML_INSERT_SQL, DML_UPDATE_SQL, DML_DELETE_SQL, DDL_CREATE_SQL, DDL_DROP_SQL, DDL_ALTER_SQL);
+        OPEN_GAUSS_PARSER_STATEMENT_LIST = Arrays.asList(DML_SELECT_SQL, DML_INSERT_SQL, DML_UPDATE_SQL, DML_DELETE_SQL,
+                DDL_CREATE_SQL, DDL_DROP_SQL, DDL_ALTER_SQL);
     }
     
-    // CHECKSTYLE:OFF
-    public static void main(final String[] args) {
-        // CHECKSTYLE:ON
+    public static void main(String[] args) {
         OPEN_GAUSS_PARSER_STATEMENT_LIST.forEach(sql -> {
             CacheOption cacheOption = new CacheOption(128, 1024L);
             SQLParserEngine parserEngine = new SQLParserEngine("openGauss", cacheOption);
             ParseASTNode parseASTNode = parserEngine.parse(sql, false);
-            SQLStatementVisitorEngine visitorEngine = new SQLStatementVisitorEngine("openGauss");
-            SQLStatement sqlStatement = visitorEngine.visit(parseASTNode);
+            SQLVisitorEngine visitorEngine = new SQLVisitorEngine("openGauss", "STATEMENT", false, new Properties());
+            OpenGaussStatement sqlStatement = visitorEngine.visit(parseASTNode);
             System.out.println(sqlStatement.toString());
         });
     }

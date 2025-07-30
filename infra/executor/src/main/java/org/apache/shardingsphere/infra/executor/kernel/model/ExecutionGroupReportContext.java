@@ -21,7 +21,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
 
-import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Execution group report context.
@@ -30,23 +31,17 @@ import java.util.Optional;
 @Getter
 public final class ExecutionGroupReportContext {
     
-    // TODO processID should same with connectionId
-    private final String processId;
-    
     private final String databaseName;
     
     private final Grantee grantee;
     
-    public ExecutionGroupReportContext(final String processId, final String databaseName) {
-        this(processId, databaseName, null);
+    private final String executionID;
+    
+    public ExecutionGroupReportContext(final String databaseName) {
+        this(databaseName, new Grantee("", ""));
     }
     
-    /**
-     * Get grantee.
-     *
-     * @return grantee
-     */
-    public Optional<Grantee> getGrantee() {
-        return Optional.ofNullable(grantee);
+    public ExecutionGroupReportContext(final String databaseName, final Grantee grantee) {
+        this(databaseName, grantee, new UUID(ThreadLocalRandom.current().nextLong(), ThreadLocalRandom.current().nextLong()).toString().replace("-", ""));
     }
 }

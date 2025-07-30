@@ -24,18 +24,18 @@ import java.nio.charset.Charset;
 /**
  * Packet payload.
  */
-public interface PacketPayload {
+public interface PacketPayload extends AutoCloseable {
     
     /**
      * Get byte buf.
-     *
+     * 
      * @return byte buf
      */
     ByteBuf getByteBuf();
     
     /**
      * Get charset.
-     *
+     * 
      * @return charset
      */
     Charset getCharset();

@@ -1,11 +1,11 @@
 +++
 title = "DROP SHARDING TABLE RULE"
-weight = 3
+weight = 4
 +++
 
 ## 描述
 
-`DROP SHARDING TABLE RULE` 语法用于删除指定逻辑库的指定分片规则。
+`DROP SHARDING TABLE RULE` 语法用于删除指定逻辑库的指定分片规则
 
 ### 语法定义
 
@@ -13,12 +13,12 @@ weight = 3
 {{% tab name="语法" %}}
 ```sql
 DropShardingTableRule ::=
-  'DROP' 'SHARDING' 'TABLE' 'RULE' ifExists? ruleName (',' ruleName)*  ('FROM' databaseName)?
+  'DROP' 'SHARDING' 'TABLE' 'RULE' ifExists? shardingRuleName (',' shardingRuleName)*  ('FROM' databaseName)?
 
 ifExists ::=
   'IF' 'EXISTS'
 
-ruleName ::=
+shardingRuleName ::=
   identifier
 
 databaseName ::=

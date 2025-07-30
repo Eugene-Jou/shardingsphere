@@ -20,11 +20,9 @@ package org.apache.shardingsphere.agent.plugin.tracing.opentelemetry.constant;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-/**
- * OpenTelemetry constants.
- */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OpenTelemetryConstants {
+public class OpenTelemetryConstants {
     
     public static final String TRACER_NAME = "shardingsphere-agent";
+    
 }

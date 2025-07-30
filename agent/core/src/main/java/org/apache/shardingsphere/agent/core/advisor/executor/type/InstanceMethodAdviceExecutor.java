@@ -28,19 +28,18 @@ import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.matcher.ElementMatchers;
-import org.apache.shardingsphere.agent.api.advice.TargetAdviceMethod;
-import org.apache.shardingsphere.agent.api.plugin.AgentPluginEnable;
 import org.apache.shardingsphere.agent.api.advice.TargetAdviceObject;
 import org.apache.shardingsphere.agent.api.advice.type.InstanceMethodAdvice;
 import org.apache.shardingsphere.agent.core.advisor.executor.AdviceExecutor;
+import org.apache.shardingsphere.agent.core.log.AgentLogger;
+import org.apache.shardingsphere.agent.core.log.AgentLoggerFactory;
+import org.apache.shardingsphere.agent.core.plugin.PluginContext;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Instance method advice executor.
@@ -48,7 +47,7 @@ import java.util.logging.Logger;
 @RequiredArgsConstructor
 public final class InstanceMethodAdviceExecutor implements AdviceExecutor {
     
-    private static final Logger LOGGER = Logger.getLogger(InstanceMethodAdviceExecutor.class.getName());
+    private static final AgentLogger LOGGER = AgentLoggerFactory.getAgentLogger(InstanceMethodAdviceExecutor.class);
     
     private final Map<String, Collection<InstanceMethodAdvice>> advices;
     
@@ -64,17 +63,24 @@ public final class InstanceMethodAdviceExecutor implements AdviceExecutor {
     @RuntimeType
     @SneakyThrows
     public Object advice(@This final TargetAdviceObject target, @Origin final Method method, @AllArguments final Object[] args, @SuperCall final Callable<?> callable) {
-        adviceBefore(target, method, args);
+        boolean adviceEnabled = PluginContext.isPluginEnabled();
+        if (adviceEnabled) {
+            adviceBefore(target, method, args);
+        }
         Object result = null;
         try {
             result = callable.call();
             // CHECKSTYLE:OFF
         } catch (final Throwable ex) {
             // CHECKSTYLE:ON
-            adviceThrow(target, method, args, ex);
+            if (adviceEnabled) {
+                adviceThrow(target, method, args, ex);
+            }
             throw ex;
         } finally {
-            adviceAfter(target, method, args, result);
+            if (adviceEnabled) {
+                adviceAfter(target, method, args, result);
+            }
         }
         return result;
     }
@@ -83,15 +89,13 @@ public final class InstanceMethodAdviceExecutor implements AdviceExecutor {
         try {
             for (Entry<String, Collection<InstanceMethodAdvice>> entry : advices.entrySet()) {
                 for (InstanceMethodAdvice each : entry.getValue()) {
-                    if (isPluginEnabled(each)) {
-                        each.beforeMethod(target, new TargetAdviceMethod(method.getName()), args, entry.getKey());
-                    }
+                    each.beforeMethod(target, method, args, entry.getKey());
                 }
             }
             // CHECKSTYLE:OFF
         } catch (final Throwable ex) {
             // CHECKSTYLE:ON
-            LOGGER.log(Level.SEVERE, "Failed to execute the pre-method of method `{0}` in class `{1}`, {2}.", new String[]{method.getName(), target.getClass().getName(), ex.getMessage()});
+            LOGGER.error("Failed to execute the pre-method of method `{}` in class `{}`.", method.getName(), target.getClass(), ex);
         }
     }
     
@@ -99,15 +103,13 @@ public final class InstanceMethodAdviceExecutor implements AdviceExecutor {
         try {
             for (Entry<String, Collection<InstanceMethodAdvice>> entry : advices.entrySet()) {
                 for (InstanceMethodAdvice each : entry.getValue()) {
-                    if (isPluginEnabled(each)) {
-                        each.onThrowing(target, new TargetAdviceMethod(method.getName()), args, ex, entry.getKey());
-                    }
+                    each.onThrowing(target, method, args, ex, entry.getKey());
                 }
             }
             // CHECKSTYLE:OFF
         } catch (final Throwable ignored) {
             // CHECKSTYLE:ON
-            LOGGER.log(Level.SEVERE, "Failed to execute the error handler of method `{0}` in class `{1}`, {2}.", new String[]{method.getName(), target.getClass().getName(), ex.getMessage()});
+            LOGGER.error("Failed to execute the error handler of method `{}` in class `{}`.", method.getName(), target.getClass(), ex);
         }
     }
     
@@ -115,20 +117,15 @@ public final class InstanceMethodAdviceExecutor implements AdviceExecutor {
         try {
             for (Entry<String, Collection<InstanceMethodAdvice>> entry : advices.entrySet()) {
                 for (InstanceMethodAdvice each : entry.getValue()) {
-                    if (isPluginEnabled(each)) {
-                        each.afterMethod(target, new TargetAdviceMethod(method.getName()), args, result, entry.getKey());
-                    }
+                    each.afterMethod(target, method, args, result, entry.getKey());
                 }
+                
             }
             // CHECKSTYLE:OFF
         } catch (final Throwable ex) {
             // CHECKSTYLE:ON
-            LOGGER.log(Level.SEVERE, "Failed to execute the post-method of method `{0}` in class `{1}`, {2}.", new String[]{method.getName(), target.getClass().getName(), ex.getMessage()});
+            LOGGER.error("Failed to execute the post-method of method `{}` in class `{}`.", method.getName(), target.getClass(), ex);
         }
-    }
-    
-    private boolean isPluginEnabled(final InstanceMethodAdvice advice) {
-        return !(advice instanceof AgentPluginEnable) || ((AgentPluginEnable) advice).isPluginEnabled();
     }
     
     @Override

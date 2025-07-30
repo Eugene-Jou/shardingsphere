@@ -17,14 +17,14 @@ Supports for prometheus.
 ### Tracing
 
 The tracing plugin uses to obtain the link trace information of SQL parsing and SQL execution.
-Supports for OpenTelemetry.
+Supports for Jaeger, OpenTelemetry, OpenTracing and Zipkin.
 
 ## How To Build
 
 ```shell
 git clone https://github.com/apache/shardingsphere.git
 cd shardingsphere
-./mvnw clean install -Prelease,default-dep
+./mvnw clean install -Prelease
 ```
 
 Artifact is `distribution/agent/target/apache-shardingsphere-${latest.release.version}-shardingsphere-agent-bin.tar.gz`

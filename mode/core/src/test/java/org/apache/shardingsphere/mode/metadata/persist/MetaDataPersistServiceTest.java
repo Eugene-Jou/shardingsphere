@@ -17,58 +17,57 @@
 
 package org.apache.shardingsphere.mode.metadata.persist;
 
+import lombok.SneakyThrows;
 import org.apache.shardingsphere.infra.config.database.DatabaseConfiguration;
+import org.apache.shardingsphere.infra.config.database.impl.DataSourceProvidedDatabaseConfiguration;
+import org.apache.shardingsphere.infra.config.props.ConfigurationPropertyKey;
 import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
-import org.apache.shardingsphere.infra.config.rule.decorator.RuleConfigurationDecorator;
-import org.apache.shardingsphere.infra.datasource.pool.config.DataSourceConfiguration;
-import org.apache.shardingsphere.infra.datasource.pool.props.creator.DataSourcePoolPropertiesCreator;
-import org.apache.shardingsphere.infra.datasource.pool.props.domain.DataSourcePoolProperties;
-import org.apache.shardingsphere.infra.metadata.database.resource.unit.StorageUnit;
-import org.apache.shardingsphere.infra.metadata.database.schema.manager.GenericSchemaManager;
-import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
-import org.apache.shardingsphere.mode.metadata.persist.config.database.DataSourceUnitPersistService;
-import org.apache.shardingsphere.mode.metadata.persist.config.database.DatabaseRulePersistService;
-import org.apache.shardingsphere.mode.metadata.persist.config.global.GlobalRulePersistService;
-import org.apache.shardingsphere.mode.metadata.persist.config.global.PropertiesPersistService;
-import org.apache.shardingsphere.mode.metadata.persist.metadata.DatabaseMetaDataPersistFacade;
-import org.apache.shardingsphere.mode.spi.repository.PersistRepository;
-import org.apache.shardingsphere.test.mock.AutoMockExtension;
-import org.apache.shardingsphere.test.mock.StaticMockSettings;
+import org.apache.shardingsphere.infra.datasource.props.DataSourceProperties;
+import org.apache.shardingsphere.infra.datasource.props.DataSourcePropertiesCreator;
+import org.apache.shardingsphere.infra.util.yaml.YamlEngine;
+import org.apache.shardingsphere.infra.yaml.config.swapper.rule.YamlRuleConfigurationSwapperEngine;
+import org.apache.shardingsphere.mode.metadata.persist.service.config.database.DataSourcePersistService;
+import org.apache.shardingsphere.mode.metadata.persist.service.config.database.DatabaseRulePersistService;
+import org.apache.shardingsphere.mode.metadata.persist.service.config.global.GlobalRulePersistService;
+import org.apache.shardingsphere.mode.metadata.persist.service.config.global.PropertiesPersistService;
+import org.apache.shardingsphere.mode.persist.PersistRepository;
+import org.apache.shardingsphere.test.fixture.jdbc.MockedDataSource;
+import org.apache.shardingsphere.test.util.PropertiesBuilder;
+import org.apache.shardingsphere.test.util.PropertiesBuilder.Property;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.internal.configuration.plugins.Plugins;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(AutoMockExtension.class)
-@StaticMockSettings({TypedSPILoader.class, DataSourcePoolPropertiesCreator.class, GenericSchemaManager.class})
-class MetaDataPersistServiceTest {
+@ExtendWith(MockitoExtension.class)
+public final class MetaDataPersistServiceTest {
+    
+    private static final String SCHEMA_RULE_YAML = "yaml/persist/data-database-rule.yaml";
     
     @Mock
-    private DataSourceUnitPersistService dataSourceUnitService;
-    
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private DatabaseMetaDataPersistFacade databaseMetaDataFacade;
+    private DataSourcePersistService dataSourceService;
     
     @Mock
-    private DatabaseRulePersistService databaseRuleService;
+    private DatabaseRulePersistService databaseRulePersistService;
     
     @Mock
     private GlobalRulePersistService globalRuleService;
@@ -76,68 +75,67 @@ class MetaDataPersistServiceTest {
     @Mock
     private PropertiesPersistService propsService;
     
-    private MetaDataPersistFacade metaDataPersistFacade;
+    private MetaDataPersistService metaDataPersistService;
     
     @BeforeEach
-    void setUp() throws ReflectiveOperationException {
-        metaDataPersistFacade = new MetaDataPersistFacade(mock(PersistRepository.class), true);
-        setField("dataSourceUnitService", dataSourceUnitService);
-        setField("databaseMetaDataFacade", databaseMetaDataFacade);
-        setField("databaseRuleService", databaseRuleService);
+    public void setUp() throws ReflectiveOperationException {
+        metaDataPersistService = new MetaDataPersistService(mock(PersistRepository.class));
+        setField("dataSourceService", dataSourceService);
+        setField("databaseRulePersistService", databaseRulePersistService);
         setField("globalRuleService", globalRuleService);
         setField("propsService", propsService);
     }
     
     private void setField(final String name, final Object value) throws ReflectiveOperationException {
-        Plugins.getMemberAccessor().set(MetaDataPersistFacade.class.getDeclaredField(name), metaDataPersistFacade, value);
+        Plugins.getMemberAccessor().set(metaDataPersistService.getClass().getDeclaredField(name), metaDataPersistService, value);
     }
     
     @Test
-    void assertPersistGlobalRuleConfiguration() {
-        Collection<RuleConfiguration> globalRuleConfigs = Collections.singleton(mock(RuleConfiguration.class));
-        Properties props = new Properties();
-        metaDataPersistFacade.persistGlobalRuleConfiguration(globalRuleConfigs, props);
-        verify(globalRuleService).persist(globalRuleConfigs);
-        verify(propsService).persist(props);
+    public void assertConditionalPersistConfigurations() {
+        Map<String, DataSource> dataSourceMap = createDataSourceMap();
+        Collection<RuleConfiguration> ruleConfigs = Collections.emptyList();
+        Collection<RuleConfiguration> globalRuleConfigs = Collections.emptyList();
+        Properties props = PropertiesBuilder.build(new Property(ConfigurationPropertyKey.SQL_SHOW.getKey(), Boolean.FALSE.toString()));
+        metaDataPersistService.persistConfigurations(Collections.singletonMap("foo_db", new DataSourceProvidedDatabaseConfiguration(dataSourceMap, ruleConfigs)), globalRuleConfigs, props);
+        verify(dataSourceService).conditionalPersist("foo_db", createDataSourcePropertiesMap(dataSourceMap));
+        verify(databaseRulePersistService).conditionalPersist("foo_db", ruleConfigs);
+        verify(globalRuleService).conditionalPersist(globalRuleConfigs);
+        verify(propsService).conditionalPersist(props);
     }
     
-    @Test
-    void assertPersistConfigurationsWithEmptyDatabase() {
-        metaDataPersistFacade.persistConfigurations("foo_db", mock(DatabaseConfiguration.class), Collections.emptyMap(), Collections.emptyList());
-        verify(databaseMetaDataFacade.getDatabase()).add("foo_db");
+    private Map<String, DataSourceProperties> createDataSourcePropertiesMap(final Map<String, DataSource> dataSourceMap) {
+        return dataSourceMap.entrySet().stream().collect(
+                Collectors.toMap(Entry::getKey, entry -> DataSourcePropertiesCreator.create(entry.getValue()), (oldValue, currentValue) -> oldValue, LinkedHashMap::new));
     }
     
+    @SuppressWarnings("unchecked")
     @Test
-    void assertPersistConfigurationsWithDatabaseRuleConfigurations() {
-        DatabaseConfiguration databaseConfig = mock(DatabaseConfiguration.class, RETURNS_DEEP_STUBS);
-        when(databaseConfig.getStorageUnits()).thenReturn(Collections.emptyMap());
-        when(databaseConfig.getRuleConfigurations().isEmpty()).thenReturn(false);
-        ShardingSphereRule rule = mock(ShardingSphereRule.class);
-        RuleConfiguration ruleConfig = mock(RuleConfiguration.class);
-        when(rule.getConfiguration()).thenReturn(ruleConfig);
-        when(TypedSPILoader.findService(RuleConfigurationDecorator.class, ruleConfig.getClass())).thenReturn(Optional.of(mock(RuleConfigurationDecorator.class)));
-        metaDataPersistFacade.persistConfigurations("foo_db", databaseConfig, Collections.emptyMap(), Collections.singleton(rule));
-        verify(dataSourceUnitService).persist("foo_db", Collections.emptyMap());
-        verify(databaseRuleService).persist(eq("foo_db"), any());
+    public void assertGetEffectiveDataSources() {
+        Map<String, DataSource> dataSourceMap = createDataSourceMap();
+        Collection<RuleConfiguration> ruleConfigs = new YamlRuleConfigurationSwapperEngine().swapToRuleConfigurations(YamlEngine.unmarshal(readYAML(SCHEMA_RULE_YAML), Collection.class));
+        Map<String, DatabaseConfiguration> databaseConfigs = Collections.singletonMap("foo_db", new DataSourceProvidedDatabaseConfiguration(dataSourceMap, ruleConfigs));
+        Map<String, DataSource> resultEffectiveDataSources = metaDataPersistService.getEffectiveDataSources("foo_db", databaseConfigs);
+        assertTrue(resultEffectiveDataSources.isEmpty());
     }
     
-    @Test
-    void assertPersistConfigurationsWithDataSourcePoolProperties() {
-        DatabaseConfiguration databaseConfig = mock(DatabaseConfiguration.class, RETURNS_DEEP_STUBS);
-        when(databaseConfig.getStorageUnits()).thenReturn(Collections.singletonMap("foo_ds", mock(StorageUnit.class, RETURNS_DEEP_STUBS)));
-        metaDataPersistFacade.persistConfigurations("foo_db", databaseConfig, Collections.emptyMap(), Collections.emptyList());
-        verify(dataSourceUnitService).persist(eq("foo_db"), any());
-        verify(databaseRuleService).persist("foo_db", Collections.emptyList());
+    private Map<String, DataSource> createDataSourceMap() {
+        Map<String, DataSource> result = new LinkedHashMap<>(2, 1);
+        result.put("ds_0", createDataSource("ds_0"));
+        result.put("ds_1", createDataSource("ds_1"));
+        return result;
     }
     
-    @Test
-    void assertLoadDataSourceConfigurations() {
-        DataSourcePoolProperties dataSourcePoolProps = mock(DataSourcePoolProperties.class);
-        when(dataSourceUnitService.load("foo_db")).thenReturn(Collections.singletonMap("foo_ds", dataSourcePoolProps));
-        DataSourceConfiguration dataSourceConfig = mock(DataSourceConfiguration.class);
-        when(DataSourcePoolPropertiesCreator.createConfiguration(dataSourcePoolProps)).thenReturn(dataSourceConfig);
-        Map<String, DataSourceConfiguration> actual = metaDataPersistFacade.loadDataSourceConfigurations("foo_db");
-        assertThat(actual.size(), is(1));
-        assertThat(actual.get("foo_ds"), is(dataSourceConfig));
+    private DataSource createDataSource(final String name) {
+        MockedDataSource result = new MockedDataSource();
+        result.setDriverClassName("com.mysql.jdbc.Driver");
+        result.setUrl("jdbc:mysql://localhost:3306/" + name);
+        result.setUsername("root");
+        result.setPassword("root");
+        return result;
+    }
+    
+    @SneakyThrows({IOException.class, URISyntaxException.class})
+    private String readYAML(final String yamlFile) {
+        return Files.readAllLines(Paths.get(ClassLoader.getSystemResource(yamlFile).toURI())).stream().map(each -> each + System.lineSeparator()).collect(Collectors.joining());
     }
 }

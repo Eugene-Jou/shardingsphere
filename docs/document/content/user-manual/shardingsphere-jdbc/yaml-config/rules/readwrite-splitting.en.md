@@ -1,6 +1,6 @@
 +++
 title = "Readwrite-splitting"
-weight = 3
+weight = 2
 +++
 
 ## Background
@@ -8,16 +8,35 @@ Read/write splitting YAML configuration is highly readable. The YAML format enab
 
 ## Parameters
 
-### Readwrite-splitting
+### Static Readwrite-splitting
 
 ```yaml
 rules:
 - !READWRITE_SPLITTING
-  dataSourceGroups:
-    <data_source_group_name> (+): # Logic data source group name of readwrite-splitting, which uses Groovy's Row Value Expressions SPI implementation to parse by default
-      write_data_source_name: # Write data source name, which uses Groovy's Row Value Expressions SPI implementation to parse by default
-      read_data_source_names: # Read data source names, multiple data source names separated with comma, which uses Groovy's Row Value Expressions SPI implementation to parse by default
-      transactionalReadQueryStrategy (?): # Routing strategy for read query within a transaction, values include: PRIMARY (to primary), FIXED (to fixed data source), DYNAMIC (to any data source), default value: DYNAMIC
+  dataSources:
+    <data_source_name> (+): # Logic data source name of readwrite-splitting
+      static_strategy: # Readwrite-splitting type
+        write_data_source_name: # Write data source name
+        read_data_source_names: # Read data source names, multiple data source names separated with comma
+      loadBalancerName: # Load balance algorithm name
+  
+  # Load balance algorithm configuration
+  loadBalancers:
+    <load_balancer_name> (+): # Load balance algorithm name
+      type: # Load balance algorithm type
+      props: # Load balance algorithm properties
+        # ...
+```
+
+### Dynamic Readwrite-splitting
+
+```yaml
+rules:
+- !READWRITE_SPLITTING
+  dataSources:
+    <data_source_name> (+): # Logic data source name of readwrite-splitting
+      dynamic_strategy: # Readwrite-splitting type
+        auto_aware_data_source_name: # Database discovery logic data source name
       loadBalancerName: # Load balance algorithm name
   
   # Load balance algorithm configuration
@@ -29,6 +48,7 @@ rules:
 ```
 
 Please refer to [Built-in Load Balance Algorithm List](/en/user-manual/common-config/builtin-algorithm/load-balance) for more details about type of algorithm.
+Please refer to [Read-write splitting-Core features](/en/features/readwrite-splitting/) for more details about query consistent routing.
 
 ## Procedure
 1. Add read/write splitting data source.
@@ -39,13 +59,13 @@ Please refer to [Built-in Load Balance Algorithm List](/en/user-manual/common-co
 ```yaml
 rules:
 - !READWRITE_SPLITTING
-  dataSourceGroups:
+  dataSources:
     readwrite_ds:
-      writeDataSourceName: write_ds
-      readDataSourceNames:
-        - read_ds_0
-        - read_ds_1
-      transactionalReadQueryStrategy: PRIMARY
+      staticStrategy:
+        writeDataSourceName: write_ds
+        readDataSourceNames:
+          - read_ds_0
+          - read_ds_1
       loadBalancerName: random
   loadBalancers:
     random:

@@ -17,7 +17,11 @@
 
 package org.apache.shardingsphere.proxy.backend.lock.impl;
 
-import org.apache.shardingsphere.mode.state.ShardingSphereState;
+import org.apache.shardingsphere.infra.lock.LockContext;
+import org.apache.shardingsphere.infra.state.cluster.ClusterState;
+import org.apache.shardingsphere.mode.lock.GlobalLockDefinition;
+import org.apache.shardingsphere.mode.manager.ContextManager;
+import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.status.cluster.event.ClusterStatusChangedEvent;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.lock.spi.ClusterLockStrategy;
 
@@ -27,8 +31,14 @@ import org.apache.shardingsphere.proxy.backend.lock.spi.ClusterLockStrategy;
 public class ClusterWriteLockStrategy implements ClusterLockStrategy {
     
     @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public void lock() {
-        ProxyContext.getInstance().getContextManager().getPersistServiceFacade().getStateService().update(ShardingSphereState.READ_ONLY);
+        ContextManager contextManager = ProxyContext.getInstance().getContextManager();
+        LockContext lockContext = contextManager.getInstanceContext().getLockContext();
+        if (lockContext.tryLock(new GlobalLockDefinition("cluster_lock"), -1)) {
+            contextManager.getInstanceContext().getEventBusContext().post(new ClusterStatusChangedEvent(ClusterState.READ_ONLY));
+            // TODO lock snapshot info
+        }
     }
     
     @Override

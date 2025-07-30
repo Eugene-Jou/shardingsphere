@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * Startup packet for PostgreSQL.
  */
-public final class PostgreSQLComStartupPacket extends PostgreSQLPacket {
+public final class PostgreSQLComStartupPacket implements PostgreSQLPacket {
     
     private static final String DATABASE_NAME_KEY = "database";
     
@@ -50,7 +50,7 @@ public final class PostgreSQLComStartupPacket extends PostgreSQLPacket {
     
     /**
      * Get database.
-     *
+     * 
      * @return database
      */
     public String getDatabase() {
@@ -58,8 +58,8 @@ public final class PostgreSQLComStartupPacket extends PostgreSQLPacket {
     }
     
     /**
-     * Get username.
-     *
+     * Get user name.
+     * 
      * @return username
      */
     public String getUsername() {
@@ -68,7 +68,7 @@ public final class PostgreSQLComStartupPacket extends PostgreSQLPacket {
     
     /**
      * Get client encoding.
-     *
+     * 
      * @return client encoding
      */
     public String getClientEncoding() {
@@ -76,6 +76,6 @@ public final class PostgreSQLComStartupPacket extends PostgreSQLPacket {
     }
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
     }
 }

@@ -30,10 +30,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class OpenGaussQueryHeaderBuilderTest {
+public final class OpenGaussQueryHeaderBuilderTest {
     
     @Test
-    void assertBuildOpenGaussQueryHeader() throws SQLException {
+    public void assertBuildOpenGaussQueryHeader() throws SQLException {
         final int columnIndex = 1;
         QueryResultMetaData queryResultMetaData = mock(QueryResultMetaData.class);
         when(queryResultMetaData.getColumnLabel(columnIndex)).thenReturn("label");

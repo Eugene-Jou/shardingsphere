@@ -26,9 +26,7 @@ import org.apache.shardingsphere.mode.repository.cluster.etcd.props.EtcdProperty
 import org.apache.shardingsphere.mode.repository.cluster.lock.DistributedLock;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Etcd distributed lock.
@@ -55,10 +53,9 @@ public final class EtcdDistributedLock implements DistributedLock {
         try {
             lock.lock(lockKey, lease.grant(timeToLiveSeconds).get().getID()).get(timeoutMillis, TimeUnit.MILLISECONDS);
             return true;
-        } catch (final InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-            return false;
-        } catch (final ExecutionException | TimeoutException ignored) {
+            // CHECKSTYLE:OFF
+        } catch (final Exception ignored) {
+            // CHECKSTYLE:ON
             return false;
         }
     }
@@ -67,9 +64,9 @@ public final class EtcdDistributedLock implements DistributedLock {
     public void unlock() {
         try {
             lock.unlock(lockKey).get();
-        } catch (final InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-        } catch (final ExecutionException ignored) {
+            // CHECKSTYLE:OFF
+        } catch (final Exception ignored) {
+            // CHECKSTYLE:ON
         }
     }
 }

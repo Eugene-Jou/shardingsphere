@@ -17,41 +17,30 @@
 
 package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 
-import io.netty.util.DefaultAttributeMap;
-import org.apache.shardingsphere.db.protocol.constant.CommonConstants;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.exception.mysql.exception.ErrorGlobalVariableException;
-import org.apache.shardingsphere.infra.exception.mysql.exception.UnknownSystemVariableException;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
-import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.metadata.database.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.parser.config.SQLParserRuleConfiguration;
 import org.apache.shardingsphere.parser.rule.SQLParserRule;
-import org.apache.shardingsphere.proxy.backend.connector.ProxyDatabaseConnectionManager;
-import org.apache.shardingsphere.proxy.backend.connector.StandardDatabaseConnector;
+import org.apache.shardingsphere.proxy.backend.connector.BackendConnection;
+import org.apache.shardingsphere.proxy.backend.connector.DatabaseConnector;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
+import org.apache.shardingsphere.proxy.backend.mysql.handler.admin.MySQLSetVariableAdminExecutor;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.sql.parser.api.CacheOption;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dal.VariableAssignSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dal.VariableSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.dal.SetStatement;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dal.VariableAssignSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dal.VariableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.dal.SetStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLSetStatement;
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
 import org.apache.shardingsphere.test.mock.StaticMockSettings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
 
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -60,63 +49,49 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(AutoMockExtension.class)
 @StaticMockSettings(ProxyContext.class)
-class MySQLSetVariableAdminExecutorTest {
-    
-    private final DatabaseType databaseType = TypedSPILoader.getService(DatabaseType.class, "MySQL");
+public final class MySQLSetVariableAdminExecutorTest {
     
     @Test
-    void assertExecute() throws SQLException {
+    public void assertExecute() throws SQLException {
         SetStatement setStatement = prepareSetStatement();
         MySQLSetVariableAdminExecutor executor = new MySQLSetVariableAdminExecutor(setStatement);
         ConnectionSession connectionSession = mock(ConnectionSession.class);
-        when(connectionSession.getAttributeMap()).thenReturn(new DefaultAttributeMap());
-        when(connectionSession.getUsedDatabaseName()).thenReturn("foo_db");
-        ConnectionContext connectionContext = mockConnectionContext();
-        when(connectionSession.getConnectionContext()).thenReturn(connectionContext);
-        ProxyDatabaseConnectionManager databaseConnectionManager = mock(ProxyDatabaseConnectionManager.class);
-        when(connectionSession.getDatabaseConnectionManager()).thenReturn(databaseConnectionManager);
+        when(connectionSession.getDatabaseName()).thenReturn("foo_db");
+        BackendConnection backendConnection = mock(BackendConnection.class);
+        when(connectionSession.getBackendConnection()).thenReturn(backendConnection);
+        when(backendConnection.getConnectionSession()).thenReturn(connectionSession);
         ContextManager contextManager = mockContextManager();
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
-        try (MockedConstruction<StandardDatabaseConnector> mockConstruction = mockConstruction(StandardDatabaseConnector.class)) {
+        try (MockedConstruction<DatabaseConnector> mockConstruction = mockConstruction(DatabaseConnector.class)) {
             executor.execute(connectionSession);
             verify(mockConstruction.constructed().get(0)).execute();
         }
-        assertThat(connectionSession.getAttributeMap().attr(CommonConstants.CHARSET_ATTRIBUTE_KEY).get(), is(StandardCharsets.UTF_8));
-    }
-    
-    private ConnectionContext mockConnectionContext() {
-        ConnectionContext result = mock(ConnectionContext.class);
-        when(result.getCurrentDatabaseName()).thenReturn(Optional.of("foo_db"));
-        return result;
+        verify(connectionSession).setCurrentDatabase("'value'");
     }
     
     private SetStatement prepareSetStatement() {
-        VariableSegment maxConnectionVariableSegment = new VariableSegment(0, 0, "max_connections", "global");
-        VariableAssignSegment setGlobalMaxConnectionAssignSegment = new VariableAssignSegment(0, 0, maxConnectionVariableSegment, "151");
-        VariableSegment characterSetClientSegment = new VariableSegment(0, 0, "character_set_client");
-        VariableAssignSegment setCharacterSetClientVariableSegment = new VariableAssignSegment(0, 0, characterSetClientSegment, "'utf8mb4'");
-        return new SetStatement(databaseType, Arrays.asList(setGlobalMaxConnectionAssignSegment, setCharacterSetClientVariableSegment));
+        VariableAssignSegment setGlobalMaxConnectionAssignSegment = new VariableAssignSegment();
+        VariableSegment maxConnectionVariableSegment = new VariableSegment();
+        maxConnectionVariableSegment.setScope("global");
+        maxConnectionVariableSegment.setVariable("max_connections");
+        setGlobalMaxConnectionAssignSegment.setVariable(maxConnectionVariableSegment);
+        setGlobalMaxConnectionAssignSegment.setAssignValue("151");
+        VariableAssignSegment setTestFixtureAssignSegment = new VariableAssignSegment();
+        VariableSegment testFixtureSegment = new VariableSegment();
+        testFixtureSegment.setVariable("test_fixture");
+        setTestFixtureAssignSegment.setVariable(testFixtureSegment);
+        setTestFixtureAssignSegment.setAssignValue("'value'");
+        SetStatement result = new MySQLSetStatement();
+        result.getVariableAssigns().add(setGlobalMaxConnectionAssignSegment);
+        result.getVariableAssigns().add(setTestFixtureAssignSegment);
+        return result;
     }
     
     private ContextManager mockContextManager() {
         ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
         when(result.getMetaDataContexts().getMetaData().getDatabase("foo_db")).thenReturn(mock(ShardingSphereDatabase.class));
         when(result.getMetaDataContexts().getMetaData().getGlobalRuleMetaData())
-                .thenReturn(new RuleMetaData(Collections.singleton(new SQLParserRule(new SQLParserRuleConfiguration(new CacheOption(1, 1L), new CacheOption(1, 1L))))));
+                .thenReturn(new ShardingSphereRuleMetaData(Collections.singleton(new SQLParserRule(new SQLParserRuleConfiguration(false, new CacheOption(1, 1), new CacheOption(1, 1))))));
         return result;
-    }
-    
-    @Test
-    void assertSetUnknownSystemVariable() {
-        SetStatement setStatement = new SetStatement(databaseType, Collections.singletonList(new VariableAssignSegment(0, 0, new VariableSegment(0, 0, "unknown_variable"), "")));
-        MySQLSetVariableAdminExecutor executor = new MySQLSetVariableAdminExecutor(setStatement);
-        assertThrows(UnknownSystemVariableException.class, () -> executor.execute(mock(ConnectionSession.class)));
-    }
-    
-    @Test
-    void assertSetVariableWithIncorrectScope() {
-        SetStatement setStatement = new SetStatement(databaseType, Collections.singletonList(new VariableAssignSegment(0, 0, new VariableSegment(0, 0, "max_connections"), "")));
-        MySQLSetVariableAdminExecutor executor = new MySQLSetVariableAdminExecutor(setStatement);
-        assertThrows(ErrorGlobalVariableException.class, () -> executor.execute(mock(ConnectionSession.class)));
     }
 }

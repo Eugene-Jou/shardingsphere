@@ -21,21 +21,16 @@ import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.authority.checker.AuthorityChecker;
 import org.apache.shardingsphere.authority.rule.AuthorityRule;
-import org.apache.shardingsphere.infra.database.core.metadata.database.metadata.DialectDatabaseMetaData;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseTypeRegistry;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
-import org.apache.shardingsphere.infra.exception.dialect.exception.syntax.database.DatabaseDropNotExistsException;
-import org.apache.shardingsphere.infra.exception.dialect.exception.syntax.database.UnknownDatabaseException;
-import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
+import org.apache.shardingsphere.dialect.exception.syntax.database.DatabaseDropNotExistsException;
+import org.apache.shardingsphere.dialect.exception.syntax.database.UnknownDatabaseException;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
+import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.handler.ProxyBackendHandler;
 import org.apache.shardingsphere.proxy.backend.response.header.ResponseHeader;
 import org.apache.shardingsphere.proxy.backend.response.header.update.UpdateResponseHeader;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
-import org.apache.shardingsphere.sql.parser.statement.core.statement.type.ddl.database.DropDatabaseStatement;
-
-import java.sql.SQLException;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.DropDatabaseStatement;
 
 /**
  * Drop database backend handler.
@@ -48,16 +43,12 @@ public final class DropDatabaseBackendHandler implements ProxyBackendHandler {
     private final ConnectionSession connectionSession;
     
     @Override
-    public ResponseHeader execute() throws SQLException {
-        check(sqlStatement, connectionSession.getConnectionContext().getGrantee());
+    public ResponseHeader execute() {
+        check(sqlStatement, connectionSession.getGrantee());
         if (isDropCurrentDatabase(sqlStatement.getDatabaseName())) {
-            checkSupportedDropCurrentDatabase(connectionSession);
-            connectionSession.setCurrentDatabaseName(null);
+            connectionSession.setCurrentDatabase(null);
         }
-        if (ProxyContext.getInstance().databaseExists(sqlStatement.getDatabaseName())) {
-            ShardingSphereDatabase database = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getDatabase(sqlStatement.getDatabaseName());
-            ProxyContext.getInstance().getContextManager().getPersistServiceFacade().getModeFacade().getMetaDataManagerService().dropDatabase(database);
-        }
+        ProxyContext.getInstance().getContextManager().getInstanceContext().getModeContextManager().dropDatabase(sqlStatement.getDatabaseName());
         return new UpdateResponseHeader(sqlStatement);
     }
     
@@ -70,12 +61,6 @@ public final class DropDatabaseBackendHandler implements ProxyBackendHandler {
     }
     
     private boolean isDropCurrentDatabase(final String databaseName) {
-        return !Strings.isNullOrEmpty(connectionSession.getUsedDatabaseName()) && connectionSession.getUsedDatabaseName().equals(databaseName);
-    }
-    
-    private void checkSupportedDropCurrentDatabase(final ConnectionSession connectionSession) {
-        DialectDatabaseMetaData dialectDatabaseMetaData = new DatabaseTypeRegistry(connectionSession.getProtocolType()).getDialectDatabaseMetaData();
-        ShardingSpherePreconditions.checkState(!dialectDatabaseMetaData.getSchemaOption().getDefaultSchema().isPresent(),
-                () -> new UnsupportedOperationException("cannot drop the currently open database"));
+        return !Strings.isNullOrEmpty(connectionSession.getDatabaseName()) && connectionSession.getDatabaseName().equals(databaseName);
     }
 }

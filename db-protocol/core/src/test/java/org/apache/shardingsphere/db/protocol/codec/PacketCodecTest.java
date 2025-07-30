@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PacketCodecTest {
+public final class PacketCodecTest {
     
     @Mock
     private DatabasePacketCodecEngine databasePacketCodecEngine;
@@ -48,12 +48,12 @@ class PacketCodecTest {
     private PacketCodec packetCodec;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         packetCodec = new PacketCodec(databasePacketCodecEngine);
     }
     
     @Test
-    void assertDecodeWithValidHeader() {
+    public void assertDecodeWithValidHeader() {
         when(byteBuf.readableBytes()).thenReturn(1);
         when(databasePacketCodecEngine.isValidHeader(1)).thenReturn(true);
         packetCodec.decode(context, byteBuf, Collections.emptyList());
@@ -61,15 +61,16 @@ class PacketCodecTest {
     }
     
     @Test
-    void assertDecodeWithInvalidHeader() {
+    public void assertDecodeWithInvalidHeader() {
         when(byteBuf.readableBytes()).thenReturn(1);
         when(databasePacketCodecEngine.isValidHeader(1)).thenReturn(false);
         packetCodec.decode(context, byteBuf, Collections.emptyList());
         verify(databasePacketCodecEngine, times(0)).decode(context, byteBuf, Collections.emptyList());
     }
     
+    @SuppressWarnings("unchecked")
     @Test
-    void assertEncode() {
+    public void assertEncode() {
         DatabasePacket databasePacket = mock(DatabasePacket.class);
         packetCodec.encode(context, databasePacket, byteBuf);
         verify(databasePacketCodecEngine).encode(context, databasePacket, byteBuf);

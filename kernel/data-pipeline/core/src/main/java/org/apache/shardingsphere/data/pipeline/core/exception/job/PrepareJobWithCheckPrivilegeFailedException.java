@@ -17,18 +17,19 @@
 
 package org.apache.shardingsphere.data.pipeline.core.exception.job;
 
-import org.apache.shardingsphere.infra.exception.core.external.sql.sqlstate.XOpenSQLState;
+import org.apache.shardingsphere.data.pipeline.core.exception.PipelineSQLException;
+import org.apache.shardingsphere.infra.util.exception.external.sql.sqlstate.XOpenSQLState;
 
 import java.sql.SQLException;
 
 /**
  * Prepare job with check privilege failed exception.
  */
-public final class PrepareJobWithCheckPrivilegeFailedException extends PipelineJobException {
+public final class PrepareJobWithCheckPrivilegeFailedException extends PipelineSQLException {
     
     private static final long serialVersionUID = -8462039913248251254L;
     
     public PrepareJobWithCheckPrivilegeFailedException(final SQLException cause) {
-        super(XOpenSQLState.CONNECTION_EXCEPTION, 9, "Check privileges failed on source data source.", cause);
+        super(XOpenSQLState.CONNECTION_EXCEPTION, 89, String.format("Check privileges failed on source data source, reason is: %s", cause.getMessage()), cause);
     }
 }

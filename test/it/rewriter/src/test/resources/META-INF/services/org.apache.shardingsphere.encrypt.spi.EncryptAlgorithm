@@ -18,4 +18,3 @@
 org.apache.shardingsphere.test.it.rewrite.fixture.encrypt.RewriteNormalEncryptAlgorithmFixture
 org.apache.shardingsphere.test.it.rewrite.fixture.encrypt.RewriteQueryAssistedEncryptAlgorithmFixture
 org.apache.shardingsphere.test.it.rewrite.fixture.encrypt.RewriteQueryLikeEncryptAlgorithmFixture
-org.apache.shardingsphere.test.it.rewrite.fixture.encrypt.RewriteEncryptLikeAlgorithmFixture

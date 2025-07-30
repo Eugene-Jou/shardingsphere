@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class SingleXAResourceTest {
+public final class SingleXAResourceTest {
     
     @Mock
     private XAResource xaResource;
@@ -42,65 +42,65 @@ class SingleXAResourceTest {
     private SingleXAResource singleXAResource;
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         singleXAResource = new SingleXAResource("ds1", xaResource);
     }
     
     @Test
-    void assertCommit() throws XAException {
+    public void assertCommit() throws XAException {
         singleXAResource.commit(xid, true);
         verify(xaResource).commit(xid, true);
     }
     
     @Test
-    void assertEnd() throws XAException {
+    public void assertEnd() throws XAException {
         singleXAResource.end(xid, 1);
         verify(xaResource).end(xid, 1);
     }
     
     @Test
-    void assertForget() throws XAException {
+    public void assertForget() throws XAException {
         singleXAResource.forget(xid);
         verify(xaResource).forget(xid);
     }
     
     @Test
-    void assertGetTransactionTimeout() throws XAException {
+    public void assertGetTransactionTimeout() throws XAException {
         singleXAResource.getTransactionTimeout();
         verify(xaResource).getTransactionTimeout();
     }
     
     @Test
-    void assertIsSameRM() {
+    public void assertIsSameRM() {
         assertTrue(singleXAResource.isSameRM(new SingleXAResource("ds1", xaResource)));
     }
     
     @Test
-    void assertPrepare() throws XAException {
+    public void assertPrepare() throws XAException {
         singleXAResource.prepare(xid);
         verify(xaResource).prepare(xid);
     }
     
     @Test
-    void assertRecover() throws XAException {
+    public void assertRecover() throws XAException {
         singleXAResource.recover(1);
         verify(xaResource).recover(1);
     }
     
     @Test
-    void assertRollback() throws XAException {
+    public void assertRollback() throws XAException {
         singleXAResource.rollback(xid);
         verify(xaResource).rollback(xid);
     }
     
     @Test
-    void assertSetTransactionTimeout() throws XAException {
+    public void assertSetTransactionTimeout() throws XAException {
         singleXAResource.setTransactionTimeout(1);
         verify(xaResource).setTransactionTimeout(1);
     }
     
     @Test
-    void assertStart() throws XAException {
+    public void assertStart() throws XAException {
         singleXAResource.start(xid, 1);
         verify(xaResource).start(xid, 1);
     }

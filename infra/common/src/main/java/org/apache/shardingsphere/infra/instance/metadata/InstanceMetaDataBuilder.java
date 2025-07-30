@@ -17,8 +17,8 @@
 
 package org.apache.shardingsphere.infra.instance.metadata;
 
-import org.apache.shardingsphere.infra.spi.annotation.SingletonSPI;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPI;
+import org.apache.shardingsphere.infra.util.spi.annotation.SingletonSPI;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPI;
 
 /**
  * Instance meta data builder.
@@ -28,10 +28,9 @@ public interface InstanceMetaDataBuilder extends TypedSPI {
     
     /**
      * Build instance meta data.
-     *
+     * 
      * @param port port
-     * @param databaseName database name
      * @return built instance meta data
      */
-    InstanceMetaData build(int port, String databaseName);
+    InstanceMetaData build(int port);
 }

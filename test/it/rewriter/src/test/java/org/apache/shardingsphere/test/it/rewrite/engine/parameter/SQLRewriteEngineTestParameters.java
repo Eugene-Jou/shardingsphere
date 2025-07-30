@@ -19,7 +19,6 @@ package org.apache.shardingsphere.test.it.rewrite.engine.parameter;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.test.it.rewrite.engine.type.SQLExecuteType;
 
 import java.util.List;
 
@@ -48,10 +47,23 @@ public final class SQLRewriteEngineTestParameters {
     
     private final String databaseType;
     
-    private final SQLExecuteType sqlExecuteType;
+    /**
+     * To array.
+     * 
+     * @return array value of test parameters
+     */
+    public Object[] toArray() {
+        Object[] result = new Object[5];
+        result[0] = type;
+        result[1] = name;
+        result[2] = fileName;
+        result[3] = databaseType;
+        result[4] = this;
+        return result;
+    }
     
     @Override
     public String toString() {
-        return String.format("{%s}: {%s} ({%s}) -> {%s}", type + "/" + sqlExecuteType, name, databaseType, fileName);
+        return String.format("{%s}: {%s} ({%s}) -> {%s}", type, name, databaseType, fileName);
     }
 }

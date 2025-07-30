@@ -13,124 +13,165 @@ chapter = true
     <tr>
         <td>
             <a href="https://github.com/terrymanu" target="_blank">
-               <b>Liang Zhang (Chair)</b>
+               <img src="https://avatars.githubusercontent.com/u/5516298?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/tristaZero" target="_blank">
-                <b>Juan Pan</b>
+                <img src="https://avatars.githubusercontent.com/u/27757146?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/craiglrussell" target="_blank">
-                <b>Craig L Russell</b>
+                <img src="https://avatars.githubusercontent.com/u/2467238?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/wu-sheng" target="_blank">
-                <b>Sheng Wu</b>
+                <img src="https://avatars.githubusercontent.com/u/5441976?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/WillemJiang" target="_blank">
-                <b>Willem Ning Jiang</b>
+                <img src="https://avatars.githubusercontent.com/u/219644?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/menghaoranss" target="_blank">
-                <b>Haoran Meng</b>
+                <img src="https://avatars.githubusercontent.com/u/60651792?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/kimmking" target="_blank">
-                <b>Kimm King</b>
+                <img src="https://avatars.githubusercontent.com/u/807508?v=4" style="border-radius:50%; overflow:hidden">
             </a>
+        </td>
+    </tr>
+    <tr align="center">
+        <td>
+            <b>Liang Zhang (Chair)</b>
+        </td>
+        <td>
+            <b>Juan Pan</b>
+        </td>
+        <td>
+            <b>Craig L Russell</b>
+        </td>
+        <td>
+            <b>Sheng Wu</b>
+        </td>
+        <td>
+            <b>Willem Ning Jiang</b>
+        </td>
+        <td>
+            <b>Haoran Meng</b>
+        </td>
+        <td>
+            <b>Kimm King</b>
         </td>
     </tr>
     <tr>
         <td>
             <a href="https://github.com/tuohai666" target="_blank">
-                <b>Yonglun Zhang</b>
+                <img src="https://avatars.githubusercontent.com/u/24643893?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/cherrylzhao" target="_blank">
-                <b>Jun Zhao</b>
+                <img src="https://avatars.githubusercontent.com/u/8317649?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/KomachiSion" target="_blank">
-                <b>Yi Yang</b>
+                <img src="https://avatars.githubusercontent.com/u/37170243?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/beckhampu" target="_blank">
-                <b>QingYang Chen</b>
+                <img src="https://avatars.githubusercontent.com/u/14846369?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/vongosling" target="_blank">
-                <b>vongosling</b>
+                <img src="https://avatars.githubusercontent.com/u/635581?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/hanahmily" target="_blank">
-                <b>Hongtao Gao</b>
+                <img src="https://avatars.githubusercontent.com/u/1960537?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/codefairy08" target="_blank">
-                <b>Hongjun Du</b>
+                <img src="https://avatars.githubusercontent.com/u/39583929?v=4" style="border-radius:50%; overflow:hidden">
             </a>
+        </td>
+    </tr>
+    <tr align="center">
+        <td>
+            <b>Yonglun Zhang</b>
+        </td>
+        <td>
+            <b>Jun Zhao</b>
+        </td>
+        <td>
+            <b>Yi Yang</b>
+        </td>
+        <td>
+            <b>QingYang Chen</b>
+        </td>
+        <td>
+            <b>vongosling</b>
+        </td>
+        <td>
+            <b>Hongtao Gao</b>
+        </td>
+        <td>
+            <b>Hongjun Du</b>
         </td>
     </tr>
     <tr>
         <td>
             <a href="https://github.com/haocao" target="_blank">
-                <b>Hao Cao</b>
+                <img src="https://avatars.githubusercontent.com/u/687732?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/maxiaoguang64" target="_blank">
-                <b>Xiaoguang Ma</b>
+                <img src="https://avatars.githubusercontent.com/u/6637227?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/TeslaCN" target="_blank">
-                <b>Weijie Wu</b>
+                <img src="https://avatars.githubusercontent.com/u/20503072?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/strongduanmu" target="_blank">
-                <b>Zhengqiang Duan</b>
+                <img src="https://avatars.githubusercontent.com/u/10829171?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/sandynz" target="_blank">
-                <b>Hongsheng Zhong</b>
-            </a>
-        </td>
-        <td>
-            <a href="https://github.com/wgy8283335" target="_blank">
-                <b>Guangyuan Wang</b>
-            </a>
-        </td>
-        <td>
-            <a href="https://github.com/RaigorJiang" target="_blank">
-                <b>Longtao Jiang</b>
+                <img src="https://avatars.githubusercontent.com/u/42492540?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
     </tr>
-    <tr>
+    <tr align="center">
         <td>
-            <a href="https://github.com/tuichenchuxin" target="_blank">
-                <b>Chuxim Chen</b>
-            </a>
+            <b>Hao Cao</b>
         </td>
         <td>
-            <a href="https://github.com/zhaojinchao95" target="_blank">
-                <b>Jinchao Zhao</b>
-            </a>
+            <b>Xiaoguang Ma</b>
+        </td>
+        <td>
+            <b>Weijie Wu</b>
+        </td>
+        <td>
+            <b>Zhengqiang Duan</b>
+        </td>
+        <td>
+            <b>Hongsheng Zhong</b>
         </td>
     </tr>
 </table>
@@ -140,214 +181,302 @@ chapter = true
 <table style="table-layout:fixed">
     <tr>
         <td>
+            <a href="https://github.com/wgy8283335" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/22066046?v=4" style="border-radius:50%; overflow:hidden">
+            </a>
+        </td>
+        <td>
             <a href="https://github.com/sunbufu" target="_blank">
-                <b>Haisheng Sun</b>
+                <img src="https://avatars.githubusercontent.com/u/14866067?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/wqzwh" target="_blank">
-                <b>Qi Wang</b>
+                <img src="https://avatars.githubusercontent.com/u/16662470?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/betterjava" target="_blank">
-                <b>Ya Li</b>
+                <img src="https://avatars.githubusercontent.com/u/4453100?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/nancyzrh" target="_blank">
-                <b>Yanan Zhao</b>
+                <img src="https://avatars.githubusercontent.com/u/50974817?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/yanyzy" target="_blank">
-                <b>Zhiyi Yan</b>
+                <img src="https://avatars.githubusercontent.com/u/30677017?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/avalon566" target="_blank">
-                <b>YangWen Ou</b>
+                <img src="https://avatars.githubusercontent.com/u/48051589?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
+    </tr>
+    <tr align="center">
         <td>
-            <a href="https://github.com/dongzl" target="_blank">
-                <b>Zonglei Dong</b>
-            </a>
+            <b>Xiaoman Wang</b>
+        </td>
+        <td>
+            <b>Haisheng Sun</b>
+        </td>
+        <td>
+            <b>Qi Wang</b>
+        </td>
+        <td>
+            <b>Ya Li</b>
+        </td>
+        <td>
+            <b>Yanan Zhao</b>
+        </td>
+        <td>
+            <b>Zhiyi Yan</b>
+        </td>
+        <td>
+            <b>YangWen Ou</b>
         </td>
     </tr>
     <tr>
         <td>
+            <a href="https://github.com/dongzl" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/5917359?v=4" style="border-radius:50%; overflow:hidden">
+            </a>
+        </td>
+        <td>
             <a href="https://github.com/SteNicholas" target="_blank">
-                <b>Xiaofeng Jiang</b>
+                <img src="https://avatars.githubusercontent.com/u/10048174?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/yue530tom" target="_blank">
-                <b>Ling Yue</b>
+                <img src="https://avatars.githubusercontent.com/u/7359865?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/yu199195" target="_blank">
-                <b>Xiao Yu</b>
+                <img src="https://avatars.githubusercontent.com/u/9673503?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/jingshanglu" target="_blank">
-                <b>Jingshang Lu</b>
+                <img src="https://avatars.githubusercontent.com/u/16559542?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/Technoboy-" target="_blank">
-                <b>Jiwei Guo</b>
+                <img src="https://avatars.githubusercontent.com/u/6297296?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/Lucas-307" target="_blank">
-                <b>Lu Qiu</b>
+                <img src="https://avatars.githubusercontent.com/u/5524798?v=4" style="border-radius:50%; overflow:hidden">
+            </a>
+        </td>
+    </tr>
+    <tr align="center">
+        <td>
+            <b>Zonglei Dong</b>
+        </td>
+        <td>
+            <b>Xiaofeng Jiang</b>
+        </td>
+        <td>
+            <b>Ling Yue</b>
+        </td>
+        <td>
+            <b>Xiao Yu</b>
+        </td>
+        <td>
+            <b>Jingshang Lu</b>
+        </td>
+        <td>
+            <b>Jiwei Guo</b>
+        </td>
+        <td>
+            <b>Lu Qiu</b>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://github.com/RaigorJiang" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/5668787?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/ThanoshanMV" target="_blank">
-                <b>Thanoshan MV</b>
+                <img src="https://avatars.githubusercontent.com/u/48581379?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
-    </tr>
-    <tr>
         <td>
             <a href="https://github.com/lanchengx" target="_blank">
-                <b>Chengxiang Lan</b>
+                <img src="https://avatars.githubusercontent.com/u/52209337?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/yx9o" target="_blank">
-                <b>Xiao Yang</b>
+                <img src="https://avatars.githubusercontent.com/u/12792261?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/totalo" target="_blank">
-                <b>Guocheng Tang</b>
+                <img src="https://avatars.githubusercontent.com/u/29777558?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/LeeGuoPing" target="_blank">
-                <b>Guoping Li</b>
+                <img src="https://avatars.githubusercontent.com/u/35389145?v=4" style="border-radius:50%; overflow:hidden">
+            </a>
+        </td>
+        <td>
+            <a href="https://github.com/zjcnb" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/33742097?v=4" style="border-radius:50%; overflow:hidden">
+            </a>
+        </td>
+    </tr>
+    <tr align="center">
+        <td>
+            <b>Longtao Jiang</b>
+        </td>
+        <td>
+            <b>Thanoshan MV</b>
+        </td>
+        <td>
+            <b>Chengxiang Lan</b>
+        </td>
+        <td>
+            <b>Xiao Yang</b>
+        </td>
+        <td>
+            <b>Guocheng Tang</b>
+        </td>
+        <td>
+            <b>Guoping Li</b>
+        </td>
+        <td>
+            <b>Jinchao Zhao</b>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://github.com/tuichenchuxin" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/86938616?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
          <td>
             <a href="https://github.com/Liangda-w" target="_blank">
-                <b>Liangda Wang</b>
+                <img src="https://avatars.githubusercontent.com/u/66914151?v=4" style="border-radius:50%; overflow:hidden">
             </a>
          </td>
         <td>
             <a href="https://github.com/cheese8" target="_blank">
-                <b>cheese8</b>
+                <img src="https://avatars.githubusercontent.com/u/25882819?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/soulasuna" target="_blank">
-                <b>Yang Hou</b>
+                <img src="https://avatars.githubusercontent.com/u/33794770?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
-    </tr>
-    <tr>
         <td>
             <a href="https://github.com/galaxylqx" target="_blank">
-                <b>Qunxing Lei</b>
+                <img src="https://avatars.githubusercontent.com/u/9473278?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
-            <a href="https://github.com/magestacks" target="_blank">
-                <b>Chen Ma</b>
+            <a href="https://github.com/mabaiwan" target="_blank">
+                <img src="https://avatars.githubusercontent.com/u/77398366?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/JiekerTime" target="_blank">
-                <b>Junjie Zhang</b>
+                <img src="https://avatars.githubusercontent.com/u/76552510?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
+    </tr>
+    <tr align="center">
+        <td>
+            <b>Chuxin Chen</b>
+        </td>
+         <td>
+            <b>Liangda Wang</b>
+         </td>
+        <td>
+            <b>cheese8</b>
+        </td>
+        <td>
+            <b>Yang Hou</b>
+        </td>
+        <td>
+            <b>Qunxing Lei</b>
+        </td>
+        <td>
+            <b>Chen Ma</b>
+        </td>
+        <td>
+            <b>Junjie Zhang</b>
+        </td>
+    </tr>
+    <tr>
         <td>
             <a href="https://github.com/Swastyy" target="_blank">
-                <b>Swastika Gupta</b>
+                <img src="https://avatars.githubusercontent.com/u/64654203?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/yy2so" target="_blank">
-                <b>Yacine Si Tayeb</b>
+                <img src="https://avatars.githubusercontent.com/u/86716581?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/natehuangting" target="_blank">
-                <b>Ting Huang</b>
+                <img src="https://avatars.githubusercontent.com/u/26433395?s=96&v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
        <td>
             <a href="https://github.com/taojintianxia" target="_blank">
-                <b>Nianjun Sun</b>
+                <img src="https://avatars.githubusercontent.com/u/4112856?s=96&v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
-    </tr>
-    <tr>
         <td>
             <a href="https://github.com/azexcy" target="_blank">
-                <b>Xinze Guo</b>
+                <img src="https://avatars.githubusercontent.com/u/101622833?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/everly-gif" target="_blank">
-                <b>Everly Precia Suresh</b>
+                <img src="https://avatars.githubusercontent.com/u/77877486?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
         <td>
             <a href="https://github.com/mlycore" target="_blank">
-                <b>Liyao Miao</b>
-            </a>
-        </td>
-        <td>
-            <a href="https://github.com/gxxiong" target="_blank">
-                <b>Gaoxiang Xiong</b>
-            </a>
-        </td>
-        <td>
-            <a href="https://github.com/Qianyi951015" target="_blank">
-                <b>Zichao Wang</b>
-            </a>
-        </td>
-        <td>
-            <a href="https://github.com/linghengqian" target="_blank">
-                <b>Qiheng He</b>
-            </a>
-        </td>
-        <td>
-            <a href="https://github.com/flyingzc" target="_blank">
-                <b>Cheng Zhang</b>
+                <img src="https://avatars.githubusercontent.com/u/22319610?v=4" style="border-radius:50%; overflow:hidden">
             </a>
         </td>
     </tr>
-    <tr>
+    <tr align="center">
         <td>
-            <a href="https://github.com/Pace2Car" target="_blank">
-                <b>Jiahao Chen</b>
-            </a>
+            <b>Swastika Gupta</b>
         </td>
-         <td>
-            <a href="https://github.com/zihaoAK47" target="_blank">
-                <b>Zihao Niu</b>
-            </a>
+        <td>
+            <b>Yacine Si Tayeb</b>
         </td>
-         <td>
-            <a href="https://github.com/jiangML" target="_blank">
-                <b>Maolin Jiang</b>
-            </a>
+        <td>
+            <b>Ting Huang</b>
         </td>
-         <td>
-            <a href="https://github.com/iamhucong" target="_blank">
-                <b>Cong Hu</b>
-            </a>
+        <td>
+            <b>Nianjun Sun</b>
         </td>
-         <td>
-            <a href="https://github.com/TherChenYang" target="_blank">
-                <b>Chenyang Ma</b>
-            </a>
+        <td>
+            <b>Xinze Guo</b>
+        </td>
+        <td>
+            <b>Everly Precia Suresh</b>
+        </td>
+        <td>
+            <b>Liyao Miao</b>
         </td>
     </tr>
 </table>
@@ -362,14 +491,13 @@ You can find all of the ShardingSphere contributors directly in GitHub's contrib
 ## Becoming a Committer
 
 The ShardingSphere community follows the [Apache Community’s process](http://community.apache.org/newcommitter.html) on accepting a new committer.
-Contributors who actively participate in the ShardingSphere community may be invited to become a committer by the project's PMC and existing committers.
+Contributors that actively participate in ShardingSphere's community will be invited by the project's (P)PMC and Committers to join them by becoming a committer.
 
 You can read the [Contributor Guide](/en/involved/contribute/) for more information on how you can contribute to the community, as well as the [Committer Guide](/en/involved/committer/) for more details on how to become a committer.
 
-### How Can I become a Contributor
+### How Can I Become a Contributor
 
-A contributor simply means that you take an interest in the project and contribute in some way, ranging from asking questions to providing new features as code patches.
-Contributions can be made in many ways, such as: 
+A contributor simply means that you take an interest in the project and contribute in some way, ranging from asking questions to providing new features as code patches. Contributions can be made in many ways, such as: 
 1. Help others in the issues
   - Help solve problems with the issues
   - Remind the authors to provide a demo if they are reporting a bug
@@ -381,12 +509,11 @@ Contributions can be made in many ways, such as:
 6. Spread the word! Tweet or engage with @ShardingSphere on Twitter
 7. Bit of a writer? Consider submitting a piece for publication on the ShardingSphere Medium page and official blog and we will feature you on all our media channels as well
 
-The first step towards becoming a contributor is to get involved. Dive into the Apache ShardingSphere concept & code, and say hi to the community; offer help, improve docs, complete a newbie ticket or answer a user. You may just be surprised how welcoming and open folks are here. The more visible and engaged you are in the project, the more fun you will have and the more access you will have to advice and feedback. Contributing is fun and beneficial. 
+The first step is to get involved. Dive into the Apache ShardingSphere concept & code, and say hi to the community; offer help, improve docs, complete a newbie ticket or answer a user. You may just be surprised how welcoming and open folks are here. The more visible and engaged you are in the project, the more fun you will have and the more access you will have to advice and feedback. Contributing is fun and beneficial. 
 
-### Anyone can become a Committer 
+### Anyone can become a committer 
 
-Anyone who contributes to a project in any way is a contributor.
-If you become a valuable contributor to the project, the Project Management Committee (PMC) may invite you to become a committer. 
+Anyone who contributes to a project in any way is a contributor. If you become a valuable contributor to the project, the Project Management Committee (PMC) may invite you to become a committer. 
 
 It brings with it the privilege of write access to the project repository and resources, not just read source code files. A committer has the privilege to write and commit code and create pull requests to the default branch of the repository and in most cases, reviewers are also committers as you need to understand the code to review a PR.  
 In short, the committer is authorized to merge user contributions into the project.
@@ -399,11 +526,10 @@ Apart from many visible contributions of value in Apache projects (documentation
 - Providing mentorship 
 
 ### Why should I become a Committer?
-
 Committer activity is a good and useful endeavor: 
 - Being assigned to a Committer role is extremely motivating. A good open source community like Apache ShardingSphere appreciates your values and contributions, and you clearly see the results of your work in action.
 - Grow both professionally and personally very fast. 
 - Have an opportunity to connect with top professionals and also pull some cool ideas.
 - Being a Committer is good for CV building and even a greater plus for junior programmers.
 
-For more information, please read Guide for new project committers published by the Apache Software Foundation.
+For more information, please read Guide for new project committers published by the Apache Software Foundation. 

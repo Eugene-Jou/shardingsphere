@@ -34,13 +34,13 @@ public enum MySQLAuthenticationPlugin {
     
     DEFAULT(null),
     
-    NATIVE("mysql_native_password"),
+    NATIVE_PASSWORD_AUTHENTICATION("mysql_native_password"),
     
-    CACHING_SHA2("caching_sha2_password"),
+    SHA2_AUTHENTICATION("caching_sha2_password"),
     
-    SHA256("sha256_password");
+    SHA256_AUTHENTICATION("sha256_password");
     
-    private static final Map<String, MySQLAuthenticationPlugin> VALUE_AND_COLUMN_TYPE_MAP = new HashMap<>(values().length, 1F);
+    private static final Map<String, MySQLAuthenticationPlugin> VALUE_AND_COLUMN_TYPE_MAP = new HashMap<>(values().length, 1);
     
     static {
         for (MySQLAuthenticationPlugin each : values()) {
@@ -57,6 +57,9 @@ public enum MySQLAuthenticationPlugin {
      * @return mysql authentication plugin
      */
     public static MySQLAuthenticationPlugin getPluginByName(final String pluginName) {
-        return VALUE_AND_COLUMN_TYPE_MAP.getOrDefault(pluginName, DEFAULT);
+        if (VALUE_AND_COLUMN_TYPE_MAP.containsKey(pluginName)) {
+            return VALUE_AND_COLUMN_TYPE_MAP.get(pluginName);
+        }
+        return DEFAULT;
     }
 }

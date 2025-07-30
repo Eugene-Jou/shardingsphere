@@ -21,18 +21,17 @@ import io.netty.util.AttributeMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
+import org.apache.shardingsphere.infra.binder.QueryContext;
+import org.apache.shardingsphere.infra.context.ConnectionContext;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.executor.sql.prepare.driver.CacheableExecutorConnectionManager;
 import org.apache.shardingsphere.infra.executor.sql.prepare.driver.ExecutorStatementManager;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
-import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
-import org.apache.shardingsphere.infra.session.query.QueryContext;
-import org.apache.shardingsphere.proxy.backend.connector.ProxyDatabaseConnectionManager;
+import org.apache.shardingsphere.proxy.backend.connector.BackendConnection;
 import org.apache.shardingsphere.proxy.backend.connector.jdbc.statement.JDBCBackendStatement;
 import org.apache.shardingsphere.proxy.backend.session.transaction.TransactionStatus;
-import org.apache.shardingsphere.sql.parser.statement.core.enums.TransactionIsolationLevel;
-
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import org.apache.shardingsphere.sql.parser.sql.common.enums.TransactionIsolationLevel;
+import org.apache.shardingsphere.transaction.api.TransactionType;
 
 /**
  * Connection session.
@@ -44,9 +43,11 @@ public final class ConnectionSession {
     private final DatabaseType protocolType;
     
     @Setter(AccessLevel.NONE)
-    private volatile String currentDatabaseName;
+    private volatile String databaseName;
     
     private volatile int connectionId;
+    
+    private volatile Grantee grantee;
     
     private final TransactionStatus transactionStatus;
     
@@ -60,75 +61,56 @@ public final class ConnectionSession {
     
     private TransactionIsolationLevel isolationLevel;
     
-    private final ProxyDatabaseConnectionManager databaseConnectionManager;
+    private final BackendConnection backendConnection;
     
-    @SuppressWarnings("rawtypes")
     private final ExecutorStatementManager statementManager;
     
     private final ServerPreparedStatementRegistry serverPreparedStatementRegistry = new ServerPreparedStatementRegistry();
     
-    private final AtomicReference<ConnectionContext> connectionContext = new AtomicReference<>();
+    private final ConnectionContext connectionContext;
     
     private final RequiredSessionVariableRecorder requiredSessionVariableRecorder = new RequiredSessionVariableRecorder();
     
-    private volatile String processId;
+    private volatile String executionId;
     
     private QueryContext queryContext;
     
-    public ConnectionSession(final DatabaseType protocolType, final AttributeMap attributeMap) {
+    public ConnectionSession(final DatabaseType protocolType, final TransactionType initialTransactionType, final AttributeMap attributeMap) {
         this.protocolType = protocolType;
-        transactionStatus = new TransactionStatus();
+        transactionStatus = new TransactionStatus(initialTransactionType);
         this.attributeMap = attributeMap;
-        databaseConnectionManager = new ProxyDatabaseConnectionManager(this);
+        backendConnection = new BackendConnection(this);
         statementManager = new JDBCBackendStatement();
-    }
-    
-    /**
-     * Set grantee.
-     *
-     * @param grantee grantee
-     */
-    public void setGrantee(final Grantee grantee) {
-        connectionContext.set(new ConnectionContext(databaseConnectionManager::getUsedDataSourceNames, grantee));
+        connectionContext = new ConnectionContext(((CacheableExecutorConnectionManager<?>) backendConnection)::getDataSourceNamesOfCachedConnections);
     }
     
     /**
      * Change database of current channel.
      *
-     * @param currentDatabaseName current database name
+     * @param databaseName database name
      */
-    public void setCurrentDatabaseName(final String currentDatabaseName) {
-        if (null == currentDatabaseName || !currentDatabaseName.equals(this.currentDatabaseName)) {
-            this.currentDatabaseName = currentDatabaseName;
-            connectionContext.get().setCurrentDatabaseName(currentDatabaseName);
+    public void setCurrentDatabase(final String databaseName) {
+        if (null == databaseName || !databaseName.equals(this.databaseName)) {
+            this.databaseName = databaseName;
         }
     }
     
     /**
-     * Get connection context.
+     * Get database name.
      *
-     * @return connection context
+     * @return database name
      */
-    public ConnectionContext getConnectionContext() {
-        return connectionContext.get();
+    public String getDatabaseName() {
+        return null == queryContext ? databaseName : queryContext.getDatabaseNameFromSQLStatement().orElse(databaseName);
     }
     
     /**
-     * Get used database name.
+     * Get default database name.
      *
-     * @return used database name
+     * @return default database name
      */
-    public String getUsedDatabaseName() {
-        return null == queryContext || queryContext.getUsedDatabaseNames().isEmpty() ? currentDatabaseName : queryContext.getUsedDatabaseNames().iterator().next();
-    }
-    
-    /**
-     * Get isolation level.
-     *
-     * @return isolation level
-     */
-    public Optional<TransactionIsolationLevel> getIsolationLevel() {
-        return Optional.ofNullable(isolationLevel);
+    public String getDefaultDatabaseName() {
+        return databaseName;
     }
     
     /**

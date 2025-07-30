@@ -24,23 +24,23 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class MySQLStatementIdGeneratorTest {
+public final class MySQLStatementIDGeneratorTest {
     
     private static final int CONNECTION_ID = 1;
     
     @BeforeEach
-    void setup() {
-        MySQLStatementIdGenerator.getInstance().registerConnection(CONNECTION_ID);
+    public void setup() {
+        MySQLStatementIDGenerator.getInstance().registerConnection(CONNECTION_ID);
     }
     
     @AfterEach
-    void tearDown() {
-        MySQLStatementIdGenerator.getInstance().unregisterConnection(CONNECTION_ID);
+    public void tearDown() {
+        MySQLStatementIDGenerator.getInstance().unregisterConnection(CONNECTION_ID);
     }
     
     @Test
-    void assertNextStatementId() {
-        assertThat(MySQLStatementIdGenerator.getInstance().nextStatementId(CONNECTION_ID), is(1));
-        assertThat(MySQLStatementIdGenerator.getInstance().nextStatementId(CONNECTION_ID), is(2));
+    public void assertNextStatementId() {
+        assertThat(MySQLStatementIDGenerator.getInstance().nextStatementId(CONNECTION_ID), is(1));
+        assertThat(MySQLStatementIDGenerator.getInstance().nextStatementId(CONNECTION_ID), is(2));
     }
 }

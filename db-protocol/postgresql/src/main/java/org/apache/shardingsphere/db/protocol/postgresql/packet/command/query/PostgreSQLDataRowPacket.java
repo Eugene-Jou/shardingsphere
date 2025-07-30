@@ -36,12 +36,12 @@ import java.util.Collection;
  */
 @RequiredArgsConstructor
 @Getter
-public final class PostgreSQLDataRowPacket extends PostgreSQLIdentifierPacket {
+public final class PostgreSQLDataRowPacket implements PostgreSQLIdentifierPacket {
     
     private final Collection<Object> data;
     
     @Override
-    protected void write(final PostgreSQLPacketPayload payload) {
+    public void write(final PostgreSQLPacketPayload payload) {
         payload.writeInt2(data.size());
         for (Object each : data) {
             if (each instanceof BinaryCell) {
@@ -59,7 +59,7 @@ public final class PostgreSQLDataRowPacket extends PostgreSQLIdentifierPacket {
             return;
         }
         PostgreSQLBinaryProtocolValue binaryProtocolValue = PostgreSQLBinaryProtocolValueFactory.getBinaryProtocolValue(each.getColumnType());
-        payload.writeInt4(binaryProtocolValue.getColumnLength(payload, value));
+        payload.writeInt4(binaryProtocolValue.getColumnLength(value));
         binaryProtocolValue.write(payload, value);
     }
     
@@ -84,7 +84,7 @@ public final class PostgreSQLDataRowPacket extends PostgreSQLIdentifierPacket {
             payload.writeInt4(dataBytes.length);
             payload.writeBytes(dataBytes);
         } catch (final SQLException ex) {
-            throw new IllegalStateException(ex);
+            throw new RuntimeException(ex.getMessage());
         }
     }
     

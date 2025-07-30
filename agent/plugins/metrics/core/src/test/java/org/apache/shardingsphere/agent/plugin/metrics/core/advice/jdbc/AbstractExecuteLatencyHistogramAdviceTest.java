@@ -17,50 +17,48 @@
 
 package org.apache.shardingsphere.agent.plugin.metrics.core.advice.jdbc;
 
-import org.apache.shardingsphere.agent.api.advice.TargetAdviceMethod;
 import org.apache.shardingsphere.agent.plugin.metrics.core.collector.MetricsCollectorRegistry;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricCollectorType;
 import org.apache.shardingsphere.agent.plugin.metrics.core.config.MetricConfiguration;
 import org.apache.shardingsphere.agent.plugin.metrics.core.fixture.TargetAdviceObjectFixture;
 import org.apache.shardingsphere.agent.plugin.metrics.core.fixture.collector.MetricsCollectorFixture;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.TimeUnit;
+import java.lang.reflect.Method;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.mockito.Mockito.mock;
 
-class AbstractExecuteLatencyHistogramAdviceTest {
+public final class AbstractExecuteLatencyHistogramAdviceTest {
     
     private final MetricConfiguration config = new MetricConfiguration("jdbc_statement_execute_latency_millis", MetricCollectorType.HISTOGRAM, null);
     
     @AfterEach
-    void reset() {
+    public void reset() {
         ((MetricsCollectorFixture) MetricsCollectorRegistry.get(config, "FIXTURE")).reset();
     }
     
     @Test
-    void assertWithStatement() {
+    public void assertWithStatement() throws InterruptedException {
         StatementExecuteLatencyHistogramAdvice advice = new StatementExecuteLatencyHistogramAdvice();
         TargetAdviceObjectFixture targetObject = new TargetAdviceObjectFixture();
-        TargetAdviceMethod method = mock(TargetAdviceMethod.class);
+        Method method = mock(Method.class);
         advice.beforeMethod(targetObject, method, new Object[]{}, "FIXTURE");
-        Awaitility.await().pollDelay(200L, TimeUnit.MILLISECONDS).until(() -> true);
+        Thread.sleep(200L);
         advice.afterMethod(targetObject, method, new Object[]{}, null, "FIXTURE");
-        assertThat(Double.parseDouble(MetricsCollectorRegistry.get(config, "FIXTURE").toString()), greaterThanOrEqualTo(200D));
+        assertThat(Double.parseDouble(MetricsCollectorRegistry.get(config, "FIXTURE").toString()), greaterThanOrEqualTo(200d));
     }
     
     @Test
-    void assertWithPreparedStatement() {
+    public void assertWithPreparedStatement() throws InterruptedException {
         PreparedStatementExecuteLatencyHistogramAdvice advice = new PreparedStatementExecuteLatencyHistogramAdvice();
         TargetAdviceObjectFixture targetObject = new TargetAdviceObjectFixture();
-        TargetAdviceMethod method = mock(TargetAdviceMethod.class);
+        Method method = mock(Method.class);
         advice.beforeMethod(targetObject, method, new Object[]{}, "FIXTURE");
-        Awaitility.await().pollDelay(200L, TimeUnit.MILLISECONDS).until(() -> true);
+        Thread.sleep(200L);
         advice.afterMethod(targetObject, method, new Object[]{}, null, "FIXTURE");
-        assertThat(Double.parseDouble(MetricsCollectorRegistry.get(config, "FIXTURE").toString()), greaterThanOrEqualTo(200D));
+        assertThat(Double.parseDouble(MetricsCollectorRegistry.get(config, "FIXTURE").toString()), greaterThanOrEqualTo(200d));
     }
 }

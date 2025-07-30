@@ -96,7 +96,7 @@ ShardingSphere-Proxy 的启动方式有三种：二进制包、Docker、Helm，�
 
 ### 1. 将 MySQL 的 JDBC 驱动复制到 ext-lib 包
 
-下载驱动 [mysql-connector-java-5.1.49.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.49/mysql-connector-java-5.1.49.jar) 或者 [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar) 放入 ext-lib 包。因为初始目录中并没有 ext-lib，需要自行创建。
+下载驱动 [mysql-connector-java-5.1.47.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.47/mysql-connector-java-5.1.47.jar) 或者 [mysql-connector-java-8.0.11.jar](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.11/mysql-connector-java-8.0.11.jar) 放入 ext-lib 包。因为初始目录中并没有 ext-lib，需要自行创建。
 
 ### 2. 修改 conf/server.yaml 配置文件
 
@@ -121,6 +121,7 @@ rules: # 认证信息
    defaultType: XA
    providerType: Atomikos
  - !SQL_PARSER
+   sqlCommentParseEnabled: true
    sqlStatementCache:
      initialCapacity: 2000
      maximumSize: 65535
@@ -133,6 +134,7 @@ props: # 公用配置
  kernel-executor-size: 16  # Infinite by default.
  proxy-frontend-flush-threshold: 128  # The default value is 128.
  proxy-opentracing-enabled: false
+ proxy-hint-enabled: false
  sql-show: false
  check-table-metadata-enabled: false
    # Proxy backend query fetch size. A larger value may increase the memory usage of ShardingSphere Proxy.

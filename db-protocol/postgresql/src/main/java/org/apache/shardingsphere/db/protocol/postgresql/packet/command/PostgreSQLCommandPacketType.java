@@ -19,11 +19,12 @@ package org.apache.shardingsphere.db.protocol.postgresql.packet.command;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.db.protocol.packet.command.CommandPacketType;
+import org.apache.shardingsphere.db.protocol.packet.CommandPacketType;
 import org.apache.shardingsphere.db.protocol.postgresql.exception.PostgreSQLProtocolException;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.identifier.PostgreSQLIdentifierTag;
 
-import java.util.EnumSet;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -55,17 +56,17 @@ public enum PostgreSQLCommandPacketType implements CommandPacketType, PostgreSQL
     
     TERMINATE('X');
     
-    private static final Set<PostgreSQLCommandPacketType> EXTENDED_PROTOCOL_PACKET_TYPES = EnumSet.of(
-            PARSE_COMMAND, BIND_COMMAND, DESCRIBE_COMMAND, EXECUTE_COMMAND, SYNC_COMMAND, CLOSE_COMMAND, FLUSH_COMMAND);
+    private static final Set<PostgreSQLCommandPacketType> EXTENDED_PROTOCOL_PACKET_TYPE = new HashSet<>(Arrays.asList(PostgreSQLCommandPacketType.PARSE_COMMAND,
+            PostgreSQLCommandPacketType.BIND_COMMAND, PostgreSQLCommandPacketType.DESCRIBE_COMMAND, PostgreSQLCommandPacketType.EXECUTE_COMMAND, PostgreSQLCommandPacketType.SYNC_COMMAND,
+            PostgreSQLCommandPacketType.CLOSE_COMMAND, PostgreSQLCommandPacketType.FLUSH_COMMAND));
     
     private final char value;
     
     /**
      * Value of integer.
-     *
+     * 
      * @param value integer value
      * @return command packet type enum
-     * @throws PostgreSQLProtocolException PostgreSQL protocol exception
      */
     public static PostgreSQLCommandPacketType valueOf(final int value) {
         for (PostgreSQLCommandPacketType each : values()) {
@@ -83,6 +84,6 @@ public enum PostgreSQLCommandPacketType implements CommandPacketType, PostgreSQL
      * @return is extended protocol packet type
      */
     public static boolean isExtendedProtocolPacketType(final CommandPacketType commandPacketType) {
-        return EXTENDED_PROTOCOL_PACKET_TYPES.contains(commandPacketType);
+        return EXTENDED_PROTOCOL_PACKET_TYPE.contains(commandPacketType);
     }
 }

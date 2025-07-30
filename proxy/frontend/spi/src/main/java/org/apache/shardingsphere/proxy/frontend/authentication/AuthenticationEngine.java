@@ -18,7 +18,6 @@
 package org.apache.shardingsphere.proxy.frontend.authentication;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.shardingsphere.authentication.result.AuthenticationResult;
 import org.apache.shardingsphere.db.protocol.payload.PacketPayload;
 
 /**

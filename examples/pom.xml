@@ -27,26 +27,28 @@
     <name>${project.artifactId}</name>
     
     <modules>
+        <module>example-core</module>
+        <module>shardingsphere-proxy-example</module>
         <module>shardingsphere-parser-example</module>
-        <module>shardingsphere-jdbc-example-generator</module>
+        <module>shardingsphere-example-generator</module>
     </modules>
     
     <properties>
-        <revision>5.5.3-SNAPSHOT</revision>
+        <revision>5.3.2</revision>
         <java.version>1.8</java.version>
         <maven.version.range>[3.0.4,)</maven.version.range>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.locale>zh_CN</project.build.locale>
         <aspectjweaver.version>1.8.9</aspectjweaver.version>
-        <spring-framework.version>5.2.22.RELEASE</spring-framework.version>
+        <spring-framework.version>5.2.15.RELEASE</spring-framework.version>
         <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
         <hikari-cp.version>3.4.2</hikari-cp.version>
-        <mysql-connector-java.version>8.3.0</mysql-connector-java.version>
-        <postgresql.version>42.7.5</postgresql.version>
-        <h2.version>2.2.224</h2.version>
+        <mysql-connector-java.version>5.1.47</mysql-connector-java.version>
+        <postgresql.version>42.4.1</postgresql.version>
+        <h2.version>2.1.214</h2.version>
         <slf4j.version>1.7.7</slf4j.version>
-        <logback.version>1.2.13</logback.version>
-        <lombok.version>1.18.38</lombok.version>
+        <logback.version>1.2.10</logback.version>
+        <lombok.version>1.18.20</lombok.version>
         <mybatis.version>3.5.9</mybatis.version>
         <mybatis-spring.version>2.0.5</mybatis-spring.version>
         <mybatis-spring-boot.version>2.1.3</mybatis-spring-boot.version>
@@ -56,18 +58,21 @@
         <narayana.version>5.9.1.Final</narayana.version>
         <jboss-transaction-spi.version>7.6.0.Final</jboss-transaction-spi.version>
         <jboss-logging.version>3.2.1.Final</jboss-logging.version>
+        <btm.version>2.1.3</btm.version>
         
-        <seata.version>1.6.1</seata.version>
-
-        <junit.version>5.11.2</junit.version>
-        <hamcrest.version>3.0</hamcrest.version>
+        <seata.version>1.4.2</seata.version>
+        
+        <junit4.version>4.13.2</junit4.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <mockito.version>2.7.21</mockito.version>
         
         <apache-rat-plugin.version>0.12</apache-rat-plugin.version>
-        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>2.7</maven-resources-plugin.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <freemarker.version>2.3.31</freemarker.version>
-        <snakeyaml.version>2.2</snakeyaml.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
         <flatten-maven-plugin.version>1.2.5</flatten-maven-plugin.version>
         
         <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
@@ -87,7 +92,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-jdbc</artifactId>
+                <artifactId>shardingsphere-jdbc-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -98,6 +103,11 @@
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
                 <artifactId>shardingsphere-transaction-xa-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-transaction-xa-bitronix</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -122,47 +132,52 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-cluster-mode-repository-nacos</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
                 <artifactId>shardingsphere-infra-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-parser-sql-engine</artifactId>
+                <artifactId>shardingsphere-sql-parser-engine</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-parser-sql-mysql</artifactId>
+                <artifactId>shardingsphere-sql-parser-mysql</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-parser-sql-oracle</artifactId>
+                <artifactId>shardingsphere-sql-parser-oracle</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-parser-sql-sql92</artifactId>
+                <artifactId>shardingsphere-sql-parser-sql92</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-parser-sql-postgresql</artifactId>
+                <artifactId>shardingsphere-sql-parser-postgresql</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-parser-sql-sqlserver</artifactId>
+                <artifactId>shardingsphere-sql-parser-sqlserver</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-parser-sql-opengauss</artifactId>
+                <artifactId>shardingsphere-sql-parser-opengauss</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
-                <artifactId>shardingsphere-sql-parser-core</artifactId>
+                <artifactId>shardingsphere-parser-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             
@@ -270,6 +285,11 @@
                 <version>${jboss-logging.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.codehaus.btm</groupId>
+                <artifactId>btm</artifactId>
+                <version>${btm.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.seata</groupId>
                 <artifactId>seata-all</artifactId>
                 <version>${seata.version}</version>
@@ -281,19 +301,6 @@
                 <version>${freemarker.version}</version>
             </dependency>
             
-            <dependency>
-                <groupId>org.junit</groupId>
-                <artifactId>junit-bom</artifactId>
-                <version>${junit.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest</artifactId>
-                <version>${hamcrest.version}</version>
-                <scope>test</scope>
-            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
@@ -323,8 +330,8 @@
             <version>${postgresql.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
             <version>${mysql-connector-java.version}</version>
         </dependency>
         <dependency>
@@ -349,6 +356,37 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit4.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${mockito.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     
@@ -380,15 +418,12 @@
                     <target>${java.version}</target>
                     <testSource>${java.version}</testSource>
                     <testTarget>${java.version}</testTarget>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
                 </configuration>
                 <version>${maven-compiler-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>

@@ -17,17 +17,17 @@
 
 package org.apache.shardingsphere.sharding.route.engine.condition;
 
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.complex.CommonExpressionSegment;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simple.LiteralExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.complex.CommonExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.LiteralExpressionSegment;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ExpressionConditionUtilsTest {
+public final class ExpressionConditionUtilsTest {
     
     @Test
-    void assertIsNowExpression() {
+    public void assertIsNowExpression() {
         assertFalse(ExpressionConditionUtils.isNowExpression(new LiteralExpressionSegment(0, 0, new Object())));
         assertFalse(ExpressionConditionUtils.isNowExpression(new CommonExpressionSegment(0, 0, "shardingsphere")));
         assertTrue(ExpressionConditionUtils.isNowExpression(new CommonExpressionSegment(0, 0, "NOW()")));

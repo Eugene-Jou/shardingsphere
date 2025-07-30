@@ -18,18 +18,18 @@
 package org.apache.shardingsphere.sharding.route.engine.condition.generator.impl;
 
 import com.google.common.collect.Range;
-import org.apache.shardingsphere.infra.metadata.database.schema.HashColumn;
+import org.apache.shardingsphere.sharding.route.engine.condition.Column;
 import org.apache.shardingsphere.sharding.route.engine.condition.ExpressionConditionUtils;
 import org.apache.shardingsphere.sharding.route.engine.condition.generator.ConditionValue;
 import org.apache.shardingsphere.sharding.route.engine.condition.generator.ConditionValueGenerator;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.RangeShardingConditionValue;
 import org.apache.shardingsphere.sharding.route.engine.condition.value.ShardingConditionValue;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.BetweenExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.util.SafeNumberOperationUtils;
-import org.apache.shardingsphere.timeservice.core.rule.TimestampServiceRule;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.BetweenExpression;
+import org.apache.shardingsphere.sql.parser.sql.common.util.SafeNumberOperationUtil;
+import org.apache.shardingsphere.timeservice.core.rule.TimeServiceRule;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +39,7 @@ import java.util.Optional;
 public final class ConditionValueBetweenOperatorGenerator implements ConditionValueGenerator<BetweenExpression> {
     
     @Override
-    public Optional<ShardingConditionValue> generate(final BetweenExpression predicate, final HashColumn column, final List<Object> params, final TimestampServiceRule timestampServiceRule) {
+    public Optional<ShardingConditionValue> generate(final BetweenExpression predicate, final Column column, final List<Object> params, final TimeServiceRule timeServiceRule) {
         ConditionValue betweenConditionValue = new ConditionValue(predicate.getBetweenExpr(), params);
         ConditionValue andConditionValue = new ConditionValue(predicate.getAndExpr(), params);
         Optional<Comparable<?>> betweenValue = betweenConditionValue.getValue();
@@ -48,15 +48,15 @@ public final class ConditionValueBetweenOperatorGenerator implements ConditionVa
         betweenConditionValue.getParameterMarkerIndex().ifPresent(parameterMarkerIndexes::add);
         andConditionValue.getParameterMarkerIndex().ifPresent(parameterMarkerIndexes::add);
         if (betweenValue.isPresent() && andValue.isPresent()) {
-            return Optional.of(new RangeShardingConditionValue<>(column.getName(), column.getTableName(), SafeNumberOperationUtils.safeClosed(betweenValue.get(), andValue.get()),
+            return Optional.of(new RangeShardingConditionValue<>(column.getName(), column.getTableName(), SafeNumberOperationUtil.safeClosed(betweenValue.get(), andValue.get()),
                     parameterMarkerIndexes));
         }
-        Timestamp timestamp = timestampServiceRule.getTimestamp();
+        Date datetime = timeServiceRule.getDatetime();
         if (!betweenValue.isPresent() && ExpressionConditionUtils.isNowExpression(predicate.getBetweenExpr())) {
-            betweenValue = Optional.of(timestamp);
+            betweenValue = Optional.of(datetime);
         }
         if (!andValue.isPresent() && ExpressionConditionUtils.isNowExpression(predicate.getAndExpr())) {
-            andValue = Optional.of(timestamp);
+            andValue = Optional.of(datetime);
         }
         if (!betweenValue.isPresent() || !andValue.isPresent()) {
             return Optional.empty();

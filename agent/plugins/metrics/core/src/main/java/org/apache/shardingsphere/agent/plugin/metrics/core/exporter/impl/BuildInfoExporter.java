@@ -40,7 +40,7 @@ public final class BuildInfoExporter implements MetricsExporter {
     public Optional<GaugeMetricFamilyMetricsCollector> export(final String pluginType) {
         GaugeMetricFamilyMetricsCollector result = MetricsCollectorRegistry.get(config, pluginType);
         result.cleanMetrics();
-        result.addMetric(Arrays.asList("ShardingSphere", ShardingSphereVersion.VERSION), 1D);
+        result.addMetric(Arrays.asList("ShardingSphere", ShardingSphereVersion.VERSION), 1d);
         return Optional.of(result);
     }
 }

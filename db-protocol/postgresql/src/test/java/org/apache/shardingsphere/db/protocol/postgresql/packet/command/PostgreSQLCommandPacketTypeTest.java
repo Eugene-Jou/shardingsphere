@@ -23,15 +23,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PostgreSQLCommandPacketTypeTest {
+public final class PostgreSQLCommandPacketTypeTest {
     
     @Test
-    void assertValueOfUnknownCommandPacketType() {
+    public void assertValueOfUnknownCommandPacketType() {
         assertThrows(PostgreSQLProtocolException.class, () -> PostgreSQLCommandPacketType.valueOf(-1));
     }
     
     @Test
-    void assertValueOfExtendedProtocolCommandPacketType() {
+    public void assertValueOfExtendedProtocolCommandPacketType() {
         assertTrue(PostgreSQLCommandPacketType.isExtendedProtocolPacketType(PostgreSQLCommandPacketType.PARSE_COMMAND));
         assertTrue(PostgreSQLCommandPacketType.isExtendedProtocolPacketType(PostgreSQLCommandPacketType.BIND_COMMAND));
         assertTrue(PostgreSQLCommandPacketType.isExtendedProtocolPacketType(PostgreSQLCommandPacketType.DESCRIBE_COMMAND));

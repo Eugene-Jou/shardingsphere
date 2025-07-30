@@ -20,23 +20,44 @@ package org.apache.shardingsphere.proxy.backend.session.transaction;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.transaction.api.TransactionType;
+import org.apache.shardingsphere.transaction.exception.SwitchTypeInTransactionException;
 
 /**
  * Transaction status.
  */
-@Setter
 @Getter
 public final class TransactionStatus {
     
+    @Setter
     private volatile boolean inTransaction;
+    
+    private volatile TransactionType transactionType;
+    
+    @Setter
+    private volatile boolean rollbackOnly;
+    
+    public TransactionStatus(final TransactionType initialTransactionType) {
+        transactionType = initialTransactionType;
+    }
+    
+    /**
+     * Change transaction type of current channel.
+     *
+     * @param transactionType transaction type
+     */
+    public void setTransactionType(final TransactionType transactionType) {
+        if (inTransaction) {
+            throw new SwitchTypeInTransactionException();
+        }
+        this.transactionType = transactionType;
+    }
     
     /**
      * Judge whether in connection held transaction.
-     *
-     * @param transactionType transaction type
+     * 
      * @return is in connection held transaction or not
      */
-    public boolean isInConnectionHeldTransaction(final TransactionType transactionType) {
+    public boolean isInConnectionHeldTransaction() {
         return inTransaction && TransactionType.BASE != transactionType;
     }
 }

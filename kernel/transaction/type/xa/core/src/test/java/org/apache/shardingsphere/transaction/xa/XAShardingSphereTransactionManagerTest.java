@@ -20,8 +20,8 @@ package org.apache.shardingsphere.transaction.xa;
 import com.atomikos.jdbc.AtomikosDataSourceBean;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.SneakyThrows;
-import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
-import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
+import org.apache.shardingsphere.infra.util.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.transaction.api.TransactionType;
 import org.apache.shardingsphere.transaction.xa.fixture.DataSourceUtils;
 import org.apache.shardingsphere.transaction.xa.jta.datasource.XATransactionDataSource;
@@ -43,35 +43,35 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class XAShardingSphereTransactionManagerTest {
+public final class XAShardingSphereTransactionManagerTest {
     
     private final XAShardingSphereTransactionManager xaTransactionManager = new XAShardingSphereTransactionManager();
     
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         Map<String, DataSource> dataSources = createDataSources(TypedSPILoader.getService(DatabaseType.class, "H2"));
         Map<String, DatabaseType> databaseTypes = createDatabaseTypes(TypedSPILoader.getService(DatabaseType.class, "H2"));
         xaTransactionManager.init(databaseTypes, dataSources, "Atomikos");
     }
     
     @AfterEach
-    void tearDown() {
+    public void tearDown() throws Exception {
         xaTransactionManager.close();
     }
     
     @Test
-    void assertGetTransactionType() {
+    public void assertGetTransactionType() {
         assertThat(xaTransactionManager.getTransactionType(), is(TransactionType.XA));
     }
     
     @Test
-    void assertRegisterXADataSource() {
+    public void assertRegisterXADataSource() {
         Map<String, XATransactionDataSource> cachedXADataSourceMap = getCachedDataSources();
         assertThat(cachedXADataSourceMap.size(), is(3));
     }
     
     @Test
-    void assertIsInTransaction() {
+    public void assertIsInTransaction() {
         assertFalse(xaTransactionManager.isInTransaction());
         xaTransactionManager.begin();
         assertTrue(xaTransactionManager.isInTransaction());
@@ -79,7 +79,7 @@ class XAShardingSphereTransactionManagerTest {
     }
     
     @Test
-    void assertGetConnection() throws SQLException {
+    public void assertGetConnection() throws SQLException {
         xaTransactionManager.begin();
         Connection actual1 = xaTransactionManager.getConnection("sharding_db", "ds_0");
         Connection actual2 = xaTransactionManager.getConnection("sharding_db", "ds_1");
@@ -91,7 +91,7 @@ class XAShardingSphereTransactionManagerTest {
     }
     
     @Test
-    void assertGetConnectionOfNestedTransaction() throws SQLException {
+    public void assertGetConnectionOfNestedTransaction() throws SQLException {
         ThreadLocal<Map<Transaction, Connection>> transactions = getEnlistedTransactions(getCachedDataSources().get("sharding_db.ds_1"));
         xaTransactionManager.begin();
         assertTrue(transactions.get().isEmpty());
@@ -112,14 +112,14 @@ class XAShardingSphereTransactionManagerTest {
     }
     
     @Test
-    void assertClose() {
+    public void assertClose() throws Exception {
         xaTransactionManager.close();
         Map<String, XATransactionDataSource> cachedSingleXADataSourceMap = getCachedDataSources();
         assertTrue(cachedSingleXADataSourceMap.isEmpty());
     }
     
     @Test
-    void assertCommit() {
+    public void assertCommit() {
         xaTransactionManager.begin();
         assertTrue(xaTransactionManager.isInTransaction());
         xaTransactionManager.commit(false);
@@ -127,7 +127,7 @@ class XAShardingSphereTransactionManagerTest {
     }
     
     @Test
-    void assertRollback() {
+    public void assertRollback() {
         xaTransactionManager.begin();
         assertTrue(xaTransactionManager.isInTransaction());
         xaTransactionManager.rollback();
@@ -137,17 +137,17 @@ class XAShardingSphereTransactionManagerTest {
     @SneakyThrows(ReflectiveOperationException.class)
     @SuppressWarnings("unchecked")
     private Map<String, XATransactionDataSource> getCachedDataSources() {
-        return (Map<String, XATransactionDataSource>) Plugins.getMemberAccessor().get(XAShardingSphereTransactionManager.class.getDeclaredField("cachedDataSources"), xaTransactionManager);
+        return (Map<String, XATransactionDataSource>) Plugins.getMemberAccessor().get(xaTransactionManager.getClass().getDeclaredField("cachedDataSources"), xaTransactionManager);
     }
     
     @SneakyThrows(ReflectiveOperationException.class)
     @SuppressWarnings("unchecked")
     private ThreadLocal<Map<Transaction, Connection>> getEnlistedTransactions(final XATransactionDataSource transactionDataSource) {
-        return (ThreadLocal<Map<Transaction, Connection>>) Plugins.getMemberAccessor().get(XATransactionDataSource.class.getDeclaredField("enlistedTransactions"), transactionDataSource);
+        return (ThreadLocal<Map<Transaction, Connection>>) Plugins.getMemberAccessor().get(transactionDataSource.getClass().getDeclaredField("enlistedTransactions"), transactionDataSource);
     }
     
     private Map<String, DataSource> createDataSources(final DatabaseType databaseType) {
-        Map<String, DataSource> result = new LinkedHashMap<>(3, 1F);
+        Map<String, DataSource> result = new LinkedHashMap<>(3, 1);
         result.put("sharding_db.ds_0", DataSourceUtils.build(HikariDataSource.class, databaseType, "demo_ds_0"));
         result.put("sharding_db.ds_1", DataSourceUtils.build(HikariDataSource.class, databaseType, "demo_ds_1"));
         result.put("sharding_db.ds_2", DataSourceUtils.build(AtomikosDataSourceBean.class, databaseType, "demo_ds_2"));
@@ -155,7 +155,7 @@ class XAShardingSphereTransactionManagerTest {
     }
     
     private Map<String, DatabaseType> createDatabaseTypes(final DatabaseType databaseType) {
-        Map<String, DatabaseType> result = new LinkedHashMap<>(3, 1F);
+        Map<String, DatabaseType> result = new LinkedHashMap<>(3, 1);
         result.put("sharding_db.ds_0", databaseType);
         result.put("sharding_db.ds_1", databaseType);
         result.put("sharding_db.ds_2", databaseType);

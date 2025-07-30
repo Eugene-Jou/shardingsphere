@@ -37,7 +37,7 @@ public final class PostgreSQLStatementMemoryStrictlyFetchSizeSetter implements S
     }
     
     @Override
-    public String getDatabaseType() {
+    public String getType() {
         return "PostgreSQL";
     }
 }

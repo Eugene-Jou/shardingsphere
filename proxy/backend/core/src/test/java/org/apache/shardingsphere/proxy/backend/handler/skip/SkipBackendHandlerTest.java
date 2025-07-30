@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-class SkipBackendHandlerTest {
+public final class SkipBackendHandlerTest {
     
     @Test
-    void assertExecuteSkipBackendHandler() {
+    public void assertExecuteSkipBackendHandler() {
         SkipBackendHandler skipBackendHandler = new SkipBackendHandler(null);
         ResponseHeader actual = skipBackendHandler.execute();
         assertThat(actual, instanceOf(UpdateResponseHeader.class));

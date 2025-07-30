@@ -24,11 +24,9 @@ import lombok.Setter;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.PostgreSQLPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.PostgreSQLParameterDescriptionPacket;
 import org.apache.shardingsphere.db.protocol.postgresql.packet.command.query.extended.PostgreSQLColumnType;
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
-import org.apache.shardingsphere.infra.hint.HintValueContext;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
 import org.apache.shardingsphere.proxy.backend.session.ServerPreparedStatement;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,13 +40,9 @@ public final class PostgreSQLServerPreparedStatement implements ServerPreparedSt
     
     private final String sql;
     
-    private final SQLStatementContext sqlStatementContext;
-    
-    private final HintValueContext hintValueContext;
+    private final SQLStatementContext<?> sqlStatementContext;
     
     private final List<PostgreSQLColumnType> parameterTypes;
-    
-    private final List<Integer> actualParameterMarkerIndexes;
     
     @Getter(AccessLevel.NONE)
     private PostgreSQLPacket rowDescription;
@@ -64,26 +58,10 @@ public final class PostgreSQLServerPreparedStatement implements ServerPreparedSt
     
     /**
      * Describe rows of the prepared statement.
-     *
+     * 
      * @return packet of row description
      */
     public Optional<PostgreSQLPacket> describeRows() {
         return Optional.ofNullable(rowDescription);
-    }
-    
-    /**
-     * Adjust parameters order.
-     * @param parameters parameters in pg marker index order
-     * @return parameters in jdbc style marker index order
-     */
-    public List<Object> adjustParametersOrder(final List<Object> parameters) {
-        if (parameters.isEmpty()) {
-            return parameters;
-        }
-        List<Object> result = new ArrayList<>(parameters.size());
-        for (int each : actualParameterMarkerIndexes) {
-            result.add(parameters.get(each));
-        }
-        return result;
     }
 }
